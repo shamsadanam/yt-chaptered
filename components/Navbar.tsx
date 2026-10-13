@@ -8,10 +8,10 @@ interface NavbarProps {
 
 export function Navbar({ onReset, showReset, videoTitle }: NavbarProps) {
   return (
-    <header className="w-full border-b border-[#c5c0b1]/40 bg-[#fffefb]/90 backdrop-blur-sm sticky top-0 z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-[12px] bg-[#ff4f00] flex items-center justify-center text-[#fffefb] shrink-0 font-bold text-lg shadow-sm">
+    <header className="w-full border-b border-[#c5c0b1]/40 bg-[#fffefb]/95 backdrop-blur-md sticky top-0 z-30">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-[12px] bg-[#ff4f00] flex items-center justify-center text-[#fffefb] shrink-0 font-bold text-base sm:text-lg shadow-xs">
             ▶
           </div>
           <div className="min-w-0">
@@ -19,7 +19,7 @@ export function Navbar({ onReset, showReset, videoTitle }: NavbarProps) {
               Chaptered
             </span>
             {videoTitle && (
-              <span className="text-xs text-[#605d52] truncate block max-w-xs sm:max-w-md md:max-w-xl">
+              <span className="text-[11px] sm:text-xs text-[#605d52] truncate block max-w-[160px] xs:max-w-[220px] sm:max-w-md md:max-w-xl">
                 {videoTitle}
               </span>
             )}
@@ -30,7 +30,7 @@ export function Navbar({ onReset, showReset, videoTitle }: NavbarProps) {
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#201515] bg-[#f8f4f0] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#ff4f00] focus:ring-offset-2 min-h-[44px]"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-[#201515] bg-[#f8f4f0] active:bg-[#e7e2d7] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[10px] sm:rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#ff4f00] min-h-[48px] touch-manipulation cursor-pointer shrink-0"
           >
             <svg
               className="w-4 h-4 text-[#605d52]"
@@ -45,7 +45,8 @@ export function Navbar({ onReset, showReset, videoTitle }: NavbarProps) {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            <span>Load Another Video</span>
+            <span className="hidden xs:inline">Load Another</span>
+            <span className="xs:hidden">New</span>
           </button>
         )}
       </div>

@@ -29,6 +29,11 @@
   --foreground: #201515;
 }
 
+html, body {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background-color: #fffefb;
   color: #201515;

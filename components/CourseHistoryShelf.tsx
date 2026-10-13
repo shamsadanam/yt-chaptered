@@ -71,11 +71,11 @@ export function CourseHistoryShelf({
   };
 
   return (
-    <div className="w-full mt-12 pt-8 border-t border-[#c5c0b1]/60">
+    <div className="w-full mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#c5c0b1]/60">
       {/* Header & Export/Import Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-medium text-[#201515] tracking-tight">
+          <h2 className="text-lg sm:text-2xl font-medium text-[#201515] tracking-tight">
             Saved Courses & History
           </h2>
           <p className="text-xs sm:text-sm text-[#605d52]">
@@ -88,7 +88,7 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#201515] bg-[#fffefb] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[8px] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#201515] bg-[#fffefb] active:bg-[#e7e2d7] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation"
             title="Download JSON backup"
           >
             <svg className="w-3.5 h-3.5 text-[#605d52]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +101,7 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#201515] bg-[#fffefb] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[8px] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#201515] bg-[#fffefb] active:bg-[#e7e2d7] hover:bg-[#e7e2d7] border border-[#c5c0b1] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation"
             title="Import JSON backup"
           >
             <svg className="w-3.5 h-3.5 text-[#605d52]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={() => setImportStatus(null)}
-            className="text-[#939084] hover:text-[#201515] font-semibold text-xs ml-2"
+            className="text-[#939084] hover:text-[#201515] font-semibold text-xs ml-2 p-1"
           >
             ✕
           </button>
@@ -133,7 +133,7 @@ export function CourseHistoryShelf({
       )}
 
       {/* Course Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {courses.map((c) => {
           const completedCount = c.completedChapterIds?.length || 0;
           const totalChapters = c.chapters.length;
@@ -144,12 +144,12 @@ export function CourseHistoryShelf({
             <div
               key={c.video.id}
               onClick={() => onResumeCourse(c)}
-              className="group bg-[#f8f4f0] hover:bg-[#fffefb] border border-[#c5c0b1]/80 hover:border-[#ff4f00] rounded-[12px] p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between shadow-xs"
+              className="group bg-[#f8f4f0] hover:bg-[#fffefb] active:bg-[#fffefb] border border-[#c5c0b1]/80 hover:border-[#ff4f00] rounded-[12px] p-3 sm:p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between shadow-xs touch-manipulation active:scale-[0.99]"
             >
               <div>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2.5 sm:gap-3">
                   {/* Video Thumbnail */}
-                  <div className="w-24 h-16 bg-[#201515] rounded-[6px] overflow-hidden shrink-0 relative border border-[#c5c0b1]/60">
+                  <div className="w-20 h-14 sm:w-24 sm:h-16 bg-[#201515] rounded-[6px] overflow-hidden shrink-0 relative border border-[#c5c0b1]/60">
                     {c.video.thumbnailUrl ? (
                       <Image
                         src={c.video.thumbnailUrl}
@@ -164,7 +164,7 @@ export function CourseHistoryShelf({
                       </div>
                     )}
                     {c.lastPlayedSeconds > 0 && (
-                      <div className="absolute bottom-1 right-1 bg-[#201515]/90 text-[#fffefb] px-1 py-0.2 text-[10px] font-mono rounded">
+                      <div className="absolute bottom-0.5 right-0.5 bg-[#201515]/90 text-[#fffefb] px-1 py-0.2 text-[9px] sm:text-[10px] font-mono rounded">
                         {secondsToTimestamp(c.lastPlayedSeconds)}
                       </div>
                     )}
@@ -172,20 +172,20 @@ export function CourseHistoryShelf({
 
                   {/* Title & Channel */}
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-semibold text-[#201515] group-hover:text-[#ff4f00] transition-colors line-clamp-2 leading-tight">
+                    <h3 className="text-xs sm:text-sm font-semibold text-[#201515] group-hover:text-[#ff4f00] transition-colors line-clamp-2 leading-tight">
                       {c.video.title}
                     </h3>
                     {c.video.author && (
-                      <p className="text-xs text-[#605d52] truncate mt-1">{c.video.author}</p>
+                      <p className="text-[11px] sm:text-xs text-[#605d52] truncate mt-0.5 sm:mt-1">{c.video.author}</p>
                     )}
                   </div>
 
-                  {/* Delete button */}
+                  {/* Delete button with 44px tap zone */}
                   <button
                     type="button"
                     onClick={(e) => handleDelete(c.video.id, e)}
                     title="Remove course from saved list"
-                    className="text-[#939084] hover:text-[#ff4f00] p-1 -mr-1 -mt-1 rounded-[6px] transition-colors"
+                    className="w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-[#939084] hover:text-[#ff4f00] active:text-[#ff4f00] rounded-[6px] transition-colors touch-manipulation shrink-0"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -194,7 +194,7 @@ export function CourseHistoryShelf({
                 </div>
 
                 {/* Last Watched Segment */}
-                <div className="mt-3 text-xs text-[#605d52] flex items-center gap-1.5">
+                <div className="mt-2.5 sm:mt-3 text-[11px] sm:text-xs text-[#605d52] flex items-center gap-1.5">
                   <span className="font-medium text-[#201515]">Last at:</span>
                   <span className="truncate">
                     {lastChapter ? `Ch. ${c.lastPlayedChapterIndex + 1}: ${lastChapter.title}` : 'Start'}
@@ -203,9 +203,9 @@ export function CourseHistoryShelf({
               </div>
 
               {/* Progress Bar & Resume Button */}
-              <div className="mt-4 pt-3 border-t border-[#c5c0b1]/40 flex items-center justify-between gap-3">
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-[#c5c0b1]/40 flex items-center justify-between gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center justify-between text-[11px] text-[#605d52] mb-1">
+                  <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#605d52] mb-1">
                     <span>{completedCount}/{totalChapters} completed</span>
                     <span className="font-semibold text-[#201515] font-mono">{percentage}%</span>
                   </div>
