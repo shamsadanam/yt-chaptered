@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { secondsToTimestamp } from '../lib/youtubeParser';
@@ -9,6 +9,9 @@ import {
   getSavedCourse,
   updateCoursePlaybackProgress,
   toggleChapterCompletion,
+  subscribeCourses,
+  getCompletedChapterIdsSnapshot,
+  getCompletedChapterIdsServerSnapshot,
 } from '../lib/storage';
 
 interface PlaylistViewProps {
@@ -22,26 +25,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const activeItemRef = useRef<HTMLDivElement | null>(null);
 
   // Load initial completed state & last playback time
-  const [completedIds, setCompletedIds] = useState<string[]>(() => {
-    const existing = getSavedCourse(playlist.video.id);
-    return existing ? existing.completedChapterIds : [];
-  });
+  const completedIds = useSyncExternalStore(
+    subscribeCourses,
+    useCallback(() => getCompletedChapterIdsSnapshot(playlist.video.id), [playlist.video.id]),
+    getCompletedChapterIdsServerSnapshot
+  );
 
   const lastSaveTimeRef = useRef<number>(0);
 
   // Ensure course is registered in storage
   useEffect(() => {
+    const existing = getSavedCourse(playlist.video.id);
     const initialCourse: SavedCourse = {
       video: playlist.video,
       chapters: playlist.chapters,
       rawTimestampsText: playlist.rawTimestampsText || '',
-      completedChapterIds: completedIds,
+      completedChapterIds: existing?.completedChapterIds || [],
       lastPlayedChapterIndex: playlist.initialChapterIndex ?? 0,
       lastPlayedSeconds: playlist.initialStartTime ?? 0,
       updatedAt: Date.now(),
     };
     saveCourse(initialCourse);
-  }, [playlist, completedIds]);
+  }, [playlist]);
 
   // Periodic throttling to save playback timestamp
   const handleTimeUpdate = useCallback(
@@ -89,14 +94,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   const handleToggleComplete = (chapterId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = toggleChapterCompletion(playlist.video.id, chapterId);
-    if (updated) {
-      setCompletedIds([...updated.completedChapterIds]);
-    } else {
-      setCompletedIds((prev) =>
-        prev.includes(chapterId) ? prev.filter((id) => id !== chapterId) : [...prev, chapterId]
-      );
-    }
+    toggleChapterCompletion(playlist.video.id, chapterId);
   };
 
   const handlePreviousChapter = () => {
@@ -124,36 +122,36 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#605d52] hover:text-[#ff4f00] cursor-pointer min-h-[36px] touch-manipulation"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#57534e] hover:text-[#0d5c46] cursor-pointer min-h-[36px] touch-manipulation"
             >
               <span>← Back to URL input</span>
             </button>
-            <span className="text-xs text-[#c5c0b1]">•</span>
-            <span className="px-2 py-0.5 bg-[#f8f4f0] border border-[#c5c0b1]/60 rounded-[6px] text-xs font-semibold uppercase tracking-[1px] text-[#605d52]">
+            <span className="text-xs text-[#d6d3d1]">•</span>
+            <span className="px-2 py-0.5 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-xs font-semibold uppercase tracking-[1px] text-[#57534e]">
               Ch. {currentChapterIndex + 1} of {totalChapters}
             </span>
           </div>
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-[#201515] tracking-tight truncate">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-[#1c1917] tracking-tight truncate">
             {playlist.video.title}
           </h1>
           {playlist.video.author && (
-            <p className="text-xs sm:text-sm text-[#605d52] mt-0.5">By {playlist.video.author}</p>
+            <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">By {playlist.video.author}</p>
           )}
         </div>
 
         {/* Course Progress Card */}
-        <div className="bg-[#f8f4f0] border border-[#c5c0b1]/70 rounded-[12px] p-3 sm:p-4 shrink-0 min-w-full md:min-w-[240px] md:w-72">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#201515] mb-1.5">
+        <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-3 sm:p-4 shrink-0 min-w-full md:min-w-[240px] md:w-72 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#1c1917] mb-1.5">
             <span>Course Progress</span>
-            <span className="text-[#ff4f00] font-mono">{progressPercentage}%</span>
+            <span className="text-[#0d5c46] font-mono">{progressPercentage}%</span>
           </div>
-          <div className="w-full h-2 bg-[#e7e2d7] rounded-full overflow-hidden mb-1">
+          <div className="w-full h-2 bg-[#f5f5f4] rounded-full overflow-hidden mb-1">
             <div
-              className="h-full bg-[#ff4f00] transition-all duration-300 rounded-full"
+              className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <p className="text-[11px] text-[#605d52]">
+          <p className="text-[11px] text-[#57534e]">
             {completedCount} of {totalChapters} chapters completed
           </p>
         </div>
@@ -162,22 +160,22 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       {/* Responsive Layout: Sticky video on mobile, 2-column on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
         {/* Left Column: Video Player & Control Panel (Sticky on mobile) */}
-        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3 sm:gap-4 sticky top-14 sm:static z-20 bg-[#fffefb] pt-1 pb-2 sm:py-0 border-b lg:border-b-0 border-[#c5c0b1]/30">
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3 sm:gap-4 sticky top-14 sm:static z-20 bg-[#fafaf9] pt-1 pb-2 sm:py-0 border-b lg:border-b-0 border-[#e7e5e4]">
           {/* 16:9 Video Embed Container */}
-          <div className="relative w-full aspect-video bg-[#201515] rounded-[10px] sm:rounded-[12px] overflow-hidden shadow-xs border border-[#c5c0b1]/40">
+          <div className="relative w-full aspect-video bg-[#000000] rounded-[10px] sm:rounded-[12px] overflow-hidden shadow-xs border border-[#e7e5e4]">
             <div id={containerId} className="w-full h-full" />
             {!isReady && !playerError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#201515] text-[#fffefb] gap-3">
-                <svg className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-[#ff4f00]" fill="none" viewBox="0 0 24 24">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917] text-[#ffffff] gap-3">
+                <svg className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-[#10b981]" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span className="text-xs sm:text-sm font-medium text-[#fffefb]/80">Loading YouTube Player...</span>
+                <span className="text-xs sm:text-sm font-medium text-[#ffffff]/80">Loading YouTube Player...</span>
               </div>
             )}
             {playerError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#201515]/95 text-[#fffefb] p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
-                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#ff4f00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917]/95 text-[#ffffff] p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <p className="text-xs sm:text-sm font-semibold max-w-md">{playerError}</p>
@@ -185,7 +183,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-[#ff4f00] hover:bg-[#e04500] text-[#fffefb] text-xs font-semibold rounded-[6px] transition-colors min-h-[44px] touch-manipulation"
+                  className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-[#0d5c46] hover:bg-[#0a4635] text-white text-xs font-semibold rounded-[6px] transition-colors min-h-[44px] touch-manipulation"
                 >
                   <span>Open directly on YouTube</span>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,16 +195,16 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           </div>
 
           {/* Quick Playback Bar */}
-          <div className="bg-[#f8f4f0] border border-[#c5c0b1]/60 rounded-[10px] sm:rounded-[12px] p-2.5 sm:p-4 flex items-center justify-between gap-3">
+          <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] p-2.5 sm:p-4 flex items-center justify-between gap-3 shadow-xs">
             {/* Current Chapter Info */}
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.5px] text-[#ff4f00] block">
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.5px] text-[#0d5c46] block">
                 Current
               </span>
-              <p className="font-semibold text-xs sm:text-base text-[#201515] truncate">
+              <p className="font-semibold text-xs sm:text-base text-[#1c1917] truncate">
                 {activeChapter ? activeChapter.title : 'Playing'}
               </p>
-              <p className="text-[11px] sm:text-xs text-[#605d52] font-mono mt-0.5">
+              <p className="text-[11px] sm:text-xs text-[#57534e] font-mono mt-0.5">
                 {secondsToTimestamp(Math.floor(currentTime))} / {secondsToTimestamp(Math.floor(duration))}
               </p>
             </div>
@@ -218,7 +216,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 onClick={handlePreviousChapter}
                 disabled={currentChapterIndex <= 0}
                 title="Previous Chapter"
-                className="w-11 h-11 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-[10px] sm:rounded-[12px] bg-[#fffefb] active:bg-[#e7e2d7] border border-[#c5c0b1] text-[#201515] hover:bg-[#e7e2d7] disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
+                className="w-11 h-11 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-[10px] sm:rounded-[12px] bg-[#fafaf9] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] hover:bg-[#f5f5f4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -229,7 +227,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 type="button"
                 onClick={isPlaying ? pause : play}
                 title={isPlaying ? 'Pause' : 'Play'}
-                className="min-h-[44px] min-w-[76px] sm:min-w-[88px] px-3 sm:px-4 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-[10px] sm:rounded-[12px] bg-[#ff4f00] active:bg-[#e04500] hover:bg-[#e04500] text-[#fffefb] font-medium text-xs sm:text-sm transition-colors shadow-xs touch-manipulation cursor-pointer"
+                className="min-h-[44px] min-w-[76px] sm:min-w-[88px] px-3 sm:px-4 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-[10px] sm:rounded-[12px] bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm transition-colors shadow-xs touch-manipulation cursor-pointer"
               >
                 {isPlaying ? (
                   <>
@@ -253,7 +251,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 onClick={handleNextChapter}
                 disabled={currentChapterIndex >= playlist.chapters.length - 1}
                 title="Next Chapter"
-                className="w-11 h-11 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-[10px] sm:rounded-[12px] bg-[#fffefb] active:bg-[#e7e2d7] border border-[#c5c0b1] text-[#201515] hover:bg-[#e7e2d7] disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
+                className="w-11 h-11 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-[10px] sm:rounded-[12px] bg-[#fafaf9] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] hover:bg-[#f5f5f4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
@@ -264,16 +262,16 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         </div>
 
         {/* Right Column: Interactive Playlist Sidebar */}
-        <div className="lg:col-span-5 xl:col-span-4 bg-[#f8f4f0] border border-[#c5c0b1]/80 rounded-[12px] overflow-hidden flex flex-col shadow-xs lg:max-h-[750px]">
+        <div className="lg:col-span-5 xl:col-span-4 bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] overflow-hidden flex flex-col shadow-xs lg:max-h-[750px]">
           {/* Sidebar Header */}
-          <div className="p-3 sm:p-4 border-b border-[#c5c0b1]/60 bg-[#fffefb] flex items-center justify-between">
+          <div className="p-3 sm:p-4 border-b border-[#e7e5e4] bg-[#fafaf9] flex items-center justify-between">
             <div>
-              <h2 className="text-sm sm:text-base font-semibold text-[#201515]">Course Chapters</h2>
-              <p className="text-[11px] sm:text-xs text-[#605d52]">
+              <h2 className="text-sm sm:text-base font-semibold text-[#1c1917]">Course Chapters</h2>
+              <p className="text-[11px] sm:text-xs text-[#57534e]">
                 {completedCount} of {totalChapters} completed
               </p>
             </div>
-            <span className="text-[11px] sm:text-xs font-mono font-medium text-[#605d52] px-2 py-0.5 sm:py-1 bg-[#f8f4f0] border border-[#c5c0b1] rounded-[6px]">
+            <span className="text-[11px] sm:text-xs font-mono font-medium text-[#57534e] px-2 py-0.5 sm:py-1 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px]">
               Auto-advancing
             </span>
           </div>
@@ -281,7 +279,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           {/* Interactive Chapter List with 48px+ touch targets */}
           <div
             ref={sidebarListRef}
-            className="overflow-y-auto p-1.5 sm:p-2 divide-y divide-[#c5c0b1]/30 max-h-[500px] sm:max-h-[600px] flex-1"
+            className="overflow-y-auto p-1.5 sm:p-2 divide-y divide-[#e7e5e4] max-h-[500px] sm:max-h-[600px] flex-1"
           >
             {playlist.chapters.map((chap, idx) => {
               const isActive = idx === currentChapterIndex;
@@ -294,8 +292,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => seekToChapter(idx)}
                   className={`w-full text-left p-2.5 sm:p-3 rounded-[8px] transition-all flex items-center gap-2.5 sm:gap-3 my-0.5 cursor-pointer min-h-[52px] touch-manipulation active:scale-[0.99] ${
                     isActive
-                      ? 'bg-[#fffefb] border border-[#ff4f00] shadow-xs'
-                      : 'hover:bg-[#fffefb]/70 border border-transparent'
+                      ? 'bg-[#f5f5f4] border border-[#0d5c46] shadow-xs'
+                      : 'hover:bg-[#fafaf9] border border-transparent'
                   }`}
                 >
                   {/* Manual Completion Checkbox with full 48px touch zone */}
@@ -307,8 +305,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     <div
                       className={`w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors ${
                         isCompleted
-                          ? 'bg-[#ff4f00] border-[#ff4f00] text-[#fffefb]'
-                          : 'bg-[#fffefb] border-[#c5c0b1] hover:border-[#939084]'
+                          ? 'bg-[#0d5c46] border-[#0d5c46] text-white'
+                          : 'bg-[#ffffff] border-[#d6d3d1] hover:border-[#a8a29e]'
                       }`}
                     >
                       {isCompleted && (
@@ -323,10 +321,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   <div
                     className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-[6px] text-xs font-semibold flex items-center justify-center transition-colors ${
                       isActive
-                        ? 'bg-[#ff4f00] text-[#fffefb]'
+                        ? 'bg-[#0d5c46] text-white'
                         : isCompleted
-                        ? 'bg-[#e7e2d7] text-[#605d52]'
-                        : 'bg-[#e7e2d7] text-[#605d52]'
+                        ? 'bg-[#f5f5f4] text-[#57534e]'
+                        : 'bg-[#f5f5f4] text-[#57534e]'
                     }`}
                   >
                     {isActive ? (
@@ -340,7 +338,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-xs sm:text-sm leading-snug break-words transition-opacity line-clamp-2 ${
-                        isCompleted ? 'text-[#939084] line-through decoration-[#c5c0b1]' : 'text-[#201515]'
+                        isCompleted ? 'text-[#a8a29e] line-through decoration-[#d6d3d1]' : 'text-[#1c1917]'
                       } ${isActive ? 'font-semibold' : 'font-normal'}`}
                     >
                       {chap.title}
@@ -349,19 +347,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       <span
                         className={`text-[11px] sm:text-xs font-mono px-1.5 py-0.5 rounded-[4px] border ${
                           isActive
-                            ? 'bg-[#fffefb] border-[#ff4f00]/40 text-[#ff4f00] font-medium'
-                            : 'bg-[#fffefb] border-[#c5c0b1]/60 text-[#605d52]'
+                            ? 'bg-[#ffffff] border-[#0d5c46]/30 text-[#0d5c46] font-medium'
+                            : 'bg-[#ffffff] border-[#e7e5e4] text-[#57534e]'
                         }`}
                       >
                         {chap.formattedTime}
                       </span>
                       {isActive && (
-                        <span className="text-[10px] sm:text-[11px] font-medium text-[#ff4f00]">
+                        <span className="text-[10px] sm:text-[11px] font-medium text-[#0d5c46]">
                           Now playing
                         </span>
                       )}
                       {isCompleted && !isActive && (
-                        <span className="text-[10px] sm:text-[11px] font-medium text-[#605d52]">
+                        <span className="text-[10px] sm:text-[11px] font-medium text-[#57534e]">
                           Completed
                         </span>
                       )}

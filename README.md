@@ -1,4 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ytChaptered
+
+Local-first YouTube Chaptered Playlist Creator. Turn long, timestamped videos into structured interactive chapter playlists right in your browser.
+
+## Features
+
+- **Auto Timestamp Detection**: Paste any YouTube link to parse chapters from the video description automatically.
+- **Interactive Chapter Player**: Clean chapter list with progress tracking, auto-advancing, and manual chapter checkboxes.
+- **Local-first Persistence**: Saved courses, playback progress, and completion states stay private in browser `localStorage`.
+- **Import / Export**: Backup or restore your learning library with lightweight JSON files.
 
 ## Getting Started
 

@@ -1,24 +1,28 @@
 'use client';
-
-import { useState } from 'react';
+ 
+import { useState, useSyncExternalStore } from 'react';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
 import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
-import { getSavedCourses } from '../lib/storage';
+import {
+  subscribeCourses,
+  getSavedCoursesSnapshot,
+  getSavedCoursesServerSnapshot,
+} from '../lib/storage';
 
 export default function Home() {
   const [playlist, setPlaylist] = useState<ParsedPlaylist | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('create');
-  const [savedCourses, setSavedCourses] = useState<SavedCourse[]>(() => {
-    return getSavedCourses();
-  });
+  const savedCourses = useSyncExternalStore(
+    subscribeCourses,
+    getSavedCoursesSnapshot,
+    getSavedCoursesServerSnapshot
+  );
 
-  const handleRefreshCourses = () => {
-    setSavedCourses(getSavedCourses());
-  };
+  const handleRefreshCourses = () => {};
 
   const handleGenerate = (newPlaylist: ParsedPlaylist) => {
     setPlaylist(newPlaylist);
@@ -52,7 +56,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fffefb] text-[#201515] pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-[#fafaf9] text-[#1c1917] pb-16 md:pb-0">
       <Navbar
         onReset={handleReset}
         showReset={playlist !== null && activeTab === 'player'}
@@ -87,22 +91,22 @@ export default function Home() {
         <aside
           aria-label="Active video player"
           onClick={() => setActiveTab('player')}
-          className="md:hidden fixed bottom-[64px] left-3 right-3 z-40 bg-[#201515] text-[#fffefb] p-3 rounded-[12px] shadow-lg flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-transform touch-manipulation"
+          className="md:hidden fixed bottom-[64px] left-3 right-3 z-40 bg-[#1c1917] text-[#ffffff] p-3 rounded-[12px] shadow-lg flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-transform touch-manipulation"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-7 h-7 rounded-[6px] bg-[#ff4f00] flex items-center justify-center text-xs shrink-0 font-bold">
+            <span className="w-7 h-7 rounded-[6px] bg-[#0d5c46] flex items-center justify-center text-xs shrink-0 font-bold text-white">
               ▶
             </span>
             <div className="min-w-0">
-              <span className="text-[10px] text-[#ff4f00] font-semibold uppercase tracking-wider block">
+              <span className="text-[10px] text-[#10b981] font-semibold uppercase tracking-wider block">
                 Now Playing
               </span>
-              <p className="text-xs font-semibold truncate text-[#fffefb]">
+              <p className="text-xs font-semibold truncate text-[#ffffff]">
                 {playlist.video.title}
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-[#ff4f00] shrink-0 pr-1">
+          <span className="text-xs font-semibold text-[#10b981] shrink-0 pr-1">
             Open →
           </span>
         </aside>
@@ -116,8 +120,8 @@ export default function Home() {
         onTabChange={handleTabChange}
       />
 
-      <footer className="hidden md:block border-t border-[#c5c0b1]/30 py-6 px-4 text-center text-xs text-[#605d52]">
-        <p>Local-first YouTube Chaptered Playlist Creator • Runs in your browser without cloud tracking</p>
+      <footer className="hidden md:block border-t border-[#e7e5e4] py-6 px-4 text-center text-xs text-[#57534e]">
+        <p>ytChaptered • Local-first YouTube Chaptered Playlist Creator • Runs in your browser without cloud tracking</p>
       </footer>
     </div>
   );

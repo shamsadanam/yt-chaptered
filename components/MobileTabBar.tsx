@@ -16,7 +16,7 @@ export function MobileTabBar({
   return (
     <nav
       aria-label="Mobile navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#fffefb]/95 backdrop-blur-lg border-t border-[#c5c0b1]/60 px-2 py-1 shadow-lg"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#fafaf9]/95 backdrop-blur-lg border-t border-[#e7e5e4] px-2 py-1 shadow-lg"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
@@ -26,8 +26,8 @@ export function MobileTabBar({
           onClick={() => onTabChange('create')}
           className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[8px] min-h-[48px] touch-manipulation transition-colors ${
             activeTab === 'create'
-              ? 'text-[#ff4f00]'
-              : 'text-[#605d52] active:text-[#201515]'
+              ? 'text-[#0d5c46]'
+              : 'text-[#57534e] active:text-[#1c1917]'
           }`}
         >
           <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,10 +43,10 @@ export function MobileTabBar({
           disabled={!hasActivePlaylist}
           className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[8px] min-h-[48px] touch-manipulation transition-colors relative ${
             !hasActivePlaylist
-              ? 'opacity-40 cursor-not-allowed text-[#939084]'
+              ? 'opacity-40 cursor-not-allowed text-[#a8a29e]'
               : activeTab === 'player'
-              ? 'text-[#ff4f00]'
-              : 'text-[#605d52] active:text-[#201515]'
+              ? 'text-[#0d5c46]'
+              : 'text-[#57534e] active:text-[#1c1917]'
           }`}
           title={hasActivePlaylist ? activePlaylistTitle || 'Now Playing' : 'No video currently playing'}
         >
@@ -56,7 +56,7 @@ export function MobileTabBar({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {hasActivePlaylist && activeTab !== 'player' && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#ff4f00] rounded-full animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#10b981] rounded-full animate-pulse" />
             )}
           </div>
           <span className="text-[11px] font-semibold tracking-tight">Playing</span>
@@ -68,8 +68,8 @@ export function MobileTabBar({
           onClick={() => onTabChange('history')}
           className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[8px] min-h-[48px] touch-manipulation transition-colors ${
             activeTab === 'history'
-              ? 'text-[#ff4f00]'
-              : 'text-[#605d52] active:text-[#201515]'
+              ? 'text-[#0d5c46]'
+              : 'text-[#57534e] active:text-[#1c1917]'
           }`}
         >
           <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

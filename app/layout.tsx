@@ -9,18 +9,18 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#fffefb",
+  themeColor: "#0d5c46",
   width: "device-width",
   initialScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "YouTube Timestamped Playlist Creator",
+  title: "ytChaptered — YouTube Timestamped Chapter Playlist Creator",
   description: "Turn long, timestamped YouTube videos into an interactive chaptered playlist.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Chaptered",
+    title: "ytChaptered",
   },
 };
 
@@ -31,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#fffefb] text-[#201515]">
+      <body className="min-h-full flex flex-col bg-[#fafaf9] text-[#1c1917]">
         {children}
       </body>
     </html>

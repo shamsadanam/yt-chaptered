@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import {
   extractYouTubeId,
   parseTimestamps,
 } from '../lib/youtubeParser';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
-import { getSavedCourses } from '../lib/storage';
+import {
+  subscribeCourses,
+  getSavedCoursesSnapshot,
+  getSavedCoursesServerSnapshot,
+} from '../lib/storage';
 import { CourseHistoryShelf } from './CourseHistoryShelf';
 
 interface InputViewProps {
@@ -45,13 +49,13 @@ export function InputView({ onGenerate }: InputViewProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Saved courses list from localStorage
-  const [savedCourses, setSavedCourses] = useState<SavedCourse[]>(() => {
-    return getSavedCourses();
-  });
+  const savedCourses = useSyncExternalStore(
+    subscribeCourses,
+    getSavedCoursesSnapshot,
+    getSavedCoursesServerSnapshot
+  );
 
-  const handleRefreshCourses = () => {
-    setSavedCourses(getSavedCourses());
-  };
+  const handleRefreshCourses = () => {};
 
   const handleResumeCourse = (course: SavedCourse) => {
     const playlist: ParsedPlaylist = {
@@ -199,31 +203,31 @@ export function InputView({ onGenerate }: InputViewProps) {
     <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-12">
       {/* Hero Header */}
       <div className="text-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#f8f4f0] border border-[#c5c0b1]/60 rounded-[6px] text-[11px] sm:text-xs font-semibold uppercase tracking-[1px] text-[#605d52] mb-3 sm:mb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-[11px] sm:text-xs font-semibold uppercase tracking-[1px] text-[#57534e] mb-3 sm:mb-4">
           Local-first video chapters
         </div>
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[#201515] tracking-tight mb-2 sm:mb-4">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[#1c1917] tracking-tight mb-2 sm:mb-4">
           Turn timestamped videos into structured playlists
         </h1>
-        <p className="text-sm sm:text-lg text-[#605d52] max-w-xl mx-auto leading-relaxed">
+        <p className="text-sm sm:text-lg text-[#57534e] max-w-xl mx-auto leading-relaxed">
           Paste any YouTube URL to automatically detect chapters, navigate segments, and track learning progress.
         </p>
       </div>
 
       {/* Main Input Card */}
-      <div className="bg-[#f8f4f0] border border-[#c5c0b1]/80 rounded-[12px] p-4 sm:p-8 shadow-xs">
+      <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-8 shadow-xs">
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* URL Input */}
           <div>
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-              <label htmlFor="yt-url" className="block text-xs sm:text-sm font-semibold text-[#201515]">
+              <label htmlFor="yt-url" className="block text-xs sm:text-sm font-semibold text-[#1c1917]">
                 YouTube Video URL
               </label>
               <button
                 type="button"
                 onClick={handleAutoFetchClick}
                 disabled={isLoading || !url.trim()}
-                className="text-xs font-medium text-[#ff4f00] hover:text-[#e04500] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 min-h-[36px] touch-manipulation"
+                className="text-xs font-semibold text-[#0d5c46] hover:text-[#0a4635] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 min-h-[36px] touch-manipulation"
               >
                 <span>⚡ Auto-detect</span>
               </button>
@@ -239,18 +243,18 @@ export function InputView({ onGenerate }: InputViewProps) {
                   setAutoFetchStatus(null);
                 }}
                 placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fffefb] border border-[#c5c0b1] rounded-[6px] text-[#201515] placeholder-[#939084] text-base focus:outline-none focus:ring-2 focus:ring-[#ff4f00] focus:border-[#ff4f00] transition-colors"
+                className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-[#e7e5e4] rounded-[6px] text-[#1c1917] placeholder-[#a8a29e] text-base focus:outline-none focus:ring-2 focus:ring-[#0d5c46] focus:border-[#0d5c46] transition-colors"
                 required
               />
             </div>
             {autoFetchStatus && (
-              <p className="mt-2 text-xs text-[#201515] bg-[#fffefb] border border-[#c5c0b1]/60 px-3 py-1.5 rounded-[6px] font-medium flex items-center gap-1.5">
-                <span className="text-[#ff4f00]">●</span>
+              <p className="mt-2 text-xs text-[#1c1917] bg-[#fafaf9] border border-[#e7e5e4] px-3 py-1.5 rounded-[6px] font-medium flex items-center gap-1.5">
+                <span className="text-[#10b981]">●</span>
                 {autoFetchStatus}
               </p>
             )}
             {errorMessage && (
-              <p className="mt-2 text-xs sm:text-sm text-[#ff4f00] font-medium flex items-center gap-1.5">
+              <p className="mt-2 text-xs sm:text-sm text-[#e11d48] font-medium flex items-center gap-1.5">
                 <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
@@ -262,21 +266,21 @@ export function InputView({ onGenerate }: InputViewProps) {
           {/* Description / Timestamps Area */}
           <div>
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-              <label htmlFor="yt-timestamps" className="text-xs sm:text-sm font-semibold text-[#201515]">
+              <label htmlFor="yt-timestamps" className="text-xs sm:text-sm font-semibold text-[#1c1917]">
                 Timestamps or Description
               </label>
               <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={loadSample}
-                  className="text-xs font-medium text-[#605d52] hover:text-[#ff4f00] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
+                  className="text-xs font-medium text-[#57534e] hover:text-[#0d5c46] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
                 >
                   Sample
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsExpandTimestamps(!isExpandTimestamps)}
-                  className="text-xs font-medium text-[#605d52] hover:text-[#201515] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
+                  className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
                 >
                   {isExpandTimestamps ? 'Collapse' : 'Manual paste'}
                 </button>
@@ -291,19 +295,19 @@ export function InputView({ onGenerate }: InputViewProps) {
                   value={timestampsText}
                   onChange={(e) => setTimestampsText(e.target.value)}
                   placeholder={`Optional (automatically detected if left blank):\n00:00 Intro\n03:15 Part 1: Concepts\n12:40 Part 2: Building\n45:00 Summary`}
-                  className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fffefb] border border-[#c5c0b1] rounded-[6px] text-[#201515] placeholder-[#939084] font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#ff4f00] focus:border-[#ff4f00] transition-colors"
+                  className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-[#e7e5e4] rounded-[6px] text-[#1c1917] placeholder-[#a8a29e] font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c46] focus:border-[#0d5c46] transition-colors"
                 />
-                <p className="text-[11px] sm:text-xs text-[#605d52]">
+                <p className="text-[11px] sm:text-xs text-[#57534e]">
                   Supports timestamps formatted as <span className="font-mono">0:00</span>, <span className="font-mono">00:00</span>, or <span className="font-mono">1:20:00</span>.
                 </p>
               </div>
             ) : (
               <div
                 onClick={() => setIsExpandTimestamps(true)}
-                className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fffefb]/60 border border-dashed border-[#c5c0b1] rounded-[6px] text-xs sm:text-sm text-[#605d52] cursor-pointer hover:bg-[#fffefb] hover:border-[#939084] transition-colors flex items-center justify-between touch-manipulation"
+                className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-dashed border-[#e7e5e4] rounded-[6px] text-xs sm:text-sm text-[#57534e] cursor-pointer hover:bg-[#ffffff] hover:border-[#a8a29e] transition-colors flex items-center justify-between touch-manipulation"
               >
                 <span>Chapters auto-load; tap to review or paste custom timestamps</span>
-                <span className="text-xs font-semibold text-[#ff4f00] shrink-0 ml-2">+ Expand</span>
+                <span className="text-xs font-semibold text-[#0d5c46] shrink-0 ml-2">+ Expand</span>
               </div>
             )}
           </div>
@@ -313,7 +317,7 @@ export function InputView({ onGenerate }: InputViewProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 inline-flex items-center justify-center gap-2 bg-[#ff4f00] active:bg-[#e04500] hover:bg-[#e04500] text-[#fffefb] font-semibold text-sm sm:text-base rounded-[12px] shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#ff4f00] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation active:scale-[0.99]"
+              className="w-full h-12 inline-flex items-center justify-center gap-2 bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-semibold text-sm sm:text-base rounded-[12px] shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#0d5c46] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation active:scale-[0.99]"
             >
               {isLoading ? (
                 <>
@@ -336,12 +340,12 @@ export function InputView({ onGenerate }: InputViewProps) {
         </form>
 
         {/* Informational Note on Playback Compatibility */}
-        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#c5c0b1]/40 flex items-start gap-2 text-[11px] sm:text-xs text-[#605d52]">
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#939084] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#e7e5e4] flex items-start gap-2 text-[11px] sm:text-xs text-[#57534e]">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="leading-relaxed">
-            <strong className="text-[#201515] font-medium">Playback Note:</strong> A few videos cannot be embedded if disabled by the creator or age/region-restricted. If auto-detection misses timestamps (e.g. in pinned comments), paste them above.
+            <strong className="text-[#1c1917] font-medium">Playback Note:</strong> A few videos cannot be embedded if disabled by the creator or age/region-restricted. If auto-detection misses timestamps (e.g. in pinned comments), paste them above.
           </p>
         </div>
       </div>
