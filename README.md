@@ -6,7 +6,7 @@ Local-first YouTube Chaptered Playlist Creator. Turn long, timestamped videos in
 
 - **Auto Timestamp Detection**: Paste any YouTube link to parse chapters from the video description automatically.
 - **Interactive Chapter Player**: Clean chapter list with progress tracking, auto-advancing, and manual chapter checkboxes.
-- **Local-first Persistence**: Saved courses, playback progress, and completion states stay private in browser `localStorage`.
+- **Local-first Persistence**: Saved courses, playback progress, and completion states stay private in browser `IndexedDB`.
 - **Import / Export**: Backup or restore your learning library with lightweight JSON files.
 
 ## Getting Started

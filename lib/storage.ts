@@ -1,6 +1,9 @@
 import { SavedCourse } from '../types/playlist';
 
-const STORAGE_KEY = 'yt_chaptered_courses_v2';
+const DB_NAME = 'yt_chaptered_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'courses';
+const LEGACY_STORAGE_KEY = 'yt_chaptered_courses_v2';
 const STORAGE_CHANGE_EVENT = 'yt_chaptered_courses_change';
 
 const listeners = new Set<() => void>();
@@ -12,49 +15,152 @@ function notifyListeners() {
   }
 }
 
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+function getDB(): Promise<IDBDatabase> {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('IndexedDB is unavailable in SSR'));
+  }
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: ['video', 'id'] });
+        }
+      };
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+  return dbPromise;
+}
+
+let memoryCoursesCache: SavedCourse[] = [];
+let isInitialized = false;
+let initPromise: Promise<void> | null = null;
+const emptyCourses: SavedCourse[] = [];
+
+async function idbGetAll(): Promise<SavedCourse[]> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => resolve((request.result as SavedCourse[]) || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function idbPut(course: SavedCourse): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.put(course);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function idbDelete(videoId: string): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.delete([videoId]);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function clearAllCourses(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  memoryCoursesCache = [];
+  notifyListeners();
+  try {
+    const db = await getDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.clear();
+  } catch (err) {
+    console.error('Failed to clear courses from IndexedDB:', err);
+  }
+}
+
+export function initStorage(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    try {
+      let courses = await idbGetAll();
+
+      // One-time automatic migration from legacy localStorage
+      try {
+        const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (legacyRaw) {
+          const parsedLegacy = JSON.parse(legacyRaw);
+          if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+            const courseMap = new Map<string, SavedCourse>();
+            courses.forEach((c) => courseMap.set(c.video.id, c));
+
+            for (const item of parsedLegacy) {
+              if (item?.video?.id && !courseMap.has(item.video.id)) {
+                await idbPut(item);
+                courseMap.set(item.video.id, item);
+              }
+            }
+            courses = Array.from(courseMap.values());
+          }
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        }
+      } catch (legacyErr) {
+        console.warn('Legacy localStorage migration notice:', legacyErr);
+      }
+
+      memoryCoursesCache = courses.sort((a, b) => b.updatedAt - a.updatedAt);
+      isInitialized = true;
+      notifyListeners();
+    } catch (err) {
+      console.error('Failed to initialize IndexedDB storage:', err);
+    }
+  })();
+
+  return initPromise;
+}
+
+if (typeof window !== 'undefined') {
+  initStorage();
+}
+
 export function subscribeCourses(callback: () => void): () => void {
   listeners.add(callback);
-  const handleStorage = (event: StorageEvent | Event) => {
-    if ('key' in event && event.key !== null && event.key !== STORAGE_KEY) return;
-    callback();
-  };
   if (typeof window !== 'undefined') {
-    window.addEventListener('storage', handleStorage);
+    if (!isInitialized) {
+      initStorage();
+    }
     window.addEventListener(STORAGE_CHANGE_EVENT, callback);
   }
   return () => {
     listeners.delete(callback);
     if (typeof window !== 'undefined') {
-      window.removeEventListener('storage', handleStorage);
       window.removeEventListener(STORAGE_CHANGE_EVENT, callback);
     }
   };
 }
 
-let cachedCoursesRaw: string | null = null;
-let cachedCoursesParsed: SavedCourse[] = [];
-const emptyCourses: SavedCourse[] = [];
-
 export function getSavedCoursesSnapshot(): SavedCourse[] {
   if (typeof window === 'undefined') return emptyCourses;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw !== cachedCoursesRaw) {
-      cachedCoursesRaw = raw;
-      if (!raw) {
-        cachedCoursesParsed = [];
-      } else {
-        const parsed = JSON.parse(raw);
-        cachedCoursesParsed = Array.isArray(parsed)
-          ? parsed.sort((a, b) => b.updatedAt - a.updatedAt)
-          : [];
-      }
-    }
-    return cachedCoursesParsed;
-  } catch (err) {
-    console.error('Failed to read saved courses snapshot:', err);
-    return cachedCoursesParsed;
-  }
+  return memoryCoursesCache;
 }
 
 export function getSavedCoursesServerSnapshot(): SavedCourse[] {
@@ -83,27 +189,26 @@ export function getCompletedChapterIdsServerSnapshot(): string[] {
 
 export function saveCourse(course: SavedCourse): void {
   if (typeof window === 'undefined') return;
-  try {
-    const courses = [...getSavedCourses()];
-    const existingIndex = courses.findIndex((c) => c.video.id === course.video.id);
+  const updatedCourse: SavedCourse = {
+    ...course,
+    updatedAt: Date.now(),
+  };
 
-    const updatedCourse = {
-      ...course,
-      updatedAt: Date.now(),
-    };
+  const nextCourses = [...memoryCoursesCache];
+  const existingIndex = nextCourses.findIndex((c) => c.video.id === course.video.id);
 
-    if (existingIndex >= 0) {
-      courses[existingIndex] = updatedCourse;
-    } else {
-      courses.unshift(updatedCourse);
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    cachedCoursesRaw = null;
-    notifyListeners();
-  } catch (err) {
-    console.error('Failed to save course to localStorage:', err);
+  if (existingIndex >= 0) {
+    nextCourses[existingIndex] = updatedCourse;
+  } else {
+    nextCourses.unshift(updatedCourse);
   }
+
+  memoryCoursesCache = nextCourses.sort((a, b) => b.updatedAt - a.updatedAt);
+  notifyListeners();
+
+  idbPut(updatedCourse).catch((err) => {
+    console.error('Failed to save course to IndexedDB:', err);
+  });
 }
 
 export function updateCoursePlaybackProgress(
@@ -112,56 +217,64 @@ export function updateCoursePlaybackProgress(
   lastPlayedSeconds: number
 ): void {
   if (typeof window === 'undefined') return;
-  try {
-    const courses = [...getSavedCourses()];
-    const course = courses.find((c) => c.video.id === videoId);
-    if (course) {
-      course.lastPlayedChapterIndex = lastPlayedChapterIndex;
-      course.lastPlayedSeconds = Math.max(0, Math.floor(lastPlayedSeconds));
-      course.updatedAt = Date.now();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-      cachedCoursesRaw = null;
-      notifyListeners();
-    }
-  } catch (err) {
-    console.error('Failed to update playback progress:', err);
-  }
+  const course = memoryCoursesCache.find((c) => c.video.id === videoId);
+  if (!course) return;
+
+  const updatedCourse: SavedCourse = {
+    ...course,
+    lastPlayedChapterIndex,
+    lastPlayedSeconds: Math.max(0, Math.floor(lastPlayedSeconds)),
+    updatedAt: Date.now(),
+  };
+
+  memoryCoursesCache = memoryCoursesCache
+    .map((c) => (c.video.id === videoId ? updatedCourse : c))
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+
+  notifyListeners();
+
+  idbPut(updatedCourse).catch((err) => {
+    console.error('Failed to update playback progress in IndexedDB:', err);
+  });
 }
 
 export function toggleChapterCompletion(videoId: string, chapterId: string): SavedCourse | null {
   if (typeof window === 'undefined') return null;
-  try {
-    const courses = [...getSavedCourses()];
-    const course = courses.find((c) => c.video.id === videoId);
-    if (course) {
-      const isCompleted = course.completedChapterIds.includes(chapterId);
-      if (isCompleted) {
-        course.completedChapterIds = course.completedChapterIds.filter((id) => id !== chapterId);
-      } else {
-        course.completedChapterIds = [...course.completedChapterIds, chapterId];
-      }
-      course.updatedAt = Date.now();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-      cachedCoursesRaw = null;
-      notifyListeners();
-      return course;
-    }
-  } catch (err) {
-    console.error('Failed to toggle chapter completion:', err);
-  }
-  return null;
+  const course = memoryCoursesCache.find((c) => c.video.id === videoId);
+  if (!course) return null;
+
+  const isCompleted = course.completedChapterIds.includes(chapterId);
+  const updatedCompletedIds = isCompleted
+    ? course.completedChapterIds.filter((id) => id !== chapterId)
+    : [...course.completedChapterIds, chapterId];
+
+  const updatedCourse: SavedCourse = {
+    ...course,
+    completedChapterIds: updatedCompletedIds,
+    updatedAt: Date.now(),
+  };
+
+  memoryCoursesCache = memoryCoursesCache
+    .map((c) => (c.video.id === videoId ? updatedCourse : c))
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+
+  notifyListeners();
+
+  idbPut(updatedCourse).catch((err) => {
+    console.error('Failed to toggle chapter completion in IndexedDB:', err);
+  });
+
+  return updatedCourse;
 }
 
 export function deleteSavedCourse(videoId: string): void {
   if (typeof window === 'undefined') return;
-  try {
-    const courses = getSavedCourses().filter((c) => c.video.id !== videoId);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    cachedCoursesRaw = null;
-    notifyListeners();
-  } catch (err) {
-    console.error('Failed to delete course from localStorage:', err);
-  }
+  memoryCoursesCache = memoryCoursesCache.filter((c) => c.video.id !== videoId);
+  notifyListeners();
+
+  idbDelete(videoId).catch((err) => {
+    console.error('Failed to delete course from IndexedDB:', err);
+  });
 }
 
 export function exportCoursesJson(): string {
@@ -177,17 +290,17 @@ export function importCoursesJson(jsonStr: string): { success: boolean; count: n
       return { success: false, count: 0, error: 'Imported file must contain an array of courses' };
     }
 
-    const currentCourses = getSavedCourses();
     const courseMap = new Map<string, SavedCourse>();
-
-    for (const c of currentCourses) {
+    for (const c of memoryCoursesCache) {
       courseMap.set(c.video.id, c);
     }
 
+    const itemsToSave: SavedCourse[] = [];
     let addedOrUpdated = 0;
+
     for (const item of parsed) {
       if (item && item.video && item.video.id && Array.isArray(item.chapters)) {
-        courseMap.set(item.video.id, {
+        const courseItem: SavedCourse = {
           video: item.video,
           chapters: item.chapters,
           rawTimestampsText: item.rawTimestampsText || '',
@@ -195,15 +308,19 @@ export function importCoursesJson(jsonStr: string): { success: boolean; count: n
           lastPlayedChapterIndex: typeof item.lastPlayedChapterIndex === 'number' ? item.lastPlayedChapterIndex : 0,
           lastPlayedSeconds: typeof item.lastPlayedSeconds === 'number' ? item.lastPlayedSeconds : 0,
           updatedAt: item.updatedAt || Date.now(),
-        });
+        };
+        courseMap.set(item.video.id, courseItem);
+        itemsToSave.push(courseItem);
         addedOrUpdated++;
       }
     }
 
-    const merged = Array.from(courseMap.values()).sort((a, b) => b.updatedAt - a.updatedAt);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-    cachedCoursesRaw = null;
+    memoryCoursesCache = Array.from(courseMap.values()).sort((a, b) => b.updatedAt - a.updatedAt);
     notifyListeners();
+
+    Promise.all(itemsToSave.map((course) => idbPut(course))).catch((err) => {
+      console.error('Failed to persist imported courses to IndexedDB:', err);
+    });
 
     return { success: true, count: addedOrUpdated };
   } catch (err) {

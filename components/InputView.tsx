@@ -48,7 +48,7 @@ export function InputView({ onGenerate }: InputViewProps) {
   const [autoFetchStatus, setAutoFetchStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Saved courses list from localStorage
+  // Saved courses list from IndexedDB
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
     getSavedCoursesSnapshot,
