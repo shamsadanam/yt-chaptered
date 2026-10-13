@@ -14,19 +14,19 @@ interface CourseHistoryShelfProps {
   courses: SavedCourse[];
   onResumeCourse: (course: SavedCourse) => void;
   onRefresh: () => void;
+  isStandaloneView?: boolean;
+  onGoToCreate?: () => void;
 }
 
 export function CourseHistoryShelf({
   courses,
   onResumeCourse,
   onRefresh,
+  isStandaloneView = false,
+  onGoToCreate,
 }: CourseHistoryShelfProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
-
-  if (courses.length === 0) {
-    return null;
-  }
 
   const handleDelete = (videoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -70,8 +70,33 @@ export function CourseHistoryShelf({
     }
   };
 
+  if (courses.length === 0) {
+    if (!isStandaloneView) return null;
+
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 py-8 text-center">
+        <div className="w-12 h-12 rounded-[12px] bg-[#f8f4f0] border border-[#c5c0b1] flex items-center justify-center text-[#605d52] mx-auto mb-3">
+          📚
+        </div>
+        <h2 className="text-xl font-medium text-[#201515] mb-2">No saved courses yet</h2>
+        <p className="text-sm text-[#605d52] max-w-sm mx-auto mb-6">
+          Paste any YouTube URL in the Create tab to generate a chaptered course and track your progress here.
+        </p>
+        {onGoToCreate && (
+          <button
+            type="button"
+            onClick={onGoToCreate}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#ff4f00] text-[#fffefb] text-sm font-semibold rounded-[12px] shadow-xs active:bg-[#e04500] touch-manipulation cursor-pointer"
+          >
+            <span>+ Create First Playlist</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#c5c0b1]/60">
+    <div className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#c5c0b1]/60'}`}>
       {/* Header & Export/Import Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
