@@ -1,0 +1,296 @@
+'use client';
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Chapter } from '../types/playlist';
+
+export interface YTPlayerInstance {
+  playVideo: () => void;
+  pauseVideo: () => void;
+  seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  destroy: () => void;
+}
+
+export interface YTPlayerEvent {
+  target: YTPlayerInstance;
+  data: number;
+}
+
+export interface YTNamespace {
+  Player: new (
+    elementId: string,
+    config: {
+      videoId: string;
+      width: string;
+      height: string;
+      playerVars?: Record<string, unknown>;
+      events?: {
+        onReady?: (event: YTPlayerEvent) => void;
+        onStateChange?: (event: YTPlayerEvent) => void;
+        onError?: (event: YTPlayerEvent) => void;
+      };
+    }
+  ) => YTPlayerInstance;
+}
+
+declare global {
+  interface Window {
+    YT?: YTNamespace;
+    onYouTubeIframeAPIReady?: (() => void) | undefined;
+  }
+}
+
+interface UseYouTubePlayerOptions {
+  containerId: string;
+  videoId: string;
+  chapters: Chapter[];
+  onChapterChange?: (newIndex: number) => void;
+  onTimeUpdate?: (seconds: number, currentChapterIndex: number) => void;
+  autoPlay?: boolean;
+  initialStartTime?: number;
+  initialChapterIndex?: number;
+}
+
+export function useYouTubePlayer({
+  containerId,
+  videoId,
+  chapters,
+  onChapterChange,
+  onTimeUpdate,
+  autoPlay = false,
+  initialStartTime = 0,
+  initialChapterIndex = 0,
+}: UseYouTubePlayerOptions) {
+  const playerRef = useRef<YTPlayerInstance | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [isReady, setIsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(initialStartTime);
+  const [duration, setDuration] = useState(0);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(initialChapterIndex);
+  const [playerError, setPlayerError] = useState<string | null>(null);
+
+  // Keep chapters and index refs updated for interval callbacks inside effects
+  const chaptersRef = useRef<Chapter[]>(chapters);
+  useEffect(() => {
+    chaptersRef.current = chapters;
+  }, [chapters]);
+
+  const currentChapterIndexRef = useRef(currentChapterIndex);
+  useEffect(() => {
+    currentChapterIndexRef.current = currentChapterIndex;
+  }, [currentChapterIndex]);
+
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  useEffect(() => {
+    onTimeUpdateRef.current = onTimeUpdate;
+  }, [onTimeUpdate]);
+
+  // Sync active chapter index based on currentTime
+  const updateActiveChapterIndex = useCallback(
+    (time: number) => {
+      const list = chaptersRef.current;
+      if (!list || list.length === 0) return;
+
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (time >= list[i].startTime) {
+          if (currentChapterIndexRef.current !== i) {
+            setCurrentChapterIndex(i);
+            onChapterChange?.(i);
+          }
+          break;
+        }
+      }
+    },
+    [onChapterChange]
+  );
+
+  // Load YouTube IFrame API script
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadIframeAPI = () => {
+      if (typeof window === 'undefined') return;
+
+      if (window.YT && window.YT.Player) {
+        initPlayer();
+        return;
+      }
+
+      const existingScript = document.getElementById('youtube-iframe-api-script');
+      if (!existingScript) {
+        const tag = document.createElement('script');
+        tag.id = 'youtube-iframe-api-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScript = document.getElementsByTagName('script')[0];
+        firstScript?.parentNode?.insertBefore(tag, firstScript);
+      }
+
+      const previousCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (previousCallback) previousCallback();
+        if (!isCancelled) {
+          initPlayer();
+        }
+      };
+    };
+
+    const initPlayer = () => {
+      const container = document.getElementById(containerId);
+      if (!container || !window.YT || !window.YT.Player) return;
+
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch {
+          // ignore destroy errors
+        }
+        playerRef.current = null;
+      }
+
+      playerRef.current = new window.YT.Player(containerId, {
+        videoId,
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          autoplay: autoPlay ? 1 : 0,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          enablejsapi: 1,
+          origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+        },
+        events: {
+          onReady: (event: YTPlayerEvent) => {
+            if (isCancelled) return;
+            setIsReady(true);
+            const dur = event.target.getDuration();
+            setDuration(dur || 0);
+
+            // Seek to initial resume timestamp if provided
+            if (initialStartTime > 0) {
+              event.target.seekTo(initialStartTime, true);
+              setCurrentTime(initialStartTime);
+            } else if (chaptersRef.current.length > 0 && chaptersRef.current[0].startTime > 0) {
+              event.target.seekTo(chaptersRef.current[0].startTime, true);
+            }
+          },
+          onStateChange: (event: YTPlayerEvent) => {
+            if (isCancelled) return;
+            const playerState = event.data;
+            if (playerState === 1) {
+              setIsPlaying(true);
+            } else {
+              setIsPlaying(false);
+            }
+          },
+          onError: (event: YTPlayerEvent) => {
+            if (isCancelled) return;
+            const code = event.data;
+            if (code === 101 || code === 150) {
+              setPlayerError('Playback restricted: The video owner has disabled third-party embedding.');
+            } else if (code === 100) {
+              setPlayerError('Video not found or has been set to private.');
+            } else if (code === 2) {
+              setPlayerError('Invalid YouTube video ID.');
+            } else {
+              setPlayerError('Playback error occurred on this video.');
+            }
+          },
+        },
+      });
+    };
+
+    loadIframeAPI();
+
+    return () => {
+      isCancelled = true;
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch {
+          // ignore
+        }
+        playerRef.current = null;
+      }
+    };
+  }, [containerId, videoId, autoPlay, initialStartTime]);
+
+  // Periodic time polling when playing
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+          const t = playerRef.current.getCurrentTime();
+          setCurrentTime(t);
+          updateActiveChapterIndex(t);
+          onTimeUpdateRef.current?.(t, currentChapterIndexRef.current);
+        }
+      }, 250);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isPlaying, updateActiveChapterIndex]);
+
+  const seekToChapter = useCallback(
+    (index: number) => {
+      const list = chaptersRef.current;
+      if (!list || !list[index]) return;
+      const targetChapter = list[index];
+
+      setCurrentChapterIndex(index);
+      currentChapterIndexRef.current = index;
+      onChapterChange?.(index);
+
+      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+        playerRef.current.seekTo(targetChapter.startTime, true);
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }
+    },
+    [onChapterChange]
+  );
+
+  const seekToTime = useCallback((seconds: number) => {
+    if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+      playerRef.current.seekTo(seconds, true);
+    }
+  }, []);
+
+  const play = useCallback(() => {
+    if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+      playerRef.current.playVideo();
+    }
+  }, []);
+
+  const pause = useCallback(() => {
+    if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+      playerRef.current.pauseVideo();
+    }
+  }, []);
+
+  return {
+    isReady,
+    isPlaying,
+    currentTime,
+    duration,
+    currentChapterIndex,
+    playerError,
+    seekToChapter,
+    seekToTime,
+    play,
+    pause,
+  };
+}
