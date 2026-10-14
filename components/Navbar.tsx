@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { usePwa } from './PwaProvider';
 
 interface NavbarProps {
   onReset?: () => void;
@@ -10,6 +11,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarProps) {
+  const { isInstallable, promptInstall } = usePwa();
+
   return (
     <header className="w-full border-b border-[#e7e5e4] bg-[#fafaf9]/95 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
@@ -36,6 +39,21 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* Native PWA Install Button */}
+          {isInstallable && (
+            <button
+              type="button"
+              onClick={promptInstall}
+              title="Install ytChaptered app"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[10px] sm:rounded-[12px] shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Install</span>
+            </button>
+          )}
+
           <a
             href="https://github.com/shamsadanam/yt-chaptered"
             target="_blank"

@@ -1,6 +1,6 @@
 'use client';
  
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
@@ -23,6 +23,17 @@ export default function Home() {
     getSavedCoursesSnapshot,
     getSavedCoursesServerSnapshot
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'history' || tab === 'create') {
+      queueMicrotask(() => {
+        setActiveTab(tab);
+      });
+    }
+  }, []);
 
   const handleRefreshCourses = () => {};
 

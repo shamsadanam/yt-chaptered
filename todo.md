@@ -2,26 +2,26 @@
 
 ## 1. Web App Manifest & App Identity
 - [x] Web app manifest route (`app/manifest.ts`) configured with `name`, `short_name`, `theme_color`, and `display: standalone`.
-- [ ] Add high-resolution PNG icons (`/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png`) to `app/manifest.ts` icon definitions.
-- [ ] Configure `categories` (e.g. `['education', 'productivity', 'utilities']`) and `orientation: 'any'`.
-- [ ] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers.
-- [ ] Add shortcuts definition (e.g., Quick Create Course, My Courses).
+- [x] Add high-resolution PNG icons (`/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png`) to `app/manifest.ts` icon definitions.
+- [x] Configure `categories` (e.g. `['education', 'productivity', 'utilities']`) and `orientation: 'any'`.
+- [ ] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers (deferred until production screenshots are captured).
+- [x] Add shortcuts definition (e.g., Quick Create Course, My Courses) with query parameter routing.
 
 ## 2. Service Worker & Offline Caching
-- [ ] Create a service worker (`public/sw.js` or Next.js PWA worker):
-  - [ ] Cache app shell (HTML shell, CSS bundles, JS chunks, web fonts).
-  - [ ] Cache static assets and icons (`/logo.svg`, app icons, favicons).
-  - [ ] Stale-While-Revalidate or Network-First caching strategy for client-side navigation.
-  - [ ] Cache YouTube iframe API script (`https://www.youtube.com/iframe_api`) for seamless loading.
-- [ ] Register service worker in `app/layout.tsx` or a dedicated client-side PWA provider component.
-- [ ] Offline fallback UI: Display a user-friendly offline message when network is disconnected and YouTube video streaming is unavailable.
+- [x] Create a service worker (`public/sw.js` or Next.js PWA worker):
+  - [x] Cache app shell (HTML shell, CSS bundles, JS chunks, web fonts).
+  - [x] Cache static assets and icons (`/logo.svg`, app icons, favicons).
+  - [x] Stale-While-Revalidate or Network-First caching strategy for client-side navigation.
+  - [x] Cache YouTube iframe API script (`https://www.youtube.com/iframe_api`) for seamless loading.
+- [x] Register service worker in `app/layout.tsx` or a dedicated client-side PWA provider component.
+- [x] Offline fallback UI: Display a user-friendly offline message when network is disconnected and YouTube video streaming is unavailable.
 
 ## 3. Install Prompt & User Experience
-- [ ] Capture the `beforeinstallprompt` browser event.
-- [ ] Build a custom "Install App" button / banner in the navigation bar or settings shelf:
-  - [ ] Show prompt on demand without being intrusive.
-  - [ ] Hide install prompt if the app is already running in standalone display mode (`window.matchMedia('(display-mode: standalone)').matches`).
-- [ ] Provide instructions for iOS Safari users ("Add to Home Screen" via Share menu).
+- [x] Capture the `beforeinstallprompt` browser event.
+- [x] Build a custom "Install App" button / banner in the navigation bar or settings shelf:
+  - [x] Show prompt on demand without being intrusive.
+  - [x] Hide install prompt if the app is already running in standalone display mode (`window.matchMedia('(display-mode: standalone)').matches`).
+- [x] Provide instructions for iOS Safari users ("Add to Home Screen" via Share menu).
 
 ## 4. Updates & Lifecycle Management
 - [ ] Listen for service worker update events (`waiting` worker status).
