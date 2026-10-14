@@ -9,6 +9,7 @@ import {
   getSavedCourse,
   updateCoursePlaybackProgress,
   toggleChapterCompletion,
+  markChapterCompleted,
   subscribeCourses,
   getCompletedChapterIdsSnapshot,
   getCompletedChapterIdsServerSnapshot,
@@ -60,6 +61,21 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     [playlist.video.id]
   );
 
+  const handleChapterComplete = useCallback(
+    (_chapterIndex: number, chapter: Chapter) => {
+      markChapterCompleted(playlist.video.id, chapter.id);
+    },
+    [playlist.video.id]
+  );
+
+  const handleVideoEnded = useCallback(() => {
+    // Mark final chapter as complete when full video ends
+    if (playlist.chapters.length > 0) {
+      const lastChapter = playlist.chapters[playlist.chapters.length - 1];
+      markChapterCompleted(playlist.video.id, lastChapter.id);
+    }
+  }, [playlist.video.id, playlist.chapters]);
+
   const {
     isReady,
     isPlaying,
@@ -78,6 +94,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     initialStartTime: playlist.initialStartTime ?? 0,
     initialChapterIndex: playlist.initialChapterIndex ?? 0,
     onTimeUpdate: handleTimeUpdate,
+    onChapterComplete: handleChapterComplete,
+    onEnded: handleVideoEnded,
   });
 
   const activeChapter: Chapter | undefined = playlist.chapters[currentChapterIndex];

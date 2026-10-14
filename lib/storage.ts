@@ -239,6 +239,34 @@ export function updateCoursePlaybackProgress(
   });
 }
 
+export function markChapterCompleted(videoId: string, chapterId: string): SavedCourse | null {
+  if (typeof window === 'undefined') return null;
+  const course = memoryCoursesCache.find((c) => c.video.id === videoId);
+  if (!course) return null;
+
+  if (course.completedChapterIds.includes(chapterId)) {
+    return course;
+  }
+
+  const updatedCourse: SavedCourse = {
+    ...course,
+    completedChapterIds: [...course.completedChapterIds, chapterId],
+    updatedAt: Date.now(),
+  };
+
+  memoryCoursesCache = memoryCoursesCache
+    .map((c) => (c.video.id === videoId ? updatedCourse : c))
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+
+  notifyListeners();
+
+  idbPut(updatedCourse).catch((err) => {
+    console.error('Failed to mark chapter completed in IndexedDB:', err);
+  });
+
+  return updatedCourse;
+}
+
 export function toggleChapterCompletion(videoId: string, chapterId: string): SavedCourse | null {
   if (typeof window === 'undefined') return null;
   const course = memoryCoursesCache.find((c) => c.video.id === videoId);

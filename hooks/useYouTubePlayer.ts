@@ -46,6 +46,8 @@ interface UseYouTubePlayerOptions {
   videoId: string;
   chapters: Chapter[];
   onChapterChange?: (newIndex: number) => void;
+  onChapterComplete?: (chapterIndex: number, chapter: Chapter) => void;
+  onEnded?: () => void;
   onTimeUpdate?: (seconds: number, currentChapterIndex: number) => void;
   autoPlay?: boolean;
   initialStartTime?: number;
@@ -57,6 +59,8 @@ export function useYouTubePlayer({
   videoId,
   chapters,
   onChapterChange,
+  onChapterComplete,
+  onEnded,
   onTimeUpdate,
   autoPlay = false,
   initialStartTime = 0,
@@ -88,7 +92,17 @@ export function useYouTubePlayer({
     onTimeUpdateRef.current = onTimeUpdate;
   }, [onTimeUpdate]);
 
-  // Sync active chapter index based on currentTime
+  const onChapterCompleteRef = useRef(onChapterComplete);
+  useEffect(() => {
+    onChapterCompleteRef.current = onChapterComplete;
+  }, [onChapterComplete]);
+
+  const onEndedRef = useRef(onEnded);
+  useEffect(() => {
+    onEndedRef.current = onEnded;
+  }, [onEnded]);
+
+  // Sync active chapter index and trigger completion when strictly reaching 100% of chapter end
   const updateActiveChapterIndex = useCallback(
     (time: number) => {
       const list = chaptersRef.current;
@@ -101,6 +115,16 @@ export function useYouTubePlayer({
             onChapterChange?.(i);
           }
           break;
+        }
+      }
+
+      // Check each chapter to see if playback has strictly reached 100% of its endTime
+      for (let i = 0; i < list.length; i++) {
+        const chap = list[i];
+        if (typeof chap.endTime === 'number' && Number.isFinite(chap.endTime)) {
+          if (time >= chap.endTime) {
+            onChapterCompleteRef.current?.(i, chap);
+          }
         }
       }
     },
@@ -184,6 +208,9 @@ export function useYouTubePlayer({
               setIsPlaying(true);
             } else {
               setIsPlaying(false);
+              if (playerState === 0) {
+                onEndedRef.current?.();
+              }
             }
           },
           onError: (event: YTPlayerEvent) => {

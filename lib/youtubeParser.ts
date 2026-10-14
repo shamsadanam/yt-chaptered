@@ -99,7 +99,7 @@ export function secondsToTimestamp(totalSeconds: number): string {
  * - (1:12:00) Summary & Conclusion
  * - 1. 00:00 Welcome
  */
-export function parseTimestamps(text: string): Chapter[] {
+export function parseTimestamps(text: string, maxDuration?: number): Chapter[] {
   if (!text || !text.trim()) return [];
 
   const lines = text.split(/\r?\n/);
@@ -116,6 +116,11 @@ export function parseTimestamps(text: string): Chapter[] {
 
     const rawTimestamp = match[1];
     const startTime = timestampToSeconds(rawTimestamp);
+
+    // If a max video duration is known, ignore timestamps at or beyond video end
+    if (typeof maxDuration === 'number' && maxDuration > 0 && startTime >= maxDuration) {
+      continue;
+    }
 
     // Remove the timestamp and any surrounding brackets/delimiters from line
     let title = trimmedLine.replace(match[0], '').trim();
@@ -160,12 +165,13 @@ export function parseTimestamps(text: string): Chapter[] {
   // Ensure first chapter starts at 0 if not present, or preserve start times
   const chapters: Chapter[] = uniqueChapters.map((chap, idx) => {
     const nextChapter = uniqueChapters[idx + 1];
+    const finalEndTime = typeof maxDuration === 'number' && maxDuration > 0 ? maxDuration : Infinity;
     return {
       id: `chap-${idx}-${chap.startTime}`,
       index: idx + 1,
       title: chap.title,
       startTime: chap.startTime,
-      endTime: nextChapter ? nextChapter.startTime : Infinity,
+      endTime: nextChapter ? nextChapter.startTime : finalEndTime,
       formattedTime: chap.formattedTime,
       status: 'not_started',
     };

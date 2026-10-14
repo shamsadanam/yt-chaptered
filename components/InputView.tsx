@@ -155,12 +155,15 @@ export function InputView({ onGenerate }: InputViewProps) {
           }
         }
       } else {
-        // Fetch video title in background
+        // Fetch video info in background and validate manual timestamps against duration if available
         const autoData = await fetchFromLocalApi(videoId);
         if (autoData?.title) {
           videoTitle = autoData.title;
           authorName = autoData.author;
           if (autoData.thumbnailUrl) thumbnailUrl = autoData.thumbnailUrl;
+          if (autoData.duration && autoData.duration > 0) {
+            parsedChapters = parseTimestamps(timestampsText, autoData.duration);
+          }
         }
       }
     } catch (err) {

@@ -72,8 +72,85 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Parse chapters from description
-    const chapters = parseTimestamps(description);
+    // Attempt to extract YouTube's verified native chapters first
+    let chapters: ReturnType<typeof parseTimestamps> = [];
+    try {
+      const initDataMatch = html.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+      if (initDataMatch && initDataMatch[1]) {
+        const initData = JSON.parse(initDataMatch[1]);
+
+        // Deep-search for macroMarkersListItemRenderer entries
+        const findMarkers = (obj: unknown, list: Array<Record<string, unknown>> = []): Array<Record<string, unknown>> => {
+          if (!obj || typeof obj !== 'object') return list;
+          if (Array.isArray(obj)) {
+            for (const item of obj) findMarkers(item, list);
+            return list;
+          }
+          for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+            if (k === 'macroMarkersListItemRenderer' && v && typeof v === 'object') {
+              list.push(v as Record<string, unknown>);
+            } else {
+              findMarkers(v, list);
+            }
+          }
+          return list;
+        };
+
+        const markerItems = findMarkers(initData);
+        if (markerItems.length > 0) {
+          const seenTimes = new Set<number>();
+          const parsedNative: Array<{ title: string; startTime: number; formattedTime: string }> = [];
+
+          for (const item of markerItems) {
+            const itemTitleObj = item.title as { simpleText?: string; runs?: Array<{ text?: string }> } | undefined;
+            const itemTitle =
+              itemTitleObj?.simpleText ||
+              (itemTitleObj?.runs ? itemTitleObj.runs.map((r) => r.text || '').join('') : '') ||
+              '';
+
+            const tapEndpoint = item.onTap as { watchEndpoint?: { startTimeSeconds?: number } } | undefined;
+            const startTime = tapEndpoint?.watchEndpoint?.startTimeSeconds;
+
+            if (typeof startTime === 'number' && !seenTimes.has(startTime)) {
+              if (duration > 0 && startTime >= duration) {
+                continue;
+              }
+              seenTimes.add(startTime);
+              const timeDesc = item.timeDescription as { simpleText?: string } | undefined;
+              parsedNative.push({
+                title: itemTitle.trim() || `Chapter at ${startTime}`,
+                startTime,
+                formattedTime: timeDesc?.simpleText || `${Math.floor(startTime / 60)}:${(startTime % 60).toString().padStart(2, '0')}`,
+              });
+            }
+          }
+
+          if (parsedNative.length > 0) {
+            parsedNative.sort((a, b) => a.startTime - b.startTime);
+            const finalEndTime = duration > 0 ? duration : Infinity;
+            chapters = parsedNative.map((chap, idx) => {
+              const nextChapter = parsedNative[idx + 1];
+              return {
+                id: `chap-${idx}-${chap.startTime}`,
+                index: idx + 1,
+                title: chap.title,
+                startTime: chap.startTime,
+                endTime: nextChapter ? nextChapter.startTime : finalEndTime,
+                formattedTime: chap.formattedTime,
+                status: 'not_started',
+              };
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to extract native chapters from ytInitialData:', err);
+    }
+
+    // Fall back to description timestamps if native chapters were not present
+    if (chapters.length === 0) {
+      chapters = parseTimestamps(description, duration > 0 ? duration : undefined);
+    }
 
     return NextResponse.json({
       success: true,
