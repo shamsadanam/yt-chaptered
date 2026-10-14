@@ -1,7 +1,7 @@
 import { SavedCourse } from '../types/playlist';
 
 const DB_NAME = 'yt_chaptered_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'courses';
 const LEGACY_STORAGE_KEY = 'yt_chaptered_courses_v2';
 const STORAGE_CHANGE_EVENT = 'yt_chaptered_courses_change';
@@ -27,9 +27,10 @@ function getDB(): Promise<IDBDatabase> {
 
       request.onupgradeneeded = () => {
         const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: ['video', 'id'] });
+        if (db.objectStoreNames.contains(STORE_NAME)) {
+          db.deleteObjectStore(STORE_NAME);
         }
+        db.createObjectStore(STORE_NAME, { keyPath: 'video.id' });
       };
 
       request.onsuccess = () => {
@@ -76,7 +77,7 @@ async function idbDelete(videoId: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
-    const request = store.delete([videoId]);
+    const request = store.delete(videoId);
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
