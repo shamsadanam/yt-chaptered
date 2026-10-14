@@ -39,9 +39,10 @@
 - [ ] Verify offline behavior (app shell renders with saved courses even when airplane mode is on).
 
 ## 7. App Info & "About Me" Section / Page
-- [ ] Create an "About Me" modal or dedicated route (`app/about/page.tsx` or slide-over drawer):
-  - [ ] Creator profile, background, and motivation behind `ytChaptered`.
-  - [ ] Links to GitHub, portfolio, socials, and contact.
-  - [ ] App version, tech stack info (Next.js, Tailwind CSS, IndexedDB, YouTube IFrame API).
-  - [ ] Link / trigger placed in the Navbar and MobileTabBar.
+- [x] Create an "About Me" modal or dedicated route (`app/about/page.tsx` or slide-over drawer):
+  - [x] Creator profile, background, and motivation behind `ytChaptered`.
+  - [x] Links to GitHub, portfolio, socials, and contact.
+  - [x] App version, tech stack info (Next.js, Tailwind CSS, IndexedDB, YouTube IFrame API).
+  - [x] Link / trigger placed in the Navbar, MobileTabBar, and desktop footer.
+  - [x] Direct GitHub repository star link button in Navbar, About modal, and footer.
 

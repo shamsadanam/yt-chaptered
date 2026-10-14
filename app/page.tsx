@@ -6,6 +6,7 @@ import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
 import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
+import { AboutModal } from '../components/AboutModal';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
   subscribeCourses,
@@ -16,6 +17,7 @@ import {
 export default function Home() {
   const [playlist, setPlaylist] = useState<ParsedPlaylist | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('create');
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
     getSavedCoursesSnapshot,
@@ -61,6 +63,7 @@ export default function Home() {
         onReset={handleReset}
         showReset={playlist !== null && activeTab === 'player'}
         videoTitle={playlist?.video.title}
+        onOpenAbout={() => setIsAboutOpen(true)}
       />
 
       <main className="flex-1 flex flex-col justify-start">
@@ -118,10 +121,47 @@ export default function Home() {
         hasActivePlaylist={playlist !== null}
         activePlaylistTitle={playlist?.video.title}
         onTabChange={handleTabChange}
+        onOpenAbout={() => setIsAboutOpen(true)}
+      />
+
+      {/* About Me / App Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
       />
 
       <footer className="hidden md:block border-t border-[#e7e5e4] py-6 px-4 text-center text-xs text-[#57534e]">
-        <p>ytChaptered • Local-first YouTube Chaptered Playlist Creator • Runs in your browser without cloud tracking</p>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p>
+            ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
+            <a
+              href="https://github.com/shamsadanam"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#1c1917] font-semibold hover:text-[#0d5c46] transition-colors underline"
+            >
+              Shamsad Anam
+            </a>
+          </p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setIsAboutOpen(true)}
+              className="hover:text-[#1c1917] font-medium transition-colors cursor-pointer"
+            >
+              About Creator
+            </button>
+            <span>•</span>
+            <a
+              href="https://github.com/shamsadanam/yt-chaptered"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium text-[#1c1917] hover:text-[#0d5c46] transition-colors"
+            >
+              <span>⭐ Star on GitHub</span>
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );

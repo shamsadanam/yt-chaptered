@@ -5,6 +5,7 @@ interface MobileTabBarProps {
   hasActivePlaylist: boolean;
   activePlaylistTitle?: string;
   onTabChange: (tab: 'create' | 'player' | 'history') => void;
+  onOpenAbout?: () => void;
 }
 
 export function MobileTabBar({
@@ -12,6 +13,7 @@ export function MobileTabBar({
   hasActivePlaylist,
   activePlaylistTitle,
   onTabChange,
+  onOpenAbout,
 }: MobileTabBarProps) {
   return (
     <nav
@@ -77,6 +79,20 @@ export function MobileTabBar({
           </svg>
           <span className="text-[11px] font-semibold tracking-tight">Courses</span>
         </button>
+
+        {/* Tab 4: About / Star */}
+        {onOpenAbout && (
+          <button
+            type="button"
+            onClick={onOpenAbout}
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[8px] min-h-[48px] touch-manipulation transition-colors text-[#57534e] active:text-[#1c1917]"
+          >
+            <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[11px] font-semibold tracking-tight">About</span>
+          </button>
+        )}
       </div>
     </nav>
   );
