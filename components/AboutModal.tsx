@@ -148,7 +148,7 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
                   Install ytChaptered
                 </span>
                 <span className="text-[#57534e] text-[11px] sm:text-xs block mt-0.5">
-                  Launch full screen with faster loading and offline playlist management.
+                  Launch full screen like a native app with quick access to your courses and saved progress.
                 </span>
               </div>
               <button

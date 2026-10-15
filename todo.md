@@ -8,13 +8,7 @@
 - [x] Add shortcuts definition (e.g., Quick Create Course, My Courses) with query parameter routing.
 
 ## 2. Service Worker & Offline Caching
-- [x] Create a service worker (`public/sw.js` or Next.js PWA worker):
-  - [x] Cache app shell (HTML shell, CSS bundles, JS chunks, web fonts).
-  - [x] Cache static assets and icons (`/logo.svg`, app icons, favicons).
-  - [x] Stale-While-Revalidate or Network-First caching strategy for client-side navigation.
-  - [x] Cache YouTube iframe API script (`https://www.youtube.com/iframe_api`) for seamless loading.
-- [x] Register service worker in `app/layout.tsx` or a dedicated client-side PWA provider component.
-- [x] Offline fallback UI: Display a user-friendly offline message when network is disconnected and YouTube video streaming is unavailable.
+- [x] Streamlined PWA architecture: Removed custom service worker (`public/sw.js`) and offline warning banners, avoiding stale cache bugs since YouTube playback fundamentally requires network connectivity. App runs as a lean, responsive Web App Manifest-based homescreen app.
 
 ## 3. Install Prompt & User Experience
 - [x] Capture the `beforeinstallprompt` browser event.
