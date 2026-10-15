@@ -6,6 +6,7 @@
 - [x] Configure `categories` (e.g. `['education', 'productivity', 'utilities']`) and `orientation: 'any'`.
 - [ ] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers (deferred until production screenshots are captured).
 - [x] Add shortcuts definition (e.g., Quick Create Course, My Courses) with query parameter routing.
+- [ ] Fix logo branding assets and app icons across the app and manifest.
 
 ## 2. Service Worker & Offline Caching
 - [x] Streamlined PWA architecture: Removed custom service worker (`public/sw.js`) and offline warning banners, avoiding stale cache bugs since YouTube playback fundamentally requires network connectivity. App runs as a lean, responsive Web App Manifest-based homescreen app.
@@ -16,6 +17,7 @@
   - [x] Show prompt on demand without being intrusive.
   - [x] Hide install prompt if the app is already running in standalone display mode (`window.matchMedia('(display-mode: standalone)').matches`).
 - [x] Provide instructions for iOS Safari users ("Add to Home Screen" via Share menu).
+- [ ] Investigate if auto install icon notification can be shown to prompt installation.
 
 ## 4. Updates & Lifecycle Management
 - [ ] Listen for service worker update events (`waiting` worker status).
@@ -39,4 +41,30 @@
   - [x] App version, tech stack info (Next.js, Tailwind CSS, IndexedDB, YouTube IFrame API).
   - [x] Link / trigger placed in the Navbar, MobileTabBar, and desktop footer.
   - [x] Direct GitHub repository star link button in Navbar, About modal, and footer.
+
+## 8. Documentation & Landing Page
+- [ ] Update README and/or create a landing page explaining what problem ytChaptered solves.
+- [ ] Add a small video demo showcasing key features and workflow.
+
+## 9. Marketing & Social Media Launch
+- [ ] Create social media announcement posts:
+  - [ ] LinkedIn
+  - [ ] Reddit
+  - [ ] Facebook
+
+## 10. UI & Layout Enhancements
+- [ ] Move "Saved Courses & History" to the top and rename section to "Continue Watching".
+- [ ] Improve returning user UX when saved videos/courses already exist:
+  - [ ] Decide how the URL paste option should be presented (e.g. collapsed input field, "+ Add New Course" trigger/modal, or secondary accordion below "Continue Watching").
+  - [ ] Ensure returning users immediately see their active courses without being overwhelmed by the URL form.
+
+## 11. Analytics & Privacy Compliance (Pre-Publishing)
+- [ ] Integrate Google Analytics (GA4) before publishing:
+  - [ ] Implement cookie consent banner & Google Consent Mode v2 (required for EU/UK visitors under GDPR / ePrivacy Directive / Google EU User Consent Policy).
+  - [ ] Ensure GA4 tags remain in `denied` state until user grants explicit consent.
+  - [ ] (Alternative) Evaluate cookieless, privacy-friendly analytics (e.g., Plausible, Cloudflare Web Analytics) to maintain a zero-banner, local-first UX.
+
+
+
+
 
