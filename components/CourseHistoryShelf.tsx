@@ -16,6 +16,8 @@ interface CourseHistoryShelfProps {
   onRefresh: () => void;
   isStandaloneView?: boolean;
   onGoToCreate?: () => void;
+  isTopShelf?: boolean;
+  onAddNewCourse?: () => void;
 }
 
 export function CourseHistoryShelf({
@@ -24,6 +26,8 @@ export function CourseHistoryShelf({
   onRefresh,
   isStandaloneView = false,
   onGoToCreate,
+  isTopShelf = false,
+  onAddNewCourse,
 }: CourseHistoryShelfProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -73,11 +77,11 @@ export function CourseHistoryShelf({
   if (courses.length === 0) {
     if (!isStandaloneView) {
       return (
-        <div className="w-full mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#e7e5e4]">
+        <div className={`w-full ${isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#e7e5e4]'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="text-base sm:text-lg font-medium text-[#1c1917] tracking-tight">
-                Saved Courses & History
+                Continue Watching
               </h2>
               <p className="text-xs text-[#57534e]">
                 Restore your previous learning progress or backups.
@@ -177,12 +181,12 @@ export function CourseHistoryShelf({
   }
 
   return (
-    <div className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#e7e5e4]'}`}>
+    <div className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#e7e5e4]'}`}>
       {/* Header & Export/Import Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
           <h2 className="text-lg sm:text-2xl font-medium text-[#1c1917] tracking-tight">
-            Saved Courses & History
+            Continue Watching
           </h2>
           <p className="text-xs sm:text-sm text-[#57534e]">
             Resume previous learning sessions or backup progress locally.
@@ -190,6 +194,19 @@ export function CourseHistoryShelf({
         </div>
 
         <div className="flex items-center gap-2">
+          {onAddNewCourse && (
+            <button
+              type="button"
+              onClick={onAddNewCourse}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation shadow-2xs"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Add Course</span>
+            </button>
+          )}
+
           {/* Export JSON */}
           <button
             type="button"
@@ -200,7 +217,8 @@ export function CourseHistoryShelf({
             <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span>Export JSON</span>
+            <span className="hidden xs:inline">Export JSON</span>
+            <span className="xs:hidden">Export</span>
           </button>
 
           {/* Import JSON */}
@@ -213,7 +231,8 @@ export function CourseHistoryShelf({
             <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
-            <span>Import JSON</span>
+            <span className="hidden xs:inline">Import JSON</span>
+            <span className="xs:hidden">Import</span>
           </button>
           <input
             type="file"

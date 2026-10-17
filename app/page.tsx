@@ -91,6 +91,7 @@ export default function Home() {
             onRefresh={handleRefreshCourses}
             isStandaloneView={true}
             onGoToCreate={() => setActiveTab('create')}
+            onAddNewCourse={() => setActiveTab('create')}
           />
         )}
 
