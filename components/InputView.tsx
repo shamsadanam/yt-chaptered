@@ -51,6 +51,8 @@ export function InputView({ onGenerate }: InputViewProps) {
     videoId: string;
     title: string;
     author?: string;
+    channelId?: string;
+    channelUrl?: string;
     thumbnailUrl?: string;
     duration?: number;
   } | null>(null);
@@ -126,6 +128,8 @@ export function InputView({ onGenerate }: InputViewProps) {
             videoId,
             title: autoData.title,
             author: autoData.author,
+            channelId: autoData.channelId,
+            channelUrl: autoData.channelUrl,
             thumbnailUrl: autoData.thumbnailUrl,
             duration: autoData.duration,
           });
@@ -168,6 +172,8 @@ export function InputView({ onGenerate }: InputViewProps) {
     const hasCached = cachedVideoInfo?.videoId === videoId;
     let videoTitle = hasCached && cachedVideoInfo?.title ? cachedVideoInfo.title : '';
     let authorName: string | undefined = hasCached ? cachedVideoInfo?.author : undefined;
+    let channelId: string | undefined = hasCached ? cachedVideoInfo?.channelId : undefined;
+    let channelUrl: string | undefined = hasCached ? cachedVideoInfo?.channelUrl : undefined;
     let thumbnailUrl = (hasCached && cachedVideoInfo?.thumbnailUrl) || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
     setIsLoading(true);
@@ -179,6 +185,8 @@ export function InputView({ onGenerate }: InputViewProps) {
         if (autoData && autoData.success) {
           if (autoData.title) videoTitle = autoData.title;
           if (autoData.author) authorName = autoData.author;
+          if (autoData.channelId) channelId = autoData.channelId;
+          if (autoData.channelUrl) channelUrl = autoData.channelUrl;
           if (autoData.thumbnailUrl) thumbnailUrl = autoData.thumbnailUrl;
           if (autoData.chapters && autoData.chapters.length > 0) {
             parsedChapters = autoData.chapters;
@@ -192,6 +200,8 @@ export function InputView({ onGenerate }: InputViewProps) {
         if (autoData && autoData.success) {
           if (autoData.title) videoTitle = autoData.title;
           if (autoData.author) authorName = autoData.author;
+          if (autoData.channelId) channelId = autoData.channelId;
+          if (autoData.channelUrl) channelUrl = autoData.channelUrl;
           if (autoData.thumbnailUrl) thumbnailUrl = autoData.thumbnailUrl;
           if (autoData.duration && autoData.duration > 0) {
             parsedChapters = parseTimestamps(timestampsText, autoData.duration);
@@ -204,16 +214,17 @@ export function InputView({ onGenerate }: InputViewProps) {
       setIsLoading(false);
     }
 
-    // Direct browser oEmbed fallback if title is still missing
-    if (!videoTitle) {
+    // Direct browser oEmbed fallback if title or channelUrl is still missing
+    if (!videoTitle || !channelUrl) {
       try {
         const oembedRes = await fetch(
           `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
         );
         if (oembedRes.ok) {
           const oembedData = await oembedRes.json();
-          if (oembedData.title) videoTitle = oembedData.title;
+          if (oembedData.title && !videoTitle) videoTitle = oembedData.title;
           if (oembedData.author_name && !authorName) authorName = oembedData.author_name;
+          if (oembedData.author_url && !channelUrl) channelUrl = oembedData.author_url;
           if (oembedData.thumbnail_url && (!thumbnailUrl || thumbnailUrl.includes('hqdefault.jpg'))) {
             thumbnailUrl = oembedData.thumbnail_url;
           }
@@ -248,6 +259,8 @@ export function InputView({ onGenerate }: InputViewProps) {
         url: `https://www.youtube.com/watch?v=${videoId}`,
         title: videoTitle,
         author: authorName,
+        channelId,
+        channelUrl,
         thumbnailUrl,
       },
       chapters: parsedChapters,

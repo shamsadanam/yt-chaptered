@@ -112,17 +112,20 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
 
                 let finalTitle = data.title;
                 let finalAuthor = data.author;
+                let finalChannelId = data.channelId;
+                let finalChannelUrl = data.channelUrl;
                 let finalThumbnail = data.thumbnailUrl;
 
-                if (!finalTitle) {
+                if (!finalTitle || !finalChannelUrl) {
                   try {
                     const oembedRes = await fetch(
                       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
                     );
                     if (oembedRes.ok) {
                       const oembed = await oembedRes.json();
-                      if (oembed.title) finalTitle = oembed.title;
+                      if (oembed.title && !finalTitle) finalTitle = oembed.title;
                       if (oembed.author_name && !finalAuthor) finalAuthor = oembed.author_name;
+                      if (oembed.author_url && !finalChannelUrl) finalChannelUrl = oembed.author_url;
                       if (oembed.thumbnail_url && !finalThumbnail) finalThumbnail = oembed.thumbnail_url;
                     }
                   } catch {
@@ -136,6 +139,8 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
                     url: `https://www.youtube.com/watch?v=${videoId}`,
                     title: finalTitle || 'YouTube Video',
                     author: finalAuthor,
+                    channelId: finalChannelId,
+                    channelUrl: finalChannelUrl,
                     thumbnailUrl: finalThumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
                     duration: data.duration,
                   },

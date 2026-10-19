@@ -13,6 +13,8 @@ export interface VideoMetadata {
   url: string;
   title: string;
   author?: string;
+  channelId?: string;
+  channelUrl?: string;
   thumbnailUrl?: string;
   duration?: number; // in seconds
 }

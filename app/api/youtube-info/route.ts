@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
 
     let title = '';
     let author = '';
+    let channelId = '';
+    let channelUrl = '';
     let description = '';
     let thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     let duration = 0;
@@ -54,6 +56,10 @@ export async function GET(request: NextRequest) {
           if (details) {
             title = details.title || '';
             author = details.author || '';
+            channelId = details.channelId || '';
+            if (channelId) {
+              channelUrl = `https://www.youtube.com/channel/${channelId}`;
+            }
             description = details.shortDescription || '';
             if (details.lengthSeconds) {
               duration = parseInt(details.lengthSeconds, 10);
@@ -193,8 +199,8 @@ export async function GET(request: NextRequest) {
       if (m3 && m3[1]) title = m3[1];
     }
 
-    // 4. Fall back to free official YouTube oEmbed endpoint if title or author is still missing
-    if (!title || !author) {
+    // 4. Fall back to free official YouTube oEmbed endpoint if title, author, or channelUrl is still missing
+    if (!title || !author || !channelUrl) {
       try {
         const oembedRes = await fetch(
           `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
@@ -204,6 +210,9 @@ export async function GET(request: NextRequest) {
           const oembed = await oembedRes.json();
           if (!title && oembed.title) title = oembed.title;
           if (!author && oembed.author_name) author = oembed.author_name;
+          if (oembed.author_url) {
+            channelUrl = oembed.author_url;
+          }
           if ((!thumbnailUrl || thumbnailUrl.includes('hqdefault.jpg')) && oembed.thumbnail_url) {
             thumbnailUrl = oembed.thumbnail_url;
           }
@@ -230,6 +239,8 @@ export async function GET(request: NextRequest) {
       videoId,
       title: title.trim(),
       author: author.trim(),
+      channelId,
+      channelUrl,
       description,
       thumbnailUrl,
       duration,

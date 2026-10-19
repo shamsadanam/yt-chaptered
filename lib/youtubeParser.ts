@@ -186,7 +186,7 @@ export function parseTimestamps(text: string, maxDuration?: number): Chapter[] {
 export async function fetchYouTubeMetadataWithApiKey(
   videoId: string,
   apiKey: string
-): Promise<{ title: string; description: string; author: string; thumbnailUrl: string } | null> {
+): Promise<{ title: string; description: string; author: string; channelId?: string; channelUrl?: string; thumbnailUrl: string } | null> {
   try {
     const endpoint = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
     const res = await fetch(endpoint);
@@ -199,10 +199,13 @@ export async function fetchYouTubeMetadataWithApiKey(
     }
 
     const snippet = data.items[0].snippet;
+    const channelId = snippet.channelId || '';
     return {
       title: snippet.title || 'Untitled Video',
       description: snippet.description || '',
       author: snippet.channelTitle || '',
+      channelId,
+      channelUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : undefined,
       thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
     };
   } catch {
