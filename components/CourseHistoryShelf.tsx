@@ -93,10 +93,11 @@ export function CourseHistoryShelf({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 title="Import JSON backup"
+                aria-label="Import courses from JSON backup file"
               >
-                <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 <span>Import JSON</span>
@@ -106,19 +107,21 @@ export function CourseHistoryShelf({
                 ref={fileInputRef}
                 onChange={handleImportFile}
                 accept=".json,application/json"
+                aria-label="Upload JSON backup file"
                 className="hidden"
               />
             </div>
           </div>
           {importStatus && (
-            <div className="p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
+            <div role="status" aria-live="polite" className="p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
               <span>{importStatus}</span>
               <button
                 type="button"
                 onClick={() => setImportStatus(null)}
-                className="text-[#a8a29e] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1"
+                aria-label="Dismiss import status"
+                className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
           )}
@@ -137,14 +140,15 @@ export function CourseHistoryShelf({
         </p>
 
         {importStatus && (
-          <div className="max-w-md mx-auto mb-6 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
+          <div role="status" aria-live="polite" className="max-w-md mx-auto mb-6 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
             <span>{importStatus}</span>
             <button
               type="button"
               onClick={() => setImportStatus(null)}
-              className="text-[#a8a29e] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1"
+              aria-label="Dismiss import status"
+              className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
           </div>
         )}
@@ -154,7 +158,7 @@ export function CourseHistoryShelf({
             <button
               type="button"
               onClick={onGoToCreate}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0d5c46] text-white text-sm font-semibold rounded-[12px] shadow-xs active:bg-[#0a4635] touch-manipulation cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0d5c46] text-white text-sm font-semibold rounded-[12px] shadow-xs active:bg-[#0a4635] touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
               <span>+ Create First Playlist</span>
             </button>
@@ -163,9 +167,10 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] text-[#1c1917] text-sm font-semibold border border-[#e7e5e4] rounded-[12px] shadow-xs touch-manipulation cursor-pointer min-h-[44px]"
+            aria-label="Import courses from JSON backup file"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] text-[#1c1917] text-sm font-semibold border border-[#e7e5e4] rounded-[12px] shadow-xs touch-manipulation cursor-pointer min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
           >
-            <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span>Import JSON</span>
@@ -175,6 +180,7 @@ export function CourseHistoryShelf({
             ref={fileInputRef}
             onChange={handleImportFile}
             accept=".json,application/json"
+            aria-label="Upload JSON backup file"
             className="hidden"
           />
         </div>
@@ -200,9 +206,10 @@ export function CourseHistoryShelf({
             <button
               type="button"
               onClick={onAddNewCourse}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation shadow-2xs"
+              aria-label="Add new course"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span>Add Course</span>
@@ -213,11 +220,12 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             title="Download JSON backup"
+            aria-label="Export saved courses to JSON backup file"
           >
-            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4-4m4 4V4" />
             </svg>
             <span className="hidden xs:inline">Export JSON</span>
             <span className="xs:hidden">Export</span>
@@ -227,10 +235,11 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             title="Import JSON backup"
+            aria-label="Import courses from JSON backup file"
           >
-            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span className="hidden xs:inline">Import JSON</span>
@@ -241,20 +250,22 @@ export function CourseHistoryShelf({
             ref={fileInputRef}
             onChange={handleImportFile}
             accept=".json,application/json"
+            aria-label="Upload JSON backup file"
             className="hidden"
           />
         </div>
       </div>
 
       {importStatus && (
-        <div className="mb-4 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
+        <div role="status" aria-live="polite" className="mb-4 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[8px] text-xs text-[#1c1917] flex items-center justify-between">
           <span>{importStatus}</span>
           <button
             type="button"
             onClick={() => setImportStatus(null)}
-            className="text-[#a8a29e] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1"
+            aria-label="Dismiss import status"
+            className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
       )}
@@ -270,20 +281,18 @@ export function CourseHistoryShelf({
           const courseUrl = `/watch/${c.video.id}${c.lastPlayedSeconds > 0 ? `?t=${Math.floor(c.lastPlayedSeconds)}` : ''}`;
 
           return (
-            <Link
+            <div
               key={c.video.id}
-              href={courseUrl}
-              onClick={() => onResumeCourse(c)}
-              className="group bg-[#ffffff] hover:bg-[#ffffff] active:bg-[#ffffff] border border-[#e7e5e4] hover:border-[#0d5c46] rounded-[12px] p-3 sm:p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between shadow-xs touch-manipulation active:scale-[0.99]"
+              className="relative group bg-[#ffffff] hover:border-[#0d5c46] border border-[#e7e5e4] rounded-[12px] p-3 sm:p-4 transition-all duration-200 flex flex-col justify-between shadow-xs touch-manipulation"
             >
               <div>
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   {/* Video Thumbnail */}
-                  <div className="w-20 h-14 sm:w-24 sm:h-16 bg-[#000000] rounded-[6px] overflow-hidden shrink-0 relative border border-[#e7e5e4]">
+                  <div className="w-20 h-14 sm:w-24 sm:h-16 bg-[#000000] rounded-[6px] overflow-hidden shrink-0 relative border border-[#e7e5e4]" aria-hidden="true">
                     {c.video.thumbnailUrl ? (
                       <Image
                         src={c.video.thumbnailUrl}
-                        alt={c.video.title}
+                        alt=""
                         fill
                         className="object-cover"
                         unoptimized
@@ -303,21 +312,29 @@ export function CourseHistoryShelf({
                   {/* Title & Channel */}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-xs sm:text-sm font-semibold text-[#1c1917] group-hover:text-[#0d5c46] transition-colors line-clamp-2 leading-tight">
-                      {c.video.title}
+                      <Link
+                        href={courseUrl}
+                        onClick={() => onResumeCourse(c)}
+                        aria-label={`Resume course ${c.video.title}, chapter ${c.lastPlayedChapterIndex + 1}, ${percentage}% completed`}
+                        className="focus:outline-none focus:underline after:absolute after:inset-0 after:z-0"
+                      >
+                        {c.video.title}
+                      </Link>
                     </h3>
                     {c.video.author && (
                       <p className="text-[11px] sm:text-xs text-[#57534e] truncate mt-0.5 sm:mt-1">{c.video.author}</p>
                     )}
                   </div>
 
-                  {/* Delete button with 44px tap zone */}
+                  {/* Delete button with 44px tap zone - elevated above the stretched link */}
                   <button
                     type="button"
                     onClick={(e) => handleDelete(c.video.id, e)}
                     title="Remove course from saved list"
-                    className="w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-[#a8a29e] hover:text-[#e11d48] active:text-[#e11d48] rounded-[6px] transition-colors touch-manipulation shrink-0"
+                    aria-label={`Remove ${c.video.title} from saved courses`}
+                    className="relative z-10 w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-[#78716c] hover:text-[#e11d48] active:text-[#e11d48] rounded-[6px] transition-colors touch-manipulation shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#e11d48]"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
@@ -332,14 +349,21 @@ export function CourseHistoryShelf({
                 </div>
               </div>
 
-              {/* Progress Bar & Resume Button */}
+              {/* Progress Bar & Resume Indicator */}
               <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-[#e7e5e4] flex items-center justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#57534e] mb-1">
                     <span>{completedCount}/{totalChapters} completed</span>
                     <span className="font-semibold text-[#1c1917] font-mono">{percentage}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#f5f5f4] rounded-full overflow-hidden">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={percentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Course completion progress: ${percentage}%`}
+                    className="w-full h-1.5 bg-[#f5f5f4] rounded-full overflow-hidden"
+                  >
                     <div
                       className="h-full bg-[#0d5c46] rounded-full transition-all"
                       style={{ width: `${percentage}%` }}
@@ -347,12 +371,12 @@ export function CourseHistoryShelf({
                   </div>
                 </div>
 
-                <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-[#0d5c46] group-hover:translate-x-0.5 transition-transform">
+                <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-[#0d5c46] group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
                   <span>Resume</span>
                   <span>→</span>
                 </span>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

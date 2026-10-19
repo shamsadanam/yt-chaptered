@@ -17,11 +17,11 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
   return (
     <header className="w-full border-b border-[#e7e5e4] bg-[#fafaf9]/95 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity">
+        <Link href="/" aria-label="ytChaptered home" className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity">
           <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-[10px] sm:rounded-[12px] overflow-hidden shrink-0 shadow-xs">
             <Image
               src="/logo.svg"
-              alt="ytChaptered logo"
+              alt=""
               fill
               priority
               className="object-contain"
@@ -46,9 +46,10 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               type="button"
               onClick={promptInstall}
               title="Install ytChaptered app"
+              aria-label="Install ytChaptered app"
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[10px] sm:rounded-[12px] shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer shrink-0"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>Install</span>
@@ -60,6 +61,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
             target="_blank"
             rel="noopener noreferrer"
             title="ytChaptered on GitHub"
+            aria-label="ytChaptered on GitHub"
             className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -70,6 +72,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               />
             </svg>
             <span className="hidden xs:inline font-semibold">GitHub</span>
+            <span className="sr-only xs:hidden">GitHub</span>
           </a>
 
           {/* About Me / Info Button */}
@@ -78,12 +81,14 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               type="button"
               onClick={onOpenAbout}
               title="About ytChaptered & Creator"
+              aria-label="About ytChaptered & Creator"
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#57534e] hover:text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="hidden sm:inline">About</span>
+              <span className="sr-only sm:hidden">About</span>
             </button>
           )}
 
@@ -91,6 +96,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
             <button
               type="button"
               onClick={onReset}
+              aria-label="Load another video or course"
               className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer shrink-0"
             >
               <svg
@@ -98,6 +104,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"

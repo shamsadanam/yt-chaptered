@@ -44,6 +44,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Accessible focus visible ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #0d5c46;
+  outline-offset: 2px;
+}
+
 /* Custom scrollbar matching Nordic theme */
 ::-webkit-scrollbar {
   width: 6px;

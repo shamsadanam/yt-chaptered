@@ -310,9 +310,11 @@ export function InputView({ onGenerate }: InputViewProps) {
                       type="button"
                       onClick={handleAutoFetchClick}
                       disabled={isLoading || !url.trim()}
+                      aria-label="Auto-detect timestamps and video info"
                       className="text-xs font-semibold text-[#0d5c46] hover:text-[#0a4635] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 min-h-[36px] touch-manipulation"
                     >
-                      <span>⚡ Auto-detect</span>
+                      <span aria-hidden="true">⚡</span>
+                      <span>Auto-detect</span>
                     </button>
                   </div>
                   <div className="relative">
@@ -326,20 +328,32 @@ export function InputView({ onGenerate }: InputViewProps) {
                         setErrorMessage(null);
                         setAutoFetchStatus(null);
                       }}
+                      aria-invalid={Boolean(errorMessage)}
+                      aria-describedby={errorMessage ? 'yt-url-error' : autoFetchStatus ? 'yt-url-status' : undefined}
                       placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
                       className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-[#e7e5e4] rounded-[6px] text-[#1c1917] placeholder-[#a8a29e] text-base focus:outline-none focus:ring-2 focus:ring-[#0d5c46] focus:border-[#0d5c46] transition-colors"
                       required
                     />
                   </div>
                   {autoFetchStatus && (
-                    <p className="mt-2 text-xs text-[#1c1917] bg-[#fafaf9] border border-[#e7e5e4] px-3 py-1.5 rounded-[6px] font-medium flex items-center gap-1.5">
-                      <span className="text-[#10b981]">●</span>
+                    <p
+                      id="yt-url-status"
+                      role="status"
+                      aria-live="polite"
+                      className="mt-2 text-xs text-[#1c1917] bg-[#fafaf9] border border-[#e7e5e4] px-3 py-1.5 rounded-[6px] font-medium flex items-center gap-1.5"
+                    >
+                      <span className="text-[#10b981]" aria-hidden="true">●</span>
                       {autoFetchStatus}
                     </p>
                   )}
                   {errorMessage && (
-                    <p className="mt-2 text-xs sm:text-sm text-[#e11d48] font-medium flex items-center gap-1.5">
-                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <p
+                      id="yt-url-error"
+                      role="alert"
+                      aria-live="assertive"
+                      className="mt-2 text-xs sm:text-sm text-[#e11d48] font-medium flex items-center gap-1.5"
+                    >
+                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
                       {errorMessage}
@@ -357,6 +371,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                       <button
                         type="button"
                         onClick={loadSample}
+                        aria-label="Load sample Python tutorial with 18 chapters"
                         className="text-xs font-medium text-[#57534e] hover:text-[#0d5c46] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
                       >
                         Sample
@@ -364,6 +379,8 @@ export function InputView({ onGenerate }: InputViewProps) {
                       <button
                         type="button"
                         onClick={() => setIsExpandTimestamps(!isExpandTimestamps)}
+                        aria-expanded={isExpandTimestamps}
+                        aria-controls="yt-timestamps-panel"
                         className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
                       >
                         {isExpandTimestamps ? 'Collapse' : 'Manual paste'}
@@ -380,18 +397,22 @@ export function InputView({ onGenerate }: InputViewProps) {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div
+                      <button
+                        type="button"
                         onClick={() => setIsExpandTimestamps(true)}
-                        className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-dashed border-[#e7e5e4] rounded-[6px] text-xs sm:text-sm text-[#57534e] cursor-pointer hover:bg-[#ffffff] hover:border-[#a8a29e] transition-colors flex items-center justify-between touch-manipulation"
+                        aria-expanded={isExpandTimestamps}
+                        aria-controls="yt-timestamps-panel"
+                        className="w-full text-left px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-dashed border-[#e7e5e4] rounded-[6px] text-xs sm:text-sm text-[#57534e] cursor-pointer hover:bg-[#ffffff] hover:border-[#a8a29e] transition-colors flex items-center justify-between touch-manipulation"
                       >
                         <span>Chapters auto-load; tap to review or paste custom timestamps</span>
-                        <span className="text-xs font-semibold text-[#0d5c46] shrink-0 ml-2">+ Expand</span>
-                      </div>
+                        <span className="text-xs font-semibold text-[#0d5c46] shrink-0 ml-2" aria-hidden="true">+ Expand</span>
+                      </button>
                     </div>
                   </div>
 
                   {/* Expanded Timestamps Textarea Area */}
                   <div
+                    id="yt-timestamps-panel"
                     className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
                       isExpandTimestamps
                         ? 'grid-rows-[1fr] opacity-100'
@@ -425,7 +446,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                   >
                     {isLoading ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -434,7 +455,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                     ) : (
                       <>
                         <span>Generate Playlist</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                       </>
@@ -445,7 +466,7 @@ export function InputView({ onGenerate }: InputViewProps) {
 
               {/* Informational Note on Playback Compatibility */}
               <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#e7e5e4] flex items-start gap-2 text-[11px] sm:text-xs text-[#57534e]">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="leading-relaxed">

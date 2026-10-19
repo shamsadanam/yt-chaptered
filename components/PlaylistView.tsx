@@ -22,8 +22,8 @@ interface PlaylistViewProps {
 
 export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const containerId = 'youtube-active-player';
-  const sidebarListRef = useRef<HTMLDivElement>(null);
-  const activeItemRef = useRef<HTMLDivElement | null>(null);
+  const sidebarListRef = useRef<HTMLOListElement>(null);
+  const activeItemRef = useRef<HTMLLIElement | null>(null);
 
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedTimestamps, setCopiedTimestamps] = useState(false);
@@ -415,7 +415,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <div id={containerId} className="w-full h-full" />
                 {!isReady && !playerError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917] text-[#ffffff] gap-3">
-                    <svg className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-[#10b981]" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-[#10b981]" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -424,7 +424,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 )}
                 {playerError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917]/95 text-[#ffffff] p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
-                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <p className="text-xs sm:text-sm font-semibold max-w-md">{playerError}</p>
@@ -435,7 +435,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-[#0d5c46] hover:bg-[#0a4635] text-white text-xs font-semibold rounded-[6px] transition-colors min-h-[44px] touch-manipulation"
                     >
                       <span>Open directly on YouTube</span>
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </a>
@@ -450,8 +450,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={handleToggleFullscreen}
                   className="absolute top-4 right-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/80 hover:bg-black text-white text-xs font-semibold rounded-full border border-white/20 shadow-md cursor-pointer touch-manipulation"
                   title="Exit Fullscreen"
+                  aria-label="Exit Fullscreen"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                   <span>Exit</span>
@@ -488,23 +489,33 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}
                     title="Playback Speed"
                     aria-label={`Playback speed: ${playbackRate}x`}
-                    className="h-10 px-2.5 inline-flex items-center gap-1 rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] text-xs font-semibold font-mono transition-colors touch-manipulation cursor-pointer"
+                    aria-haspopup="true"
+                    aria-expanded={isSpeedMenuOpen}
+                    aria-controls="speed-menu-dropdown"
+                    className="h-10 px-2.5 inline-flex items-center gap-1 rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] text-xs font-semibold font-mono transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                   >
-                    <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     <span>{playbackRate}x</span>
-                    <svg className="w-3 h-3 text-[#78716c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-[#78716c]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
                   {isSpeedMenuOpen && (
-                    <div className="absolute right-0 bottom-full mb-1.5 w-28 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] shadow-lg py-1 z-30">
+                    <div
+                      id="speed-menu-dropdown"
+                      role="menu"
+                      aria-label="Playback speed options"
+                      className="absolute right-0 bottom-full mb-1.5 w-28 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] shadow-lg py-1 z-30"
+                    >
                       {[0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
                         <button
                           key={rate}
                           type="button"
+                          role="menuitemradio"
+                          aria-checked={playbackRate === rate}
                           onClick={() => {
                             setPlaybackRate(rate);
                             setIsSpeedMenuOpen(false);
@@ -514,7 +525,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                           }`}
                         >
                           <span>{rate}x</span>
-                          {playbackRate === rate && <span>✓</span>}
+                          {playbackRate === rate && <span aria-hidden="true">✓</span>}
                         </button>
                       ))}
                     </div>
@@ -527,14 +538,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={handleToggleFullscreen}
                   title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (Auto-rotates Landscape)'}
                   aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
                   {isFullscreen ? (
-                    <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
                   )}
@@ -550,9 +561,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex <= 0}
                   title="Previous Chapter"
                   aria-label="Previous Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                   </svg>
                 </button>
@@ -563,9 +574,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(-10)}
                   title="Rewind 10 seconds"
                   aria-label="Rewind 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
-                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -617,10 +628,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       ? 'Pause video'
                       : 'Play video'
                   }
-                  className="h-10 w-[84px] sm:w-[92px] shrink-0 inline-flex items-center justify-center gap-1.5 rounded-[8px] sm:rounded-[10px] bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-[0.98] select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100"
+                  className="h-10 w-[84px] sm:w-[92px] shrink-0 inline-flex items-center justify-center gap-1.5 rounded-[8px] sm:rounded-[10px] bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-[0.98] select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
                   {isPlayLoading ? (
-                    <svg className="animate-spin w-3.5 h-3.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin w-3.5 h-3.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path
                         className="opacity-75"
@@ -629,11 +640,11 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       />
                     </svg>
                   ) : isPlaying ? (
-                    <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
                     </svg>
                   ) : (
-                    <svg className="w-3.5 h-3.5 shrink-0 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 shrink-0 ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   )}
@@ -646,9 +657,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(10)}
                   title="Forward 10 seconds"
                   aria-label="Forward 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
-                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -683,9 +694,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex >= playlist.chapters.length - 1}
                   title="Next Chapter"
                   aria-label="Next Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6 18l8.5-6L6 6v12zM16 6h2v12h-2z" />
                   </svg>
                 </button>
@@ -713,9 +724,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               {activeChapter && (
                 <button
                   type="button"
+                  role="checkbox"
+                  aria-checked={isCurrentCompleted}
                   onClick={(e) => handleToggleComplete(activeChapter.id, e)}
                   title={isCurrentCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold transition-colors cursor-pointer min-h-[36px] touch-manipulation border ${
+                  aria-label={isCurrentCompleted ? `Mark chapter ${currentChapterIndex + 1} as incomplete` : `Mark chapter ${currentChapterIndex + 1} as completed`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold transition-colors cursor-pointer min-h-[36px] touch-manipulation border focus:outline-none focus:ring-2 focus:ring-[#0d5c46] ${
                     isCurrentCompleted
                       ? 'bg-[#0d5c46] text-white border-[#0d5c46]'
                       : 'bg-[#fafaf9] text-[#57534e] hover:text-[#1c1917] hover:bg-[#f5f5f4] border-[#e7e5e4]'
@@ -729,7 +743,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     }`}
                   >
                     {isCurrentCompleted && (
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -760,7 +774,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               </div>
 
               {/* Chapter Progress Track */}
-              <div className="w-full h-1.5 bg-[#f5f5f4] rounded-full overflow-hidden border border-[#e7e5e4]">
+              <div
+                role="progressbar"
+                aria-valuenow={chapterProgressPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Chapter progress"
+                className="w-full h-1.5 bg-[#f5f5f4] rounded-full overflow-hidden border border-[#e7e5e4]"
+              >
                 <div
                   className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
                   style={{ width: `${chapterProgressPercentage}%` }}
@@ -786,7 +807,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               </span>
             </div>
             {/* Course Progress Bar */}
-            <div className="w-full h-1.5 sm:h-2 bg-[#e7e5e4] rounded-full overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={progressPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Course completion progress"
+              className="w-full h-1.5 sm:h-2 bg-[#e7e5e4] rounded-full overflow-hidden"
+            >
               <div
                 className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
                 style={{ width: `${progressPercentage}%` }}
@@ -794,9 +822,11 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             </div>
           </div>
 
-          {/* Interactive Chapter List with 48px+ touch targets */}
-          <div
+          {/* Interactive Chapter List with accessible buttons */}
+          <ol
             ref={sidebarListRef}
+            role="list"
+            aria-label="Course chapters"
             className="overflow-y-auto p-1.5 sm:p-2 divide-y divide-[#e7e5e4] max-h-[500px] sm:max-h-[600px] flex-1"
           >
             {playlist.chapters.map((chap, idx) => {
@@ -804,21 +834,24 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               const isCompleted = completedIds.includes(chap.id);
 
               return (
-                <div
+                <li
                   key={chap.id}
                   ref={isActive ? (node) => { activeItemRef.current = node; } : undefined}
-                  onClick={() => handleSelectChapter(idx)}
-                  className={`w-full text-left p-2.5 sm:p-3 rounded-[8px] transition-all flex items-center gap-2.5 sm:gap-3 my-0.5 cursor-pointer min-h-[52px] touch-manipulation active:scale-[0.99] ${
+                  className={`w-full p-2 sm:p-2.5 rounded-[8px] transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-[52px] ${
                     isActive
                       ? 'bg-[#f5f5f4] border border-[#0d5c46] shadow-xs'
                       : 'hover:bg-[#fafaf9] border border-transparent'
                   }`}
                 >
-                  {/* Manual Completion Checkbox with full 48px touch zone */}
-                  <div
+                  {/* Manual Completion Checkbox button with full 44px+ tap zone */}
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isCompleted}
                     onClick={(e) => handleToggleComplete(chap.id, e)}
-                    className="shrink-0 w-11 h-11 -ml-1 flex items-center justify-center cursor-pointer touch-manipulation"
                     title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
+                    aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
+                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46] rounded-[6px]"
                   >
                     <div
                       className={`w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors ${
@@ -828,65 +861,75 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       }`}
                     >
                       {isCompleted && (
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
                     </div>
-                  </div>
+                  </button>
 
-                  {/* Index Badge */}
-                  <div
-                    className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-[6px] text-xs font-semibold flex items-center justify-center transition-colors ${
-                      isActive
-                        ? 'bg-[#0d5c46] text-white'
-                        : isCompleted
-                        ? 'bg-[#f5f5f4] text-[#57534e]'
-                        : 'bg-[#f5f5f4] text-[#57534e]'
-                    }`}
+                  {/* Primary Chapter Select Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectChapter(idx)}
+                    aria-current={isActive ? 'true' : undefined}
+                    aria-label={`Play chapter ${chap.index}: ${chap.title}, timestamp ${chap.formattedTime}${isCompleted ? ', completed' : ''}`}
+                    className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#0d5c46] rounded-[6px] p-1 -m-1"
                   >
-                    {isActive ? (
-                      <span className="animate-pulse">▶</span>
-                    ) : (
-                      <span>{chap.index}</span>
-                    )}
-                  </div>
-
-                  {/* Chapter Info */}
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`text-xs sm:text-sm leading-snug break-words transition-opacity line-clamp-2 ${
-                        isCompleted ? 'text-[#a8a29e] line-through decoration-[#d6d3d1]' : 'text-[#1c1917]'
-                      } ${isActive ? 'font-semibold' : 'font-normal'}`}
+                    {/* Index Badge */}
+                    <div
+                      className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-[6px] text-xs font-semibold flex items-center justify-center transition-colors ${
+                        isActive
+                          ? 'bg-[#0d5c46] text-white'
+                          : isCompleted
+                          ? 'bg-[#f5f5f4] text-[#57534e]'
+                          : 'bg-[#f5f5f4] text-[#57534e]'
+                      }`}
+                      aria-hidden="true"
                     >
-                      {chap.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-                      <span
-                        className={`text-[11px] sm:text-xs font-mono px-1.5 py-0.5 rounded-[4px] border ${
-                          isActive
-                            ? 'bg-[#ffffff] border-[#0d5c46]/30 text-[#0d5c46] font-medium'
-                            : 'bg-[#ffffff] border-[#e7e5e4] text-[#57534e]'
-                        }`}
-                      >
-                        {chap.formattedTime}
-                      </span>
-                      {isActive && (
-                        <span className="text-[10px] sm:text-[11px] font-medium text-[#0d5c46]">
-                          Now playing
-                        </span>
-                      )}
-                      {isCompleted && !isActive && (
-                        <span className="text-[10px] sm:text-[11px] font-medium text-[#57534e]">
-                          Completed
-                        </span>
+                      {isActive ? (
+                        <span className="animate-pulse">▶</span>
+                      ) : (
+                        <span>{chap.index}</span>
                       )}
                     </div>
-                  </div>
-                </div>
+
+                    {/* Chapter Info */}
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-xs sm:text-sm leading-snug break-words transition-opacity line-clamp-2 ${
+                          isCompleted ? 'text-[#78716c] line-through decoration-[#a8a29e]' : 'text-[#1c1917]'
+                        } ${isActive ? 'font-semibold' : 'font-normal'}`}
+                      >
+                        {chap.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
+                        <span
+                          className={`text-[11px] sm:text-xs font-mono px-1.5 py-0.5 rounded-[4px] border ${
+                            isActive
+                              ? 'bg-[#ffffff] border-[#0d5c46]/30 text-[#0d5c46] font-medium'
+                              : 'bg-[#ffffff] border-[#e7e5e4] text-[#57534e]'
+                          }`}
+                        >
+                          {chap.formattedTime}
+                        </span>
+                        {isActive && (
+                          <span className="text-[10px] sm:text-[11px] font-medium text-[#0d5c46]">
+                            Now playing
+                          </span>
+                        )}
+                        {isCompleted && !isActive && (
+                          <span className="text-[10px] sm:text-[11px] font-medium text-[#57534e]">
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       </div>
 
@@ -901,18 +944,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             <button
               type="button"
               onClick={handleCopyShareLink}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[40px] touch-manipulation shadow-2xs"
+              aria-label={copiedLink ? 'Course bookmark link copied to clipboard' : 'Copy bookmark link to clipboard'}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[40px] touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
               {copiedLink ? (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Link Copied!</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   <span>Copy Bookmark Link</span>
@@ -924,10 +968,11 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors min-h-[40px] touch-manipulation"
+              aria-label={`Watch ${playlist.video.title} on YouTube (opens in new tab)`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors min-h-[40px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
               <span>Watch on YouTube</span>
-              <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
@@ -964,15 +1009,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               <button
                 type="button"
                 onClick={handleCopyTimestamps}
-                className="text-xs font-medium text-[#0d5c46] hover:underline cursor-pointer flex items-center gap-1"
+                aria-label={copiedTimestamps ? 'Course timestamps copied to clipboard' : 'Copy course timestamps to clipboard'}
+                className="text-xs font-medium text-[#0d5c46] hover:underline cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
               >
                 {copiedTimestamps ? '✓ Timestamps Copied' : 'Copy Timestamps'}
               </button>
-              <span className="text-[#d6d3d1]">•</span>
+              <span className="text-[#d6d3d1]" aria-hidden="true">•</span>
               <button
                 type="button"
                 onClick={() => setShowRawTimestamps(!showRawTimestamps)}
-                className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline cursor-pointer"
+                aria-expanded={showRawTimestamps}
+                aria-controls="raw-timestamps-pre"
+                className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
               >
                 {showRawTimestamps ? 'Hide' : 'View Raw'}
               </button>
@@ -980,7 +1028,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           </div>
 
           {showRawTimestamps && (
-            <pre className="p-3.5 bg-[#fafaf9] border border-[#e7e5e4] rounded-[8px] text-[11px] sm:text-xs font-mono text-[#57534e] overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed">
+            <pre
+              id="raw-timestamps-pre"
+              tabIndex={0}
+              aria-label="Course raw timestamps"
+              className="p-3.5 bg-[#fafaf9] border border-[#e7e5e4] rounded-[8px] text-[11px] sm:text-xs font-mono text-[#57534e] overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+            >
               {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
             </pre>
           )}

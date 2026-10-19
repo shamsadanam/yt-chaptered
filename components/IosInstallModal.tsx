@@ -9,12 +9,45 @@ interface IosInstallModalProps {
 
 export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
 
+    previousActiveElementRef.current = document.activeElement as HTMLElement | null;
+
+    const focusTimer = setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 50);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
     };
 
     const originalOverflow = document.body.style.overflow;
@@ -22,8 +55,10 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
+      clearTimeout(focusTimer);
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      previousActiveElementRef.current?.focus();
     };
   }, [isOpen, onClose]);
 
@@ -45,7 +80,7 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
       >
         <div className="flex items-center justify-between pb-3 border-b border-[#e7e5e4]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[10px] bg-[#0d5c46] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            <div className="w-8 h-8 rounded-[10px] bg-[#0d5c46] text-white flex items-center justify-center font-bold text-sm shadow-xs" aria-hidden="true">
               yt
             </div>
             <div>
@@ -56,48 +91,49 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
             </div>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#57534e] hover:text-[#1c1917] hover:bg-[#e7e5e4] transition-colors cursor-pointer"
+            aria-label="Close iOS installation instructions dialog"
+            className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#57534e] hover:text-[#1c1917] hover:bg-[#e7e5e4] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
-        <div className="space-y-3.5 text-xs sm:text-sm text-[#1c1917]">
-          <div className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
-            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0">
+        <ol className="space-y-3.5 text-xs sm:text-sm text-[#1c1917]" aria-label="iOS installation steps">
+          <li className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
+            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0" aria-hidden="true">
               1
             </span>
             <p className="leading-relaxed">
               In Safari, tap the <strong>Share</strong> button (the square with an arrow pointing upward) in the browser toolbar.
             </p>
-          </div>
+          </li>
 
-          <div className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
-            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0">
+          <li className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
+            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0" aria-hidden="true">
               2
             </span>
             <p className="leading-relaxed">
               Scroll down the share sheet and tap <strong>Add to Home Screen</strong>.
             </p>
-          </div>
+          </li>
 
-          <div className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
-            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0">
+          <li className="flex items-start gap-3 p-3 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px]">
+            <span className="w-6 h-6 rounded-full bg-[#f5f5f4] text-[#1c1917] flex items-center justify-center font-bold text-xs shrink-0" aria-hidden="true">
               3
             </span>
             <p className="leading-relaxed">
               Tap <strong>Add</strong> in the top right corner to launch it full screen like a native app.
             </p>
-          </div>
-        </div>
+          </li>
+        </ol>
 
         <button
           type="button"
           onClick={onClose}
-          className="w-full mt-1 py-2.5 bg-[#0d5c46] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm rounded-[10px] transition-colors cursor-pointer"
+          className="w-full mt-1 py-2.5 bg-[#0d5c46] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm rounded-[10px] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
         >
           Got it
         </button>

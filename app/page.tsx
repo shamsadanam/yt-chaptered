@@ -91,7 +91,7 @@ export default function Home() {
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 
-      <main className="flex-1 flex flex-col justify-start">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
         {/* View 1: Player View */}
         {activeTab === 'player' && playlist && (
           <PlaylistView playlist={playlist} onReset={handleReset} />
@@ -117,27 +117,30 @@ export default function Home() {
 
       {/* Floating Mini Player Bar on mobile when video loaded but viewing other tabs */}
       {playlist && activeTab !== 'player' && (
-        <aside
-          aria-label="Active video player"
-          onClick={() => setActiveTab('player')}
-          className="md:hidden fixed bottom-[64px] left-3 right-3 z-40 bg-[#1c1917] text-[#ffffff] p-3 rounded-[12px] shadow-lg flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-transform touch-manipulation"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-7 h-7 rounded-[6px] bg-[#0d5c46] flex items-center justify-center text-xs shrink-0 font-bold text-white">
-              ▶
-            </span>
-            <div className="min-w-0">
-              <span className="text-[10px] text-[#10b981] font-semibold uppercase tracking-wider block">
-                Now Playing
+        <aside aria-label="Active video player" className="md:hidden fixed bottom-[64px] left-3 right-3 z-40">
+          <button
+            type="button"
+            onClick={() => setActiveTab('player')}
+            aria-label={`Open active video player: ${playlist.video.title}`}
+            className="w-full bg-[#1c1917] text-[#ffffff] p-3 rounded-[12px] shadow-lg flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-transform touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#10b981]"
+          >
+            <div className="flex items-center gap-2.5 min-w-0 text-left">
+              <span className="w-7 h-7 rounded-[6px] bg-[#0d5c46] flex items-center justify-center text-xs shrink-0 font-bold text-white" aria-hidden="true">
+                ▶
               </span>
-              <p className="text-xs font-semibold truncate text-[#ffffff]">
-                {playlist.video.title}
-              </p>
+              <div className="min-w-0">
+                <span className="text-[10px] text-[#10b981] font-semibold uppercase tracking-wider block">
+                  Now Playing
+                </span>
+                <p className="text-xs font-semibold truncate text-[#ffffff]">
+                  {playlist.video.title}
+                </p>
+              </div>
             </div>
-          </div>
-          <span className="text-xs font-semibold text-[#10b981] shrink-0 pr-1">
-            Open →
-          </span>
+            <span className="text-xs font-semibold text-[#10b981] shrink-0 pr-1" aria-hidden="true">
+              Open →
+            </span>
+          </button>
         </aside>
       )}
 
