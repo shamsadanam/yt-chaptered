@@ -34,8 +34,8 @@
 
 ## Features
 
-1. Add more player controls
-2. Add link to youtube channel for subscribing, for phase one just open the video/channel in a new tab.
+- [x] Add compact player controls (seek ±10s with icons, chapter skips, speed selector, fullscreen with auto-landscape rotation, separate dedicated controls card & current chapter card)
+- [ ] Add link to youtube channel for subscribing, for phase one just open the video/channel in a new tab.
 
 ## Future Planning
 

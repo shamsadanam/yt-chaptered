@@ -10,4 +10,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Testing Rules
 
-When you test using Playwright MCP, start the headless server 'muted', unless you're specifically testing for sound.
+- You don't need to test with Playwright for everything. Use it when I ask you to.
+- When you test using Playwright MCP, start the headless server with volume muted, unless you're specifically testing for sound.
