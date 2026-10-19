@@ -5,41 +5,35 @@
       <stop offset="100%" stop-color="#083e2f" />
     </linearGradient>
     <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18" />
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </linearGradient>
-    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0d5c46" flood-opacity="0.25" />
-    </filter>
   </defs>
 
-  <!-- Squircle rounded background -->
-  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#bgGrad)" filter="url(#subtleShadow)" />
-  <rect x="4" y="4" width="120" height="60" rx="30" fill="url(#glowGrad)" />
+  <!-- Full bleed background: zero margin, zero whitespace -->
+  <rect width="128" height="128" fill="url(#bgGrad)" />
+  <rect width="128" height="64" fill="url(#glowGrad)" />
 
-  <!-- Inner subtle border -->
-  <rect x="5" y="5" width="118" height="118" rx="29" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" />
+  <!-- Subtle inner rim for depth -->
+  <rect x="0.5" y="0.5" width="127" height="127" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1" />
 
-  <!-- Chapter bookmarks / tracks stacked behind in sage tint -->
-  <!-- Track 1 (top chapter pill) -->
-  <rect x="28" y="24" width="72" height="8" rx="4" fill="#10b981" fill-opacity="0.45" />
-  
-  <!-- Track 2 (bottom chapter pill) -->
-  <rect x="28" y="96" width="72" height="8" rx="4" fill="#10b981" fill-opacity="0.45" />
+  <!-- Chapter bookmark tracks (top and bottom) in sage tint -->
+  <rect x="24" y="20" width="80" height="9" rx="4.5" fill="#10b981" fill-opacity="0.5" />
+  <rect x="24" y="99" width="80" height="9" rx="4.5" fill="#10b981" fill-opacity="0.5" />
 
   <!-- Central Play + Chapter Bookmark Icon -->
   <path
-    d="M48 40.5
-       C48 37.8 51.0 36.1 53.4 37.5
-       L89.2 60.5
-       C91.4 61.9 91.4 65.1 89.2 66.5
-       L53.4 89.5
-       C51.0 90.9 48 89.2 48 86.5
+    d="M48 38
+       C48 35.5 50.8 33.9 53.0 35.2
+       L89.5 59.7
+       C91.5 61.0 91.5 64.0 89.5 65.3
+       L53.0 89.8
+       C50.8 91.1 48 89.5 48 87.0
        Z"
     fill="#ffffff"
   />
 
   <!-- Distinct chapter notches / segmentation lines inside play button in Nordic Emerald -->
-  <line x1="61" y1="47" x2="61" y2="80" stroke="#0d5c46" stroke-width="3" stroke-linecap="round" />
-  <line x1="74" y1="54" x2="74" y2="73" stroke="#0d5c46" stroke-width="3" stroke-linecap="round" />
+  <line x1="61" y1="45" x2="61" y2="80" stroke="#0d5c46" stroke-width="3.5" stroke-linecap="round" />
+  <line x1="74" y1="53" x2="74" y2="72" stroke="#0d5c46" stroke-width="3.5" stroke-linecap="round" />
 </svg>

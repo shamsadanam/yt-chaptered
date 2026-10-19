@@ -32,7 +32,7 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any',
       },
       {
-        src: '/icon-512.png',
+        src: '/icon-maskable-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
@@ -41,6 +41,22 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/apple-touch-icon.png',
         sizes: '180x180',
         type: 'image/png',
+      },
+    ],
+    screenshots: [
+      {
+        src: '/screenshots/desktop-preview.png',
+        sizes: '1280x800',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'ytChaptered desktop playlist and course organizer',
+      },
+      {
+        src: '/screenshots/mobile-preview.png',
+        sizes: '750x1334',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'ytChaptered mobile chapter navigation and progress tracking',
       },
     ],
     shortcuts: [

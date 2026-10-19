@@ -47,6 +47,13 @@ export function InputView({ onGenerate }: InputViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [autoFetchStatus, setAutoFetchStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cachedVideoInfo, setCachedVideoInfo] = useState<{
+    videoId: string;
+    title: string;
+    author?: string;
+    thumbnailUrl?: string;
+    duration?: number;
+  } | null>(null);
 
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
@@ -55,16 +62,11 @@ export function InputView({ onGenerate }: InputViewProps) {
   );
 
   const hasSavedCourses = savedCourses.length > 0;
-  const [isFormExpanded, setIsFormExpanded] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
-  const handleOpenAddCourse = () => {
-    setIsFormExpanded(true);
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      urlInputRef.current?.focus();
-    }, 60);
+  const handleFocusAddCourse = () => {
+    urlInputRef.current?.focus();
+    urlInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const handleRefreshCourses = () => {};
@@ -86,6 +88,10 @@ export function InputView({ onGenerate }: InputViewProps) {
     setIsExpandTimestamps(true);
     setErrorMessage(null);
     setAutoFetchStatus('Sample tutorial loaded with 18 chapters');
+    setCachedVideoInfo({
+      videoId: 'kqtD5dpn9C8',
+      title: SAMPLE_DATA.title,
+    });
   };
 
   const fetchFromLocalApi = async (videoId: string) => {
@@ -115,6 +121,15 @@ export function InputView({ onGenerate }: InputViewProps) {
     try {
       const autoData = await fetchFromLocalApi(videoId);
       if (autoData && autoData.success) {
+        if (autoData.title) {
+          setCachedVideoInfo({
+            videoId,
+            title: autoData.title,
+            author: autoData.author,
+            thumbnailUrl: autoData.thumbnailUrl,
+            duration: autoData.duration,
+          });
+        }
         if (autoData.description) {
           setTimestampsText(autoData.description);
           setIsExpandTimestamps(true);
@@ -122,7 +137,11 @@ export function InputView({ onGenerate }: InputViewProps) {
         if (autoData.chapters && autoData.chapters.length > 0) {
           setAutoFetchStatus(`Successfully found ${autoData.chapters.length} chapters automatically!`);
         } else {
-          setAutoFetchStatus(`Found video "${autoData.title}", but no timestamps were in description.`);
+          setAutoFetchStatus(
+            autoData.title
+              ? `Found "${autoData.title}", but no timestamps were in description.`
+              : 'Found video, but no timestamps were in description.'
+          );
         }
         return;
       }
@@ -146,9 +165,10 @@ export function InputView({ onGenerate }: InputViewProps) {
     }
 
     let parsedChapters = parseTimestamps(timestampsText);
-    let videoTitle = `Video ${videoId}`;
-    let authorName: string | undefined;
-    let thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    const hasCached = cachedVideoInfo?.videoId === videoId;
+    let videoTitle = hasCached && cachedVideoInfo?.title ? cachedVideoInfo.title : '';
+    let authorName: string | undefined = hasCached ? cachedVideoInfo?.author : undefined;
+    let thumbnailUrl = (hasCached && cachedVideoInfo?.thumbnailUrl) || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
     setIsLoading(true);
 
@@ -166,12 +186,12 @@ export function InputView({ onGenerate }: InputViewProps) {
             setIsExpandTimestamps(true);
           }
         }
-      } else {
+      } else if (!videoTitle) {
         // Fetch video info in background and validate manual timestamps against duration if available
         const autoData = await fetchFromLocalApi(videoId);
-        if (autoData?.title) {
-          videoTitle = autoData.title;
-          authorName = autoData.author;
+        if (autoData && autoData.success) {
+          if (autoData.title) videoTitle = autoData.title;
+          if (autoData.author) authorName = autoData.author;
           if (autoData.thumbnailUrl) thumbnailUrl = autoData.thumbnailUrl;
           if (autoData.duration && autoData.duration > 0) {
             parsedChapters = parseTimestamps(timestampsText, autoData.duration);
@@ -182,6 +202,29 @@ export function InputView({ onGenerate }: InputViewProps) {
       console.warn('Auto-generation fetch error:', err);
     } finally {
       setIsLoading(false);
+    }
+
+    // Direct browser oEmbed fallback if title is still missing
+    if (!videoTitle) {
+      try {
+        const oembedRes = await fetch(
+          `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+        );
+        if (oembedRes.ok) {
+          const oembedData = await oembedRes.json();
+          if (oembedData.title) videoTitle = oembedData.title;
+          if (oembedData.author_name && !authorName) authorName = oembedData.author_name;
+          if (oembedData.thumbnail_url && (!thumbnailUrl || thumbnailUrl.includes('hqdefault.jpg'))) {
+            thumbnailUrl = oembedData.thumbnail_url;
+          }
+        }
+      } catch {
+        // Silent fallback
+      }
+    }
+
+    if (!videoTitle) {
+      videoTitle = 'YouTube Video';
     }
 
     // Fallback if no timestamps were found
@@ -223,12 +266,12 @@ export function InputView({ onGenerate }: InputViewProps) {
           onResumeCourse={handleResumeCourse}
           onRefresh={handleRefreshCourses}
           isTopShelf={true}
-          onAddNewCourse={handleOpenAddCourse}
+          onAddNewCourse={handleFocusAddCourse}
         />
       )}
 
       {/* First-time User View: Prominent Hero Header */}
-      {!hasSavedCourses && (
+      {!hasSavedCourses ? (
         <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-[11px] sm:text-xs font-semibold uppercase tracking-[1px] text-[#57534e] mb-3 sm:mb-4">
             Local-first video chapters
@@ -240,95 +283,23 @@ export function InputView({ onGenerate }: InputViewProps) {
             Paste any YouTube URL to automatically detect chapters, navigate segments, and track learning progress.
           </p>
         </div>
-      )}
-
-      {/* Returning User Collapsed State: Accordion Trigger */}
-      {hasSavedCourses && (
-        <div
-          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-            isFormExpanded
-              ? 'grid-rows-[0fr] opacity-0 pointer-events-none'
-              : 'grid-rows-[1fr] opacity-100'
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="pt-2 sm:pt-4">
-              <button
-                type="button"
-                onClick={handleOpenAddCourse}
-                className="w-full bg-[#ffffff] hover:bg-[#fafaf9] active:bg-[#f5f5f4] border border-dashed border-[#d6d3d1] hover:border-[#0d5c46] rounded-[12px] p-4 sm:p-5 transition-all text-left flex items-center justify-between gap-4 cursor-pointer min-h-[56px] touch-manipulation group shadow-2xs"
-                aria-expanded={isFormExpanded}
-                aria-controls="course-input-card"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-[10px] bg-[#0d5c46]/10 text-[#0d5c46] flex items-center justify-center shrink-0 group-hover:bg-[#0d5c46] group-hover:text-white transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm sm:text-base font-semibold text-[#1c1917] group-hover:text-[#0d5c46] transition-colors">
-                      Add New Course
-                    </h3>
-                    <p className="text-xs text-[#57534e] truncate">
-                      Paste a YouTube URL to auto-detect chapters and create a new course
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-[#0d5c46] shrink-0 inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                  <span>+ Add</span>
-                  <span>→</span>
-                </span>
-              </button>
-            </div>
-          </div>
+      ) : (
+        <div className="mt-8 sm:mt-12 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-2xl font-medium text-[#1c1917] tracking-tight">
+            Add New Video / Course
+          </h2>
+          <p className="text-xs sm:text-sm text-[#57534e]">
+            Paste a YouTube URL to automatically detect chapters or paste custom timestamps.
+          </p>
         </div>
       )}
 
-      {/* Main Input Card (smoothly animated accordion for returning users, static for new users) */}
+      {/* Main Input Card */}
       <div
-        className={
-          hasSavedCourses
-            ? `grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                isFormExpanded
-                  ? 'grid-rows-[1fr] opacity-100'
-                  : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-              }`
-            : ''
-        }
+        id="course-input-card"
+        className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-8 shadow-xs"
       >
-        <div className={hasSavedCourses ? 'overflow-hidden' : ''}>
-          <div className={hasSavedCourses ? 'pt-2 sm:pt-4' : ''}>
-            <div
-              ref={formRef}
-              id="course-input-card"
-              className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-8 shadow-xs"
-            >
-              {hasSavedCourses && (
-                <div className="flex items-center justify-between pb-3 sm:pb-4 mb-4 sm:mb-6 border-b border-[#e7e5e4]">
-                  <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-[#1c1917]">
-                      Add New Course
-                    </h3>
-                    <p className="text-xs text-[#57534e]">
-                      Paste a YouTube URL to auto-detect chapters or paste custom timestamps.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsFormExpanded(false)}
-                    className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] px-2.5 py-1.5 rounded-[6px] hover:bg-[#f5f5f4] active:bg-[#e7e5e4] cursor-pointer min-h-[36px] flex items-center gap-1 transition-colors touch-manipulation"
-                    aria-label="Collapse add course form"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span className="hidden xs:inline">Collapse</span>
-                  </button>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 {/* URL Input */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5 sm:mb-2">
@@ -482,9 +453,6 @@ export function InputView({ onGenerate }: InputViewProps) {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
       {/* First-time User: Shelf at bottom for importing backup */}
       {!hasSavedCourses && (

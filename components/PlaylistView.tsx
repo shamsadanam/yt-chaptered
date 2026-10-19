@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { secondsToTimestamp } from '../lib/youtubeParser';
@@ -25,6 +25,30 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const sidebarListRef = useRef<HTMLDivElement>(null);
   const activeItemRef = useRef<HTMLDivElement | null>(null);
 
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedTimestamps, setCopiedTimestamps] = useState(false);
+  const [showRawTimestamps, setShowRawTimestamps] = useState(false);
+
+  // Sync timestamp directly to browser URL query parameter (?t=seconds)
+  const updateUrlTimestamp = useCallback((seconds: number) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const targetT = Math.floor(seconds).toString();
+    if (url.searchParams.get('t') !== targetT) {
+      url.searchParams.set('t', targetT);
+      window.history.replaceState(null, '', url.pathname + url.search);
+    }
+  }, []);
+
+  // Ensure initial URL parameter is reflected if starting from non-zero
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('t') && playlist.initialStartTime !== undefined && playlist.initialStartTime > 0) {
+      updateUrlTimestamp(playlist.initialStartTime);
+    }
+  }, [playlist.initialStartTime, updateUrlTimestamp]);
+
   // Load initial completed state & last playback time
   const completedIds = useSyncExternalStore(
     subscribeCourses,
@@ -34,20 +58,22 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   const lastSaveTimeRef = useRef<number>(0);
 
-  // Ensure course is registered in storage
+  // Ensure course is registered in storage if not already existing
   useEffect(() => {
     const existing = getSavedCourse(playlist.video.id);
-    const initialCourse: SavedCourse = {
-      video: playlist.video,
-      chapters: playlist.chapters,
-      rawTimestampsText: playlist.rawTimestampsText || '',
-      completedChapterIds: existing?.completedChapterIds || [],
-      lastPlayedChapterIndex: playlist.initialChapterIndex ?? 0,
-      lastPlayedSeconds: playlist.initialStartTime ?? 0,
-      updatedAt: Date.now(),
-    };
-    saveCourse(initialCourse);
-  }, [playlist]);
+    if (!existing) {
+      const initialCourse: SavedCourse = {
+        video: playlist.video,
+        chapters: playlist.chapters,
+        rawTimestampsText: playlist.rawTimestampsText || '',
+        completedChapterIds: [],
+        lastPlayedChapterIndex: playlist.initialChapterIndex ?? 0,
+        lastPlayedSeconds: playlist.initialStartTime ?? 0,
+        updatedAt: Date.now(),
+      };
+      saveCourse(initialCourse);
+    }
+  }, [playlist.video.id]);
 
   // Periodic throttling to save playback timestamp
   const handleTimeUpdate = useCallback(
@@ -93,6 +119,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     autoPlay: true,
     initialStartTime: playlist.initialStartTime ?? 0,
     initialChapterIndex: playlist.initialChapterIndex ?? 0,
+    onChapterChange: (newIndex: number) => {
+      const chap = playlist.chapters[newIndex];
+      if (chap) {
+        updateUrlTimestamp(chap.startTime);
+      }
+    },
     onTimeUpdate: handleTimeUpdate,
     onChapterComplete: handleChapterComplete,
     onEnded: handleVideoEnded,
@@ -117,13 +149,49 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   const handlePreviousChapter = () => {
     if (currentChapterIndex > 0) {
-      seekToChapter(currentChapterIndex - 1);
+      const targetIdx = currentChapterIndex - 1;
+      seekToChapter(targetIdx);
+      const chap = playlist.chapters[targetIdx];
+      if (chap) updateUrlTimestamp(chap.startTime);
     }
   };
 
   const handleNextChapter = () => {
     if (currentChapterIndex < playlist.chapters.length - 1) {
-      seekToChapter(currentChapterIndex + 1);
+      const targetIdx = currentChapterIndex + 1;
+      seekToChapter(targetIdx);
+      const chap = playlist.chapters[targetIdx];
+      if (chap) updateUrlTimestamp(chap.startTime);
+    }
+  };
+
+  const handleSelectChapter = (idx: number) => {
+    seekToChapter(idx);
+    const chap = playlist.chapters[idx];
+    if (chap) updateUrlTimestamp(chap.startTime);
+  };
+
+  const handleCopyShareLink = async () => {
+    if (typeof window === 'undefined') return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.warn('Failed to copy link:', err);
+    }
+  };
+
+  const handleCopyTimestamps = async () => {
+    const text =
+      playlist.rawTimestampsText ||
+      playlist.chapters.map((c) => `${c.formattedTime} ${c.title}`).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTimestamps(true);
+      setTimeout(() => setCopiedTimestamps(false), 2000);
+    } catch (err) {
+      console.warn('Failed to copy timestamps:', err);
     }
   };
 
@@ -133,46 +201,27 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 w-full pb-16">
-      {/* Video Headline Header & Course Progress */}
-      <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-            <button
-              type="button"
-              onClick={onReset}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#57534e] hover:text-[#0d5c46] cursor-pointer min-h-[36px] touch-manipulation"
-            >
-              <span>← Back to URL input</span>
-            </button>
-            <span className="text-xs text-[#d6d3d1]">•</span>
-            <span className="px-2 py-0.5 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-xs font-semibold uppercase tracking-[1px] text-[#57534e]">
-              Ch. {currentChapterIndex + 1} of {totalChapters}
-            </span>
-          </div>
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-[#1c1917] tracking-tight truncate">
-            {playlist.video.title}
-          </h1>
-          {playlist.video.author && (
-            <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">By {playlist.video.author}</p>
-          )}
+      {/* Video Headline Header */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#57534e] hover:text-[#0d5c46] cursor-pointer min-h-[36px] touch-manipulation"
+          >
+            <span>← Back to URL input</span>
+          </button>
+          <span className="text-xs text-[#d6d3d1]">•</span>
+          <span className="px-2 py-0.5 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-xs font-semibold uppercase tracking-[1px] text-[#57534e]">
+            Ch. {currentChapterIndex + 1} of {totalChapters}
+          </span>
         </div>
-
-        {/* Course Progress Card */}
-        <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-3 sm:p-4 shrink-0 min-w-full md:min-w-[240px] md:w-72 shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#1c1917] mb-1.5">
-            <span>Course Progress</span>
-            <span className="text-[#0d5c46] font-mono">{progressPercentage}%</span>
-          </div>
-          <div className="w-full h-2 bg-[#f5f5f4] rounded-full overflow-hidden mb-1">
-            <div
-              className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-[#57534e]">
-            {completedCount} of {totalChapters} chapters completed
-          </p>
-        </div>
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-[#1c1917] tracking-tight">
+          {playlist.video.title}
+        </h1>
+        {playlist.video.author && (
+          <p className="text-xs sm:text-sm text-[#57534e] mt-0.5">By {playlist.video.author}</p>
+        )}
       </div>
 
       {/* Responsive Layout: Sticky video on mobile, 2-column on desktop */}
@@ -282,16 +331,25 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         {/* Right Column: Interactive Playlist Sidebar */}
         <div className="lg:col-span-5 xl:col-span-4 bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] overflow-hidden flex flex-col shadow-xs lg:max-h-[750px]">
           {/* Sidebar Header */}
-          <div className="p-3 sm:p-4 border-b border-[#e7e5e4] bg-[#fafaf9] flex items-center justify-between">
-            <div>
-              <h2 className="text-sm sm:text-base font-semibold text-[#1c1917]">Course Chapters</h2>
-              <p className="text-[11px] sm:text-xs text-[#57534e]">
-                {completedCount} of {totalChapters} completed
-              </p>
+          <div className="p-3 sm:p-4 border-b border-[#e7e5e4] bg-[#fafaf9]">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h2 className="text-sm sm:text-base font-semibold text-[#1c1917]">Course Chapters</h2>
+                <p className="text-[11px] sm:text-xs text-[#57534e]">
+                  {completedCount} of {totalChapters} completed
+                </p>
+              </div>
+              <span className="text-xs sm:text-sm font-mono font-semibold text-[#0d5c46]">
+                {progressPercentage}%
+              </span>
             </div>
-            <span className="text-[11px] sm:text-xs font-mono font-medium text-[#57534e] px-2 py-0.5 sm:py-1 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px]">
-              Auto-advancing
-            </span>
+            {/* Course Progress Bar */}
+            <div className="w-full h-1.5 sm:h-2 bg-[#e7e5e4] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
           </div>
 
           {/* Interactive Chapter List with 48px+ touch targets */}
@@ -307,7 +365,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <div
                   key={chap.id}
                   ref={isActive ? (node) => { activeItemRef.current = node; } : undefined}
-                  onClick={() => seekToChapter(idx)}
+                  onClick={() => handleSelectChapter(idx)}
                   className={`w-full text-left p-2.5 sm:p-3 rounded-[8px] transition-all flex items-center gap-2.5 sm:gap-3 my-0.5 cursor-pointer min-h-[52px] touch-manipulation active:scale-[0.99] ${
                     isActive
                       ? 'bg-[#f5f5f4] border border-[#0d5c46] shadow-xs'
@@ -389,6 +447,103 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           </div>
         </div>
       </div>
+
+      {/* Course Details & Sharing Section */}
+      <section aria-label="Course details and sharing" className="mt-6 sm:mt-8 bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e7e5e4]">
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-[#1c1917]">Course Details</h2>
+            <p className="text-xs text-[#57534e]">Bookmark this page or share the link to resume directly at the active timestamp.</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[40px] touch-manipulation shadow-2xs"
+            >
+              {copiedLink ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Copy Bookmark Link</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors min-h-[40px] touch-manipulation"
+            >
+              <span>Watch on YouTube</span>
+              <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        {/* Course Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-[#e7e5e4] text-xs">
+          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
+            <span className="text-[#57534e] block text-[11px]">Total Chapters</span>
+            <span className="font-semibold text-sm text-[#1c1917]">{totalChapters}</span>
+          </div>
+          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
+            <span className="text-[#57534e] block text-[11px]">Completed</span>
+            <span className="font-semibold text-sm text-[#0d5c46]">{completedCount} ({progressPercentage}%)</span>
+          </div>
+          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
+            <span className="text-[#57534e] block text-[11px]">Duration</span>
+            <span className="font-semibold text-sm text-[#1c1917] font-mono">
+              {duration > 0 ? secondsToTimestamp(Math.floor(duration)) : 'Auto-detected'}
+            </span>
+          </div>
+          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
+            <span className="text-[#57534e] block text-[11px]">Storage Status</span>
+            <span className="font-semibold text-sm text-[#1c1917]">IndexedDB (Saved)</span>
+          </div>
+        </div>
+
+        {/* Timestamps & Description Section */}
+        <div className="pt-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-[#1c1917]">Course Timestamps & Description</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopyTimestamps}
+                className="text-xs font-medium text-[#0d5c46] hover:underline cursor-pointer flex items-center gap-1"
+              >
+                {copiedTimestamps ? '✓ Timestamps Copied' : 'Copy Timestamps'}
+              </button>
+              <span className="text-[#d6d3d1]">•</span>
+              <button
+                type="button"
+                onClick={() => setShowRawTimestamps(!showRawTimestamps)}
+                className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline cursor-pointer"
+              >
+                {showRawTimestamps ? 'Hide' : 'View Raw'}
+              </button>
+            </div>
+          </div>
+
+          {showRawTimestamps && (
+            <pre className="p-3.5 bg-[#fafaf9] border border-[#e7e5e4] rounded-[8px] text-[11px] sm:text-xs font-mono text-[#57534e] overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed">
+              {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
+            </pre>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

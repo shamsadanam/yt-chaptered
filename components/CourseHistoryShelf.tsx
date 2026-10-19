@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { SavedCourse } from '../types/playlist';
 import {
   deleteSavedCourse,
@@ -34,6 +35,7 @@ export function CourseHistoryShelf({
 
   const handleDelete = (videoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     deleteSavedCourse(videoId);
     onRefresh();
   };
@@ -203,7 +205,7 @@ export function CourseHistoryShelf({
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>+ Add Course</span>
+              <span>Add Course</span>
             </button>
           )}
 
@@ -265,9 +267,12 @@ export function CourseHistoryShelf({
           const percentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
           const lastChapter = c.chapters[c.lastPlayedChapterIndex] || c.chapters[0];
 
+          const courseUrl = `/watch/${c.video.id}${c.lastPlayedSeconds > 0 ? `?t=${Math.floor(c.lastPlayedSeconds)}` : ''}`;
+
           return (
-            <div
+            <Link
               key={c.video.id}
+              href={courseUrl}
               onClick={() => onResumeCourse(c)}
               className="group bg-[#ffffff] hover:bg-[#ffffff] active:bg-[#ffffff] border border-[#e7e5e4] hover:border-[#0d5c46] rounded-[12px] p-3 sm:p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between shadow-xs touch-manipulation active:scale-[0.99]"
             >
@@ -347,7 +352,7 @@ export function CourseHistoryShelf({
                   <span>→</span>
                 </span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

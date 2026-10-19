@@ -1,6 +1,7 @@
 'use client';
  
 import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
@@ -12,9 +13,11 @@ import {
   subscribeCourses,
   getSavedCoursesSnapshot,
   getSavedCoursesServerSnapshot,
+  saveCourse,
 } from '../lib/storage';
 
 export default function Home() {
+  const router = useRouter();
   const [playlist, setPlaylist] = useState<ParsedPlaylist | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('create');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -38,21 +41,24 @@ export default function Home() {
   const handleRefreshCourses = () => {};
 
   const handleGenerate = (newPlaylist: ParsedPlaylist) => {
-    setPlaylist(newPlaylist);
-    setActiveTab('player');
-    handleRefreshCourses();
+    saveCourse({
+      video: newPlaylist.video,
+      chapters: newPlaylist.chapters,
+      rawTimestampsText: newPlaylist.rawTimestampsText || '',
+      completedChapterIds: [],
+      lastPlayedChapterIndex: newPlaylist.initialChapterIndex ?? 0,
+      lastPlayedSeconds: newPlaylist.initialStartTime ?? 0,
+      updatedAt: Date.now(),
+    });
+    const tParam = newPlaylist.initialStartTime && newPlaylist.initialStartTime > 0
+      ? `?t=${Math.floor(newPlaylist.initialStartTime)}`
+      : '';
+    router.push(`/watch/${newPlaylist.video.id}${tParam}`);
   };
 
   const handleResumeCourse = (course: SavedCourse) => {
-    const resumed: ParsedPlaylist = {
-      video: course.video,
-      chapters: course.chapters,
-      rawTimestampsText: course.rawTimestampsText,
-      initialStartTime: course.lastPlayedSeconds,
-      initialChapterIndex: course.lastPlayedChapterIndex,
-    };
-    setPlaylist(resumed);
-    setActiveTab('player');
+    const tParam = course.lastPlayedSeconds > 0 ? `?t=${Math.floor(course.lastPlayedSeconds)}` : '';
+    router.push(`/watch/${course.video.id}${tParam}`);
   };
 
   const handleReset = () => {
@@ -62,6 +68,14 @@ export default function Home() {
   };
 
   const handleTabChange = (tab: 'create' | 'player' | 'history') => {
+    if (tab === 'player') {
+      if (savedCourses.length > 0) {
+        const recent = savedCourses[0];
+        const tParam = recent.lastPlayedSeconds > 0 ? `?t=${Math.floor(recent.lastPlayedSeconds)}` : '';
+        router.push(`/watch/${recent.video.id}${tParam}`);
+        return;
+      }
+    }
     if (tab === 'history') {
       handleRefreshCourses();
     }

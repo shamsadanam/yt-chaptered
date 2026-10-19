@@ -217,7 +217,7 @@ export function createDefaultVideoMetadata(videoId: string, title?: string): Vid
   return {
     id: videoId,
     url: `https://www.youtube.com/watch?v=${videoId}`,
-    title: title || `YouTube Video (${videoId})`,
+    title: title || 'YouTube Video',
     thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
   };
 }

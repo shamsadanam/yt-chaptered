@@ -61,6 +61,35 @@ async function idbGetAll(): Promise<SavedCourse[]> {
   });
 }
 
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (typeof window === 'undefined' || !navigator.storage || !navigator.storage.persist) {
+    return false;
+  }
+  try {
+    const isPersisted = await navigator.storage.persisted();
+    if (isPersisted) return true;
+    return await navigator.storage.persist();
+  } catch (err) {
+    console.warn('Storage persistence request failed:', err);
+    return false;
+  }
+}
+
+export async function getStorageEstimate(): Promise<{ usage: number; quota: number; percentUsed: number } | null> {
+  if (typeof window === 'undefined' || !navigator.storage || !navigator.storage.estimate) {
+    return null;
+  }
+  try {
+    const estimate = await navigator.storage.estimate();
+    const usage = estimate.usage || 0;
+    const quota = estimate.quota || 0;
+    const percentUsed = quota > 0 ? Math.round((usage / quota) * 100) : 0;
+    return { usage, quota, percentUsed };
+  } catch {
+    return null;
+  }
+}
+
 async function idbPut(course: SavedCourse): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
@@ -68,7 +97,13 @@ async function idbPut(course: SavedCourse): Promise<void> {
     const store = tx.objectStore(STORE_NAME);
     const request = store.put(course);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      const error = request.error;
+      if (error?.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded when writing to IndexedDB:', error);
+      }
+      reject(error);
+    };
   });
 }
 
@@ -131,6 +166,8 @@ export function initStorage(): Promise<void> {
       memoryCoursesCache = courses.sort((a, b) => b.updatedAt - a.updatedAt);
       isInitialized = true;
       notifyListeners();
+
+      requestPersistentStorage().catch(() => {});
     } catch (err) {
       console.error('Failed to initialize IndexedDB storage:', err);
     }

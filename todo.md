@@ -1,57 +1,43 @@
-# ytChaptered — Roadmap & Prioritized Backlog
+# Roadmap & Todo List
 
-## 🔴 High Priority (Pre-Publishing & Core UX)
+## Priority 1: UI/UX & Visual Identity
 
-### 1. UI & Returning User Flow
-- [x] Move "Saved Courses & History" to the top of the main view and rename section to "Continue Watching".
-- [x] Improve returning user UX when saved courses exist:
-  - [x] Streamline URL input presentation (e.g. collapsed input field, "+ Add New Course" trigger/modal, or secondary accordion below "Continue Watching").
+- [x] Move "Saved Courses & History" to the top and rename section to "Continue Watching".
+- [x] Improve returning user UX when saved videos/courses already exist:
+  - [x] Streamline URL input presentation (clean, permanently visible section below "Continue Watching" without collapsible accordion state).
   - [x] Ensure returning users immediately see their active courses without being overwhelmed by the URL form.
+- [x] Fix logo branding assets and app icons across the app and manifest.
 
-### 2. Branding & App Icon Assets
-- [ ] Fix logo branding assets and app icons across the app, manifest, and favicon (replace default Next.js icons with unified emerald branding).
+## Priority 2: PWA Experience & Storage Reliability
 
-### 3. Analytics & Privacy Compliance
-- [ ] Select and integrate analytics before publishing:
-  - [ ] Option A: Google Analytics (GA4) with cookie consent banner & Google Consent Mode v2 (tags default to `denied` until user consent).
-  - [ ] Option B (Recommended): Cookieless, privacy-friendly analytics (e.g., Plausible, Cloudflare Web Analytics) for a zero-banner, local-first UX.
-
----
-
-## 🟡 Medium Priority (PWA Polish & Data Durability)
-
-### 4. Storage & Data Retention
-- [ ] Test IndexedDB persistence quota and integrate `navigator.storage.persist()` to protect against automatic browser cache eviction.
-
-### 5. Rich PWA Manifest & Install Experience
-- [ ] Capture production screenshots and add `screenshots` definitions (desktop and mobile) to `app/manifest.ts` for rich Chromium install dialogs.
-- [ ] Investigate auto install icon notification / browser install prompt trigger optimizations.
-
-### 6. Testing, Audit & Verification
-- [ ] Run Google Lighthouse PWA audit (verify installability, manifest validity, theme color).
+- [x] Investigate if auto install icon notification can be shown to prompt installation (implemented with non-intrusive in-app `InstallBanner`).
+- [x] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers.
 - [ ] Test installation and standalone launch on Chromium (desktop & Android) and Safari (iOS & macOS).
+- [ ] Run Google Lighthouse PWA audit (verify installability, manifest validity, theme color).
+- [x] Test IndexedDB persistence quota and consider `navigator.storage.persist()` for durable data retention (implemented automatic storage persistence request and quota error monitoring).
 
----
+## Priority 3: Analytics & Privacy Compliance (Pre-Publishing)
 
-## 🟢 Low Priority (Documentation & Launch Outreach)
+- [ ] Integrate Google Analytics (GA4) before publishing:
+  - [ ] Implement cookie consent banner & Google Consent Mode v2 (required for EU/UK visitors under GDPR / ePrivacy Directive / Google EU User Consent Policy).
+  - [ ] Ensure GA4 tags remain in `denied` state until user grants explicit consent.
+  - [ ] (Alternative) Evaluate cookieless, privacy-friendly analytics (e.g., Plausible, Cloudflare Web Analytics) to maintain a zero-banner, local-first UX.
 
-### 7. Documentation & Demo
-- [ ] Update README and/or create landing content explaining the problem ytChaptered solves with key workflows.
-- [ ] Add a short video demo or GIF showcasing chapter navigation and local-first progress tracking.
+## Priority 4: Documentation, Demo & Marketing Launch
 
-### 8. Marketing & Social Media Launch
-- [ ] Prepare launch posts and community announcements:
-  - [ ] Reddit (e.g., r/webdev, r/Productivity, r/selfhosted)
+- [ ] Update README and/or create a landing page explaining what problem ytChaptered solves.
+- [ ] Add a small video demo showcasing key features and workflow.
+- [ ] Create social media announcement posts:
   - [ ] LinkedIn
-  - [ ] Facebook / X
+  - [ ] Reddit
+  - [ ] Facebook
 
----
+## Features
 
-## ⚪ Deferred / Architectural Backlog
+1. Add more player controls
+2. Add link to youtube channel for subscribing, for phase one just open the video/channel in a new tab.
 
-### 9. Service Worker & Cache Lifecycle (Deferred)
-> *Note: App currently runs as a lean, manifest-based PWA without a custom service worker to prevent stale YouTube video caching. Revisit only if static app shell offline caching is required.*
-- [ ] Listen for service worker update events (`waiting` worker status).
-- [ ] Show toast / banner notifying the user that a new version of ytChaptered is ready with a "Refresh to update" button.
-- [ ] Skip waiting (`skipWaiting()`) and reload controller when confirmed.
-- [ ] Verify offline behavior (app shell renders with saved courses even when offline).
+## Future Planning
+
+1. Add Auth so that it syncs with users profile.
+2. Update readme and design, dot md files.

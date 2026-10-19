@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { usePwa } from './PwaProvider';
 
 interface NavbarProps {
@@ -16,7 +17,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
   return (
     <header className="w-full border-b border-[#e7e5e4] bg-[#fafaf9]/95 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
+        <Link href="/" className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity">
           <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-[10px] sm:rounded-[12px] overflow-hidden shrink-0 shadow-xs">
             <Image
               src="/logo.svg"
@@ -36,7 +37,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               </span>
             )}
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-2 shrink-0">
           {/* Native PWA Install Button */}
