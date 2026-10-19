@@ -1,5 +1,7 @@
 'use client';
 
+import { PlusCircle, PlayCircle, Library, Info } from 'lucide-react';
+
 interface MobileTabBarProps {
   activeTab: 'create' | 'player' | 'history';
   hasActivePlaylist: boolean;
@@ -33,9 +35,7 @@ export function MobileTabBar({
               : 'text-[#57534e] active:text-[#1c1917]'
           }`}
         >
-          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <PlusCircle className="w-5 h-5 mb-0.5" aria-hidden="true" />
           <span className="text-[11px] font-semibold tracking-tight">Create</span>
         </button>
 
@@ -57,10 +57,7 @@ export function MobileTabBar({
           aria-label={hasActivePlaylist ? `Now Playing: ${activePlaylistTitle || 'Active Video'}` : 'Now Playing (No video currently active)'}
         >
           <div className="relative">
-            <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <PlayCircle className="w-5 h-5 mb-0.5" aria-hidden="true" />
             {hasActivePlaylist && activeTab !== 'player' && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#10b981] rounded-full animate-pulse" aria-hidden="true" />
             )}
@@ -79,9 +76,7 @@ export function MobileTabBar({
               : 'text-[#57534e] active:text-[#1c1917]'
           }`}
         >
-          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
+          <Library className="w-5 h-5 mb-0.5" aria-hidden="true" />
           <span className="text-[11px] font-semibold tracking-tight">Courses</span>
         </button>
 
@@ -93,9 +88,7 @@ export function MobileTabBar({
             aria-label="About ytChaptered and creator"
             className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[8px] min-h-[48px] touch-manipulation transition-colors text-[#57534e] active:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
           >
-            <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info className="w-5 h-5 mb-0.5" aria-hidden="true" />
             <span className="text-[11px] font-semibold tracking-tight">About</span>
           </button>
         )}

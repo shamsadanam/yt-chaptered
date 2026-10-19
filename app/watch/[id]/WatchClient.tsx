@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
 import { AboutModal } from '../../../components/AboutModal';
+import { CopyrightYear } from '../../../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
 import {
   subscribeCourses,
@@ -72,9 +74,6 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     let isCancelled = false;
 
     if (!savedCourse) {
-      setIsAutoFetching(true);
-      setFetchError(null);
-
       initStorage()
         .then(() => {
           if (isCancelled) return;
@@ -83,6 +82,9 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
             setIsAutoFetching(false);
             return;
           }
+
+          setIsAutoFetching(true);
+          setFetchError(null);
 
           return fetch(`/api/youtube-info?videoId=${videoId}`)
             .then((res) => {
@@ -112,7 +114,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
 
                 let finalTitle = data.title;
                 let finalAuthor = data.author;
-                let finalChannelId = data.channelId;
+                const finalChannelId = data.channelId;
                 let finalChannelUrl = data.channelUrl;
                 let finalThumbnail = data.thumbnailUrl;
 
@@ -183,10 +185,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         <Navbar onReset={() => router.push('/')} showReset={true} onOpenAbout={() => setIsAboutOpen(true)} />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[16px] p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
-            <svg className="animate-spin h-8 w-8 text-[#0d5c46] mx-auto mb-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
+            <Loader2 className="animate-spin h-8 w-8 text-[#0d5c46] mx-auto mb-4" aria-hidden="true" />
             <h2 className="text-base sm:text-lg font-semibold text-[#1c1917] mb-1">
               Loading Course Details...
             </h2>
@@ -207,9 +206,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div role="alert" className="bg-[#ffffff] border border-[#e7e5e4] rounded-[16px] p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
             <div className="w-12 h-12 rounded-full bg-[#fef2f2] text-[#e11d48] flex items-center justify-center mx-auto mb-3" aria-hidden="true">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+              <AlertTriangle className="w-6 h-6" aria-hidden="true" />
             </div>
             <h2 className="text-base sm:text-lg font-semibold text-[#1c1917] mb-1">
               Course Not Found
@@ -222,7 +219,8 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
               onClick={() => router.push('/')}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#0d5c46] hover:bg-[#0a4635] text-white text-xs font-semibold rounded-[8px] transition-colors cursor-pointer w-full min-h-[44px]"
             >
-              <span>← Return to Home</span>
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Return to Home</span>
             </button>
           </div>
         </main>
@@ -264,11 +262,11 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
       />
 
       <footer className="hidden md:block border-t border-[#e7e5e4] py-6 px-4 text-center text-xs text-[#57534e]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
           <p>
-            ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
+            © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
             <a
-              href="https://github.com/shamsadanam"
+              href="https://shamsad.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#1c1917] font-semibold hover:text-[#0d5c46] transition-colors underline"
@@ -276,24 +274,6 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
               Shamsad Anam
             </a>
           </p>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setIsAboutOpen(true)}
-              className="hover:text-[#1c1917] font-medium transition-colors cursor-pointer"
-            >
-              About Creator
-            </button>
-            <span>•</span>
-            <a
-              href="https://github.com/shamsadanam/yt-chaptered"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-medium text-[#1c1917] hover:text-[#0d5c46] transition-colors"
-            >
-              <span>⭐ Star on GitHub</span>
-            </a>
-          </div>
         </div>
       </footer>
     </div>

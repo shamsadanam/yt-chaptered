@@ -2,6 +2,7 @@
 
 import React, { useSyncExternalStore } from 'react';
 import Image from 'next/image';
+import { Download, X } from 'lucide-react';
 import { usePwa } from './PwaProvider';
 
 const DISMISS_KEY = 'yt_install_banner_dismissed_until';
@@ -86,7 +87,7 @@ export function InstallBanner() {
               aria-label="Dismiss install prompt"
               className="w-6 h-6 rounded-[6px] text-[#78716c] hover:text-[#1c1917] hover:bg-[#f5f5f4] active:bg-[#e7e5e4] flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
             >
-              <span aria-hidden="true">✕</span>
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
           <p className="text-xs text-[#57534e] mt-0.5 leading-relaxed">
@@ -100,9 +101,7 @@ export function InstallBanner() {
               aria-label="Install ytChaptered app"
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] text-white text-xs font-semibold rounded-[8px] transition-colors cursor-pointer shadow-2xs touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
+              <Download className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Install App</span>
             </button>
             <button

@@ -8,6 +8,7 @@ import { PlaylistView } from '../components/PlaylistView';
 import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { AboutModal } from '../components/AboutModal';
+import { CopyrightYear } from '../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
   subscribeCourses,
@@ -160,11 +161,11 @@ export default function Home() {
       />
 
       <footer className="hidden md:block border-t border-[#e7e5e4] py-6 px-4 text-center text-xs text-[#57534e]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
           <p>
-            ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
+            © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
             <a
-              href="https://github.com/shamsadanam"
+              href="https://shamsad.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#1c1917] font-semibold hover:text-[#0d5c46] transition-colors underline"
@@ -172,24 +173,6 @@ export default function Home() {
               Shamsad Anam
             </a>
           </p>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setIsAboutOpen(true)}
-              className="hover:text-[#1c1917] font-medium transition-colors cursor-pointer"
-            >
-              About Creator
-            </button>
-            <span>•</span>
-            <a
-              href="https://github.com/shamsadanam/yt-chaptered"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-medium text-[#1c1917] hover:text-[#0d5c46] transition-colors"
-            >
-              <span>⭐ Star on GitHub</span>
-            </a>
-          </div>
         </div>
       </footer>
     </div>

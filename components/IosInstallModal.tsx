@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 
 interface IosInstallModalProps {
   isOpen: boolean;
@@ -97,7 +98,7 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
             aria-label="Close iOS installation instructions dialog"
             className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[#57534e] hover:text-[#1c1917] hover:bg-[#e7e5e4] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useSyncExternalStore } from 'react';
+import { WandSparkles, Loader2, AlertCircle, ArrowRight, Info } from 'lucide-react';
 import {
   extractYouTubeId,
   parseTimestamps,
@@ -299,7 +300,7 @@ export function InputView({ onGenerate }: InputViewProps) {
       ) : (
         <div className="mt-8 sm:mt-12 mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-2xl font-medium text-[#1c1917] tracking-tight">
-            Add New Video / Course
+            Add New Video
           </h2>
           <p className="text-xs sm:text-sm text-[#57534e]">
             Paste a YouTube URL to automatically detect chapters or paste custom timestamps.
@@ -324,10 +325,14 @@ export function InputView({ onGenerate }: InputViewProps) {
                       onClick={handleAutoFetchClick}
                       disabled={isLoading || !url.trim()}
                       aria-label="Auto-detect timestamps and video info"
-                      className="text-xs font-semibold text-[#0d5c46] hover:text-[#0a4635] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 min-h-[36px] touch-manipulation"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#0d5c46] bg-[#0d5c46]/5 hover:bg-[#0d5c46]/10 active:bg-[#0d5c46]/15 border border-[#0d5c46]/20 rounded-[8px] transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-manipulation min-h-[34px]"
                     >
-                      <span aria-hidden="true">⚡</span>
-                      <span>Auto-detect</span>
+                      {isLoading ? (
+                        <Loader2 className="animate-spin w-3.5 h-3.5 text-[#0d5c46]" aria-hidden="true" />
+                      ) : (
+                        <WandSparkles className="w-3.5 h-3.5 text-[#0d5c46]" aria-hidden="true" />
+                      )}
+                      <span>Auto Detect</span>
                     </button>
                   </div>
                   <div className="relative">
@@ -366,9 +371,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                       aria-live="assertive"
                       className="mt-2 text-xs sm:text-sm text-[#e11d48] font-medium flex items-center gap-1.5"
                     >
-                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
+                      <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
                       {errorMessage}
                     </p>
                   )}
@@ -459,18 +462,13 @@ export function InputView({ onGenerate }: InputViewProps) {
                   >
                     {isLoading ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" aria-hidden="true" />
                         <span>Fetching & Generating...</span>
                       </>
                     ) : (
                       <>
                         <span>Generate Playlist</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                       </>
                     )}
                   </button>
@@ -479,9 +477,7 @@ export function InputView({ onGenerate }: InputViewProps) {
 
               {/* Informational Note on Playback Compatibility */}
               <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#e7e5e4] flex items-start gap-2 text-[11px] sm:text-xs text-[#57534e]">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="leading-relaxed">
                   <strong className="text-[#1c1917] font-medium">Playback Note:</strong> A few videos cannot be embedded if disabled by the creator or age/region-restricted. If auto-detection misses timestamps (e.g. in pinned comments), paste them above.
                 </p>

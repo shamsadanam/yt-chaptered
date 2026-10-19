@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Download, Upload, Plus, Trash2, X } from 'lucide-react';
 import { SavedCourse } from '../types/playlist';
 import {
   deleteSavedCourse,
@@ -97,9 +98,7 @@ export function CourseHistoryShelf({
                 title="Import JSON backup"
                 aria-label="Import courses from JSON backup file"
               >
-                <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+                <Download className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
                 <span>Import JSON</span>
               </button>
               <input
@@ -119,9 +118,9 @@ export function CourseHistoryShelf({
                 type="button"
                 onClick={() => setImportStatus(null)}
                 aria-label="Dismiss import status"
-                className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
+                className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded cursor-pointer"
               >
-                <span aria-hidden="true">✕</span>
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           )}
@@ -146,9 +145,9 @@ export function CourseHistoryShelf({
               type="button"
               onClick={() => setImportStatus(null)}
               aria-label="Dismiss import status"
-              className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
+              className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded cursor-pointer"
             >
-              <span aria-hidden="true">✕</span>
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
         )}
@@ -170,9 +169,7 @@ export function CourseHistoryShelf({
             aria-label="Import courses from JSON backup file"
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] text-[#1c1917] text-sm font-semibold border border-[#e7e5e4] rounded-[12px] shadow-xs touch-manipulation cursor-pointer min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
           >
-            <svg className="w-4 h-4 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
+            <Download className="w-4 h-4 text-[#57534e]" aria-hidden="true" />
             <span>Import JSON</span>
           </button>
           <input
@@ -206,13 +203,11 @@ export function CourseHistoryShelf({
             <button
               type="button"
               onClick={onAddNewCourse}
-              aria-label="Add new course"
+              aria-label="Add new video"
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[44px] touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Add Course</span>
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Add Video</span>
             </button>
           )}
 
@@ -224,9 +219,7 @@ export function CourseHistoryShelf({
             title="Download JSON backup"
             aria-label="Export saved courses to JSON backup file"
           >
-            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4-4m4 4V4" />
-            </svg>
+            <Upload className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
             <span className="hidden xs:inline">Export JSON</span>
             <span className="xs:hidden">Export</span>
           </button>
@@ -239,9 +232,7 @@ export function CourseHistoryShelf({
             title="Import JSON backup"
             aria-label="Import courses from JSON backup file"
           >
-            <svg className="w-3.5 h-3.5 text-[#57534e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
+            <Download className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
             <span className="hidden xs:inline">Import JSON</span>
             <span className="xs:hidden">Import</span>
           </button>
@@ -263,9 +254,9 @@ export function CourseHistoryShelf({
             type="button"
             onClick={() => setImportStatus(null)}
             aria-label="Dismiss import status"
-            className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
+            className="text-[#78716c] hover:text-[#1c1917] font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded cursor-pointer"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -334,9 +325,7 @@ export function CourseHistoryShelf({
                     aria-label={`Remove ${c.video.title} from saved courses`}
                     className="relative z-10 w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-[#78716c] hover:text-[#e11d48] active:text-[#e11d48] rounded-[6px] transition-colors touch-manipulation shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#e11d48]"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
 
