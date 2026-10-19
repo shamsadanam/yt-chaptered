@@ -287,22 +287,22 @@ export function InputView({ onGenerate }: InputViewProps) {
       {/* First-time User View: Prominent Hero Header */}
       {!hasSavedCourses ? (
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-[11px] sm:text-xs font-semibold uppercase tracking-[1px] text-[#57534e] mb-3 sm:mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-stone-200 rounded-md text-xs font-semibold uppercase tracking-widest text-stone-600 mb-3 sm:mb-4">
             Local-first video chapters
           </div>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[#1c1917] tracking-tight mb-2 sm:mb-4">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-stone-900 tracking-tight mb-2 sm:mb-4">
             Turn timestamped videos into structured playlists
           </h1>
-          <p className="text-sm sm:text-lg text-[#57534e] max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-stone-600 max-w-xl mx-auto leading-relaxed">
             Paste any YouTube URL to automatically detect chapters, navigate segments, and track learning progress.
           </p>
         </div>
       ) : (
         <div className="mt-8 sm:mt-12 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-2xl font-medium text-[#1c1917] tracking-tight">
+          <h2 className="text-lg sm:text-2xl font-medium text-stone-900 tracking-tight">
             Add New Video
           </h2>
-          <p className="text-xs sm:text-sm text-[#57534e]">
+          <p className="text-xs sm:text-sm text-stone-600">
             Paste a YouTube URL to automatically detect chapters or paste custom timestamps.
           </p>
         </div>
@@ -311,13 +311,13 @@ export function InputView({ onGenerate }: InputViewProps) {
       {/* Main Input Card */}
       <div
         id="course-input-card"
-        className="bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-8 shadow-xs"
+        className="bg-white border border-stone-200 rounded-xl p-4 sm:p-8 shadow-xs"
       >
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 {/* URL Input */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <label htmlFor="yt-url" className="block text-xs sm:text-sm font-semibold text-[#1c1917]">
+                    <label htmlFor="yt-url" className="block text-xs sm:text-sm font-semibold text-stone-900">
                       YouTube Video URL
                     </label>
                     <button
@@ -325,12 +325,12 @@ export function InputView({ onGenerate }: InputViewProps) {
                       onClick={handleAutoFetchClick}
                       disabled={isLoading || !url.trim()}
                       aria-label="Auto-detect timestamps and video info"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#0d5c46] bg-[#0d5c46]/5 hover:bg-[#0d5c46]/10 active:bg-[#0d5c46]/15 border border-[#0d5c46]/20 rounded-[8px] transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-manipulation min-h-[34px]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 active:bg-primary/15 border border-primary/20 rounded-lg transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-manipulation min-h-8.5"
                     >
                       {isLoading ? (
-                        <Loader2 className="animate-spin w-3.5 h-3.5 text-[#0d5c46]" aria-hidden="true" />
+                        <Loader2 className="animate-spin w-3.5 h-3.5 text-primary" aria-hidden="true" />
                       ) : (
-                        <WandSparkles className="w-3.5 h-3.5 text-[#0d5c46]" aria-hidden="true" />
+                        <WandSparkles className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                       )}
                       <span>Auto Detect</span>
                     </button>
@@ -349,7 +349,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                       aria-invalid={Boolean(errorMessage)}
                       aria-describedby={errorMessage ? 'yt-url-error' : autoFetchStatus ? 'yt-url-status' : undefined}
                       placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                      className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-[#e7e5e4] rounded-[6px] text-[#1c1917] placeholder-[#a8a29e] text-base focus:outline-none focus:ring-2 focus:ring-[#0d5c46] focus:border-[#0d5c46] transition-colors"
+                      className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-stone-50 border border-stone-200 rounded-md text-stone-900 placeholder-stone-400 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       required
                     />
                   </div>
@@ -358,9 +358,9 @@ export function InputView({ onGenerate }: InputViewProps) {
                       id="yt-url-status"
                       role="status"
                       aria-live="polite"
-                      className="mt-2 text-xs text-[#1c1917] bg-[#fafaf9] border border-[#e7e5e4] px-3 py-1.5 rounded-[6px] font-medium flex items-center gap-1.5"
+                      className="mt-2 text-xs text-stone-900 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5"
                     >
-                      <span className="text-[#10b981]" aria-hidden="true">●</span>
+                      <span className="text-emerald-500" aria-hidden="true">●</span>
                       {autoFetchStatus}
                     </p>
                   )}
@@ -369,7 +369,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                       id="yt-url-error"
                       role="alert"
                       aria-live="assertive"
-                      className="mt-2 text-xs sm:text-sm text-[#e11d48] font-medium flex items-center gap-1.5"
+                      className="mt-2 text-xs sm:text-sm text-rose-600 font-medium flex items-center gap-1.5"
                     >
                       <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
                       {errorMessage}
@@ -380,7 +380,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                 {/* Description / Timestamps Area */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <label htmlFor="yt-timestamps" className="text-xs sm:text-sm font-semibold text-[#1c1917]">
+                    <label htmlFor="yt-timestamps" className="text-xs sm:text-sm font-semibold text-stone-900">
                       Timestamps or Description
                     </label>
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -388,7 +388,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                         type="button"
                         onClick={loadSample}
                         aria-label="Load sample Python tutorial with 18 chapters"
-                        className="text-xs font-medium text-[#57534e] hover:text-[#0d5c46] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
+                        className="text-xs font-medium text-stone-600 hover:text-primary underline focus:outline-none cursor-pointer min-h-9 flex items-center touch-manipulation"
                       >
                         Sample
                       </button>
@@ -397,7 +397,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                         onClick={() => setIsExpandTimestamps(!isExpandTimestamps)}
                         aria-expanded={isExpandTimestamps}
                         aria-controls="yt-timestamps-panel"
-                        className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline focus:outline-none cursor-pointer min-h-[36px] flex items-center touch-manipulation"
+                        className="text-xs font-medium text-stone-600 hover:text-stone-900 underline focus:outline-none cursor-pointer min-h-9 flex items-center touch-manipulation"
                       >
                         {isExpandTimestamps ? 'Collapse' : 'Manual paste'}
                       </button>
@@ -406,10 +406,10 @@ export function InputView({ onGenerate }: InputViewProps) {
 
                   {/* Collapsed Timestamps Placeholder Button */}
                   <div
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                    className={`grid transition-all duration-300 ease-in-out ${
                       isExpandTimestamps
-                        ? 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                        : 'grid-rows-[1fr] opacity-100'
+                        ? 'grid-rows-collapse opacity-0 pointer-events-none'
+                        : 'grid-rows-expand opacity-100'
                     }`}
                   >
                     <div className="overflow-hidden">
@@ -418,10 +418,10 @@ export function InputView({ onGenerate }: InputViewProps) {
                         onClick={() => setIsExpandTimestamps(true)}
                         aria-expanded={isExpandTimestamps}
                         aria-controls="yt-timestamps-panel"
-                        className="w-full text-left px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-dashed border-[#e7e5e4] rounded-[6px] text-xs sm:text-sm text-[#57534e] cursor-pointer hover:bg-[#ffffff] hover:border-[#a8a29e] transition-colors flex items-center justify-between touch-manipulation"
+                        className="w-full text-left px-3.5 sm:px-4 py-2.5 sm:py-3 bg-stone-50 border border-dashed border-stone-200 rounded-md text-xs sm:text-sm text-stone-600 cursor-pointer hover:bg-white hover:border-stone-400 transition-colors flex items-center justify-between touch-manipulation"
                       >
                         <span>Chapters auto-load; tap to review or paste custom timestamps</span>
-                        <span className="text-xs font-semibold text-[#0d5c46] shrink-0 ml-2" aria-hidden="true">+ Expand</span>
+                        <span className="text-xs font-semibold text-primary shrink-0 ml-2" aria-hidden="true">+ Expand</span>
                       </button>
                     </div>
                   </div>
@@ -429,10 +429,10 @@ export function InputView({ onGenerate }: InputViewProps) {
                   {/* Expanded Timestamps Textarea Area */}
                   <div
                     id="yt-timestamps-panel"
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                    className={`grid transition-all duration-300 ease-in-out ${
                       isExpandTimestamps
-                        ? 'grid-rows-[1fr] opacity-100'
-                        : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                        ? 'grid-rows-expand opacity-100'
+                        : 'grid-rows-collapse opacity-0 pointer-events-none'
                     }`}
                   >
                     <div className="overflow-hidden">
@@ -443,9 +443,9 @@ export function InputView({ onGenerate }: InputViewProps) {
                           value={timestampsText}
                           onChange={(e) => setTimestampsText(e.target.value)}
                           placeholder={`Optional (automatically detected if left blank):\n00:00 Intro\n03:15 Part 1: Concepts\n12:40 Part 2: Building\n45:00 Summary`}
-                          className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#fafaf9] border border-[#e7e5e4] rounded-[6px] text-[#1c1917] placeholder-[#a8a29e] font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0d5c46] focus:border-[#0d5c46] transition-colors"
+                          className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-stone-50 border border-stone-200 rounded-md text-stone-900 placeholder-stone-400 font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                         />
-                        <p className="text-[11px] sm:text-xs text-[#57534e]">
+                        <p className="text-xs text-stone-600">
                           Supports timestamps formatted as <span className="font-mono">0:00</span>, <span className="font-mono">00:00</span>, or <span className="font-mono">1:20:00</span>.
                         </p>
                       </div>
@@ -458,7 +458,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-12 inline-flex items-center justify-center gap-2 bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-semibold text-sm sm:text-base rounded-[12px] shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#0d5c46] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation active:scale-[0.99]"
+                    className="w-full h-12 inline-flex items-center justify-center gap-2 bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-semibold text-sm sm:text-base rounded-xl shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation active:scale-98"
                   >
                     {isLoading ? (
                       <>
@@ -476,10 +476,10 @@ export function InputView({ onGenerate }: InputViewProps) {
               </form>
 
               {/* Informational Note on Playback Compatibility */}
-              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#e7e5e4] flex items-start gap-2 text-[11px] sm:text-xs text-[#57534e]">
-                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8a29e] shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-stone-200 flex items-start gap-2 text-xs text-stone-600">
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400 shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="leading-relaxed">
-                  <strong className="text-[#1c1917] font-medium">Playback Note:</strong> A few videos cannot be embedded if disabled by the creator or age/region-restricted. If auto-detection misses timestamps (e.g. in pinned comments), paste them above.
+                  <strong className="text-stone-900 font-medium">Playback Note:</strong> A few videos cannot be embedded if disabled by the creator or age/region-restricted. If auto-detection misses timestamps (e.g. in pinned comments), paste them above.
                 </p>
               </div>
             </div>

@@ -26,8 +26,8 @@ export default function WatchPage(props: WatchPageProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#fafaf9]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d5c46]" />
+        <div className="min-h-screen flex items-center justify-center bg-stone-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       }
     >

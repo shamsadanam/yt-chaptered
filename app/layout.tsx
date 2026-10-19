@@ -42,10 +42,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#fafaf9] text-[#1c1917]">
+      <body className="min-h-full flex flex-col bg-stone-50 text-stone-900">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#0d5c46] focus:text-white focus:font-semibold focus:text-xs focus:rounded-[8px] focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0d5c46]"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:font-semibold focus:text-xs focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           Skip to main content
         </a>

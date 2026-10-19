@@ -64,10 +64,10 @@ export function InstallBanner() {
   return (
     <aside
       aria-label="Install app prompt"
-      className="fixed z-40 bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md bg-[#ffffff] border border-[#e7e5e4] rounded-[16px] p-4 shadow-xl animate-in slide-in-from-bottom-3 duration-200 transition-all touch-manipulation"
+      className="fixed z-40 bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md bg-white border border-stone-200 rounded-2xl p-4 shadow-xl animate-in slide-in-from-bottom-3 duration-200 transition-all touch-manipulation"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 relative rounded-[10px] overflow-hidden shrink-0 shadow-2xs border border-[#e7e5e4]/50" aria-hidden="true">
+        <div className="w-10 h-10 relative rounded-lg overflow-hidden shrink-0 shadow-2xs border border-stone-200/50" aria-hidden="true">
           <Image
             src="/logo.svg"
             alt=""
@@ -78,19 +78,19 @@ export function InstallBanner() {
 
         <div className="flex-1 min-w-0 pr-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-[#1c1917] tracking-tight truncate">
+            <h3 className="text-sm font-semibold text-stone-900 tracking-tight truncate">
               Install ytChaptered
             </h3>
             <button
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss install prompt"
-              className="w-6 h-6 rounded-[6px] text-[#78716c] hover:text-[#1c1917] hover:bg-[#f5f5f4] active:bg-[#e7e5e4] flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
+              className="w-6 h-6 rounded-md text-stone-500 hover:text-stone-900 hover:bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-xs text-[#57534e] mt-0.5 leading-relaxed">
+          <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
             Install on your device for standalone distraction-free learning and instant access.
           </p>
 
@@ -99,7 +99,7 @@ export function InstallBanner() {
               type="button"
               onClick={handleInstall}
               aria-label="Install ytChaptered app"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] text-white text-xs font-semibold rounded-[8px] transition-colors cursor-pointer shadow-2xs touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <Download className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Install App</span>
@@ -108,7 +108,7 @@ export function InstallBanner() {
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss install prompt for now"
-              className="px-2.5 py-1.5 text-xs font-medium text-[#57534e] hover:text-[#1c1917] transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-1 focus:ring-primary rounded"
             >
               Not now
             </button>

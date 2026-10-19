@@ -389,28 +389,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#57534e] hover:text-[#0d5c46] cursor-pointer min-h-[36px] touch-manipulation"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-primary cursor-pointer min-h-9 touch-manipulation"
           >
             <span>← Back to URL input</span>
           </button>
-          <span className="text-xs text-[#d6d3d1]">•</span>
-          <span className="px-2 py-0.5 bg-[#ffffff] border border-[#e7e5e4] rounded-[6px] text-xs font-semibold uppercase tracking-[1px] text-[#57534e]">
+          <span className="text-xs text-stone-300">•</span>
+          <span className="px-2 py-0.5 bg-white border border-stone-200 rounded-md text-xs font-semibold uppercase tracking-widest text-stone-600">
             Ch. {currentChapterIndex + 1} of {totalChapters}
           </span>
         </div>
-        <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-[#1c1917] tracking-tight">
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-stone-900 tracking-tight">
           {playlist.video.title}
         </h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1.5">
           {playlist.video.author && (
-            <p className="text-xs sm:text-sm text-[#57534e]">
+            <p className="text-xs sm:text-sm text-stone-600">
               By{' '}
               <a
                 href={channelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`Visit ${playlist.video.author} on YouTube (opens in new tab)`}
-                className="font-medium text-[#1c1917] hover:text-[#0d5c46] hover:underline underline-offset-2 transition-colors focus:outline-none focus:ring-1 focus:ring-[#0d5c46] rounded-xs"
+                className="font-medium text-stone-900 hover:text-primary hover:underline underline-offset-2 transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded-xs"
               >
                 {playlist.video.author}
               </a>
@@ -421,9 +421,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Subscribe to ${playlist.video.author || 'channel'} on YouTube (opens in new tab)`}
-            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-white bg-[#0f0f0f] hover:bg-[#272727] active:bg-[#272727] rounded-full transition-colors touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46] shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-800 rounded-full transition-colors touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary shadow-2xs"
           >
-            <svg className="w-3.5 h-3.5 fill-[#ff0000]" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-3.5 h-3.5 fill-red-600" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
             <span>Subscribe</span>
@@ -436,13 +436,13 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         {/* Left Column: Video Player, Dedicated Controls & Current Chapter */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3 sm:gap-4">
           {/* 16:9 Video Embed Container (Sticky below navbar on mobile) */}
-          <div className="sticky top-14 sm:static z-20 bg-[#fafaf9] pt-1 pb-1 sm:py-0">
+          <div className="sticky top-14 sm:static z-20 bg-stone-50 pt-1 pb-1 sm:py-0">
             <div
               ref={playerWrapperRef}
-              className={`relative w-full aspect-video bg-[#000000] overflow-hidden ${
+              className={`relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
                   ? 'fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center'
-                  : 'rounded-[10px] sm:rounded-[12px] shadow-xs border border-[#e7e5e4]'
+                  : 'rounded-lg sm:rounded-xl shadow-xs border border-stone-200'
               }`}
             >
               {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
@@ -463,20 +463,20 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               >
                 <div id={containerId} className="w-full h-full" />
                 {!isReady && !playerError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917] text-[#ffffff] gap-3">
-                    <Loader2 className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-[#10b981]" aria-hidden="true" />
-                    <span className="text-xs sm:text-sm font-medium text-[#ffffff]/80">Loading YouTube Player...</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900 text-white gap-3">
+                    <Loader2 className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-emerald-500" aria-hidden="true" />
+                    <span className="text-xs sm:text-sm font-medium text-white/80">Loading YouTube Player...</span>
                   </div>
                 )}
                 {playerError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c1917]/95 text-[#ffffff] p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
-                    <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-[#10b981]" aria-hidden="true" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/95 text-white p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
+                    <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500" aria-hidden="true" />
                     <p className="text-xs sm:text-sm font-semibold max-w-md">{playerError}</p>
                     <a
                       href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-[#0d5c46] hover:bg-[#0a4635] text-white text-xs font-semibold rounded-[6px] transition-colors min-h-[44px] touch-manipulation"
+                      className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-md transition-colors min-h-11 touch-manipulation"
                     >
                       <span>Open directly on YouTube</span>
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -504,18 +504,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           {/* Section 1: Dedicated Compact Video Player Controls */}
           <section
             aria-label="Video Player Controls"
-            className="bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] p-2.5 sm:p-3 shadow-xs"
+            className="bg-white border border-stone-200 rounded-lg sm:rounded-xl p-2.5 sm:p-3 shadow-xs"
           >
             <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
               {/* Status & Live Timestamp Display */}
               <div className="flex items-center gap-2 order-1 shrink-0">
                 <span
-                  className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-[#10b981] animate-pulse' : 'bg-[#a8a29e]'}`}
+                  className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`}
                   aria-hidden="true"
                 />
-                <div className="font-mono text-xs text-[#57534e] flex items-center gap-1">
-                  <span className="font-semibold text-[#1c1917]">{secondsToTimestamp(Math.floor(currentTime))}</span>
-                  <span className="text-[#a8a29e]">/</span>
+                <div className="font-mono text-xs text-stone-600 flex items-center gap-1">
+                  <span className="font-semibold text-stone-900">{secondsToTimestamp(Math.floor(currentTime))}</span>
+                  <span className="text-stone-400">/</span>
                   <span>{secondsToTimestamp(Math.floor(duration))}</span>
                 </div>
               </div>
@@ -532,11 +532,11 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     aria-haspopup="true"
                     aria-expanded={isSpeedMenuOpen}
                     aria-controls="speed-menu-dropdown"
-                    className="h-10 px-2.5 inline-flex items-center gap-1 rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] text-xs font-semibold font-mono transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                    className="h-10 px-2.5 inline-flex items-center gap-1 rounded-lg sm:rounded-xl bg-stone-50 hover:bg-stone-100 active:bg-stone-100 border border-stone-200 text-stone-900 text-xs font-semibold font-mono transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <Zap className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
+                    <Zap className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
                     <span>{playbackRate}x</span>
-                    <ChevronDown className="w-3 h-3 text-[#78716c]" aria-hidden="true" />
+                    <ChevronDown className="w-3 h-3 text-stone-500" aria-hidden="true" />
                   </button>
 
                   {isSpeedMenuOpen && (
@@ -544,7 +544,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       id="speed-menu-dropdown"
                       role="menu"
                       aria-label="Playback speed options"
-                      className="absolute right-0 bottom-full mb-1.5 w-28 bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] shadow-lg py-1 z-30"
+                      className="absolute right-0 bottom-full mb-1.5 w-28 bg-white border border-stone-200 rounded-lg shadow-lg py-1 z-30"
                     >
                       {[0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
                         <button
@@ -556,12 +556,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                             setPlaybackRate(rate);
                             setIsSpeedMenuOpen(false);
                           }}
-                          className={`w-full text-left px-3 py-1.5 text-xs font-mono flex items-center justify-between hover:bg-[#fafaf9] transition-colors cursor-pointer ${
-                            playbackRate === rate ? 'text-[#0d5c46] font-bold bg-[#f0fdf4]' : 'text-[#1c1917]'
+                          className={`w-full text-left px-3 py-1.5 text-xs font-mono flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${
+                            playbackRate === rate ? 'text-primary font-bold bg-emerald-50' : 'text-stone-900'
                           }`}
                         >
                           <span>{rate}x</span>
-                          {playbackRate === rate && <Check className="w-3.5 h-3.5 text-[#0d5c46]" aria-hidden="true" />}
+                          {playbackRate === rate && <Check className="w-3.5 h-3.5 text-primary" aria-hidden="true" />}
                         </button>
                       ))}
                     </div>
@@ -574,18 +574,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={handleToggleFullscreen}
                   title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (Auto-rotates Landscape)'}
                   aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 hover:bg-stone-100 active:bg-stone-100 border border-stone-200 text-stone-900 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isFullscreen ? (
-                    <Minimize2 className="w-4 h-4 text-[#57534e]" aria-hidden="true" />
+                    <Minimize2 className="w-4 h-4 text-stone-600" aria-hidden="true" />
                   ) : (
-                    <Maximize2 className="w-4 h-4 text-[#57534e]" aria-hidden="true" />
+                    <Maximize2 className="w-4 h-4 text-stone-600" aria-hidden="true" />
                   )}
                 </button>
               </div>
 
               {/* Centered Primary Media Cluster */}
-              <div className="flex items-center justify-center gap-1.5 sm:gap-2 order-3 sm:order-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-[#f5f5f4]">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 order-3 sm:order-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-stone-100">
                 {/* Previous Chapter */}
                 <button
                   type="button"
@@ -593,7 +593,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex <= 0}
                   title="Previous Chapter"
                   aria-label="Previous Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 border border-stone-200 text-stone-900 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <SkipBack className="w-4 h-4 fill-current" aria-hidden="true" />
                 </button>
@@ -604,7 +604,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(-10)}
                   title="Rewind 10 seconds"
                   aria-label="Rewind 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 border border-stone-200 text-stone-900 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <RotateCcw className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -633,7 +633,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       ? 'Pause video'
                       : 'Play video'
                   }
-                  className="h-10 w-[84px] sm:w-[92px] shrink-0 inline-flex items-center justify-center gap-1.5 rounded-[8px] sm:rounded-[10px] bg-[#0d5c46] active:bg-[#0a4635] hover:bg-[#0a4635] text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-[0.98] select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-21 sm:w-23 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-98 select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isPlayLoading ? (
                     <Loader2 className="animate-spin w-3.5 h-3.5 shrink-0 text-white" aria-hidden="true" />
@@ -651,7 +651,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(10)}
                   title="Forward 10 seconds"
                   aria-label="Forward 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 border border-stone-200 text-stone-900 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <RotateCw className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -663,7 +663,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex >= playlist.chapters.length - 1}
                   title="Next Chapter"
                   aria-label="Next Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-[8px] sm:rounded-[10px] bg-[#fafaf9] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 border border-stone-200 text-stone-900 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <SkipForward className="w-4 h-4 fill-current" aria-hidden="true" />
                 </button>
@@ -674,15 +674,15 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           {/* Section 2: Dedicated Current Chapter Information Card */}
           <section
             aria-label="Current Chapter Info"
-            className="bg-[#ffffff] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] p-3 sm:p-4 flex flex-col gap-2.5 shadow-xs"
+            className="bg-white border border-stone-200 rounded-lg sm:rounded-xl p-3 sm:p-4 flex flex-col gap-2.5 shadow-xs"
           >
             {/* Header row: Chapter index & Completion toggle */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-[#f0fdf4] text-[#0d5c46] border border-[#bbf7d0] rounded-[6px] text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.5px]">
+                <span className="px-2 py-0.5 bg-emerald-50 text-primary border border-emerald-200 rounded-md text-2xs sm:text-xs font-semibold uppercase tracking-wider">
                   Current Chapter
                 </span>
-                <span className="text-xs text-[#57534e] font-medium">
+                <span className="text-xs text-stone-600 font-medium">
                   Chapter {currentChapterIndex + 1} of {totalChapters}
                 </span>
               </div>
@@ -696,21 +696,21 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={(e) => handleToggleComplete(activeChapter.id, e)}
                   title={isCurrentCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
                   aria-label={isCurrentCompleted ? `Mark chapter ${currentChapterIndex + 1} as incomplete` : `Mark chapter ${currentChapterIndex + 1} as completed`}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold transition-colors cursor-pointer min-h-[36px] touch-manipulation border focus:outline-none focus:ring-2 focus:ring-[#0d5c46] ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border focus:outline-none focus:ring-2 focus:ring-primary ${
                     isCurrentCompleted
-                      ? 'bg-[#0d5c46] text-white border-[#0d5c46]'
-                      : 'bg-[#fafaf9] text-[#57534e] hover:text-[#1c1917] hover:bg-[#f5f5f4] border-[#e7e5e4]'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 border-stone-200'
                   }`}
                 >
                   <div
-                    className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center ${
+                    className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center ${
                       isCurrentCompleted
-                        ? 'bg-white border-white text-[#0d5c46]'
-                        : 'border-[#a8a29e]'
+                        ? 'bg-white border-white text-primary'
+                        : 'border-stone-400'
                     }`}
                   >
                     {isCurrentCompleted && (
-                      <Check className="w-2.5 h-2.5 stroke-[3]" aria-hidden="true" />
+                      <Check className="w-2.5 h-2.5" strokeWidth={3} aria-hidden="true" />
                     )}
                   </div>
                   <span>{isCurrentCompleted ? 'Completed' : 'Mark Complete'}</span>
@@ -720,20 +720,20 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
             {/* Chapter Title */}
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold text-[#1c1917] leading-snug break-words">
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold text-stone-900 leading-snug break-words">
                 {activeChapter ? activeChapter.title : 'Playing Course Video'}
               </h2>
             </div>
 
             {/* Chapter Timing & Progress Bar */}
             <div className="pt-0.5">
-              <div className="flex items-center justify-between text-[11px] sm:text-xs text-[#57534e] mb-1 font-mono">
+              <div className="flex items-center justify-between text-xs text-stone-600 mb-1 font-mono">
                 <span>
                   {activeChapter ? activeChapter.formattedTime : '0:00'}
                   {' → '}
                   {activeChapterEndTimeFormatted}
                 </span>
-                <span className="text-[#1c1917] font-semibold">
+                <span className="text-stone-900 font-semibold">
                   {chapterProgressPercentage}% through chapter
                 </span>
               </div>
@@ -745,10 +745,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label="Chapter progress"
-                className="w-full h-1.5 bg-[#f5f5f4] rounded-full overflow-hidden border border-[#e7e5e4]"
+                className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden border border-stone-200"
               >
                 <div
-                  className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
+                  className="h-full bg-primary transition-all duration-300 rounded-full"
                   style={{ width: `${chapterProgressPercentage}%` }}
                 />
               </div>
@@ -757,17 +757,17 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         </div>
 
         {/* Right Column: Interactive Playlist Sidebar */}
-        <div className="lg:col-span-5 xl:col-span-4 bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] overflow-hidden flex flex-col shadow-xs lg:max-h-[750px]">
+        <div className="lg:col-span-5 xl:col-span-4 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col shadow-xs lg:max-h-187.5">
           {/* Sidebar Header */}
-          <div className="p-3 sm:p-4 border-b border-[#e7e5e4] bg-[#fafaf9]">
+          <div className="p-3 sm:p-4 border-b border-stone-200 bg-stone-50">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h2 className="text-sm sm:text-base font-semibold text-[#1c1917]">Course Chapters</h2>
-                <p className="text-[11px] sm:text-xs text-[#57534e]">
+                <h2 className="text-sm sm:text-base font-semibold text-stone-900">Course Chapters</h2>
+                <p className="text-xs text-stone-600">
                   {completedCount} of {totalChapters} completed
                 </p>
               </div>
-              <span className="text-xs sm:text-sm font-mono font-semibold text-[#0d5c46]">
+              <span className="text-xs sm:text-sm font-mono font-semibold text-primary">
                 {progressPercentage}%
               </span>
             </div>
@@ -778,10 +778,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-label="Course completion progress"
-              className="w-full h-1.5 sm:h-2 bg-[#e7e5e4] rounded-full overflow-hidden"
+              className="w-full h-1.5 sm:h-2 bg-stone-200 rounded-full overflow-hidden"
             >
               <div
-                className="h-full bg-[#0d5c46] transition-all duration-300 rounded-full"
+                className="h-full bg-primary transition-all duration-300 rounded-full"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -792,7 +792,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             ref={sidebarListRef}
             role="list"
             aria-label="Course chapters"
-            className="overflow-y-auto p-1.5 sm:p-2 divide-y divide-[#e7e5e4] max-h-[500px] sm:max-h-[600px] flex-1"
+            className="overflow-y-auto p-1.5 sm:p-2 divide-y divide-stone-200 max-h-125 sm:max-h-150 flex-1"
           >
             {playlist.chapters.map((chap, idx) => {
               const isActive = idx === currentChapterIndex;
@@ -802,10 +802,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <li
                   key={chap.id}
                   ref={isActive ? (node) => { activeItemRef.current = node; } : undefined}
-                  className={`w-full p-2 sm:p-2.5 rounded-[8px] transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-[52px] ${
+                  className={`w-full p-2 sm:p-2.5 rounded-lg transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-13 ${
                     isActive
-                      ? 'bg-[#f5f5f4] border border-[#0d5c46] shadow-xs'
-                      : 'hover:bg-[#fafaf9] border border-transparent'
+                      ? 'bg-stone-100 border border-primary shadow-xs'
+                      : 'hover:bg-stone-50 border border-transparent'
                   }`}
                 >
                   {/* Manual Completion Checkbox button with full 44px+ tap zone */}
@@ -816,17 +816,17 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onClick={(e) => handleToggleComplete(chap.id, e)}
                     title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
                     aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
-                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46] rounded-[6px]"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary rounded-md"
                   >
                     <div
-                      className={`w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors ${
+                      className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
                         isCompleted
-                          ? 'bg-[#0d5c46] border-[#0d5c46] text-white'
-                          : 'bg-[#ffffff] border-[#d6d3d1] hover:border-[#a8a29e]'
+                          ? 'bg-primary border-primary text-white'
+                          : 'bg-white border-stone-300 hover:border-stone-400'
                       }`}
                     >
                       {isCompleted && (
-                        <Check className="w-3.5 h-3.5 stroke-[3]" aria-hidden="true" />
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
                       )}
                     </div>
                   </button>
@@ -837,16 +837,16 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onClick={() => handleSelectChapter(idx)}
                     aria-current={isActive ? 'true' : undefined}
                     aria-label={`Play chapter ${chap.index}: ${chap.title}, timestamp ${chap.formattedTime}${isCompleted ? ', completed' : ''}`}
-                    className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#0d5c46] rounded-[6px] p-1 -m-1"
+                    className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-98 focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1"
                   >
                     {/* Index Badge */}
                     <div
-                      className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-[6px] text-xs font-semibold flex items-center justify-center transition-colors ${
+                      className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-md text-xs font-semibold flex items-center justify-center transition-colors ${
                         isActive
-                          ? 'bg-[#0d5c46] text-white'
+                          ? 'bg-primary text-white'
                           : isCompleted
-                          ? 'bg-[#f5f5f4] text-[#57534e]'
-                          : 'bg-[#f5f5f4] text-[#57534e]'
+                          ? 'bg-stone-100 text-stone-600'
+                          : 'bg-stone-100 text-stone-600'
                       }`}
                       aria-hidden="true"
                     >
@@ -861,28 +861,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     <div className="min-w-0 flex-1">
                       <p
                         className={`text-xs sm:text-sm leading-snug break-words transition-opacity line-clamp-2 ${
-                          isCompleted ? 'text-[#78716c] line-through decoration-[#a8a29e]' : 'text-[#1c1917]'
+                          isCompleted ? 'text-stone-500 line-through decoration-stone-400' : 'text-stone-900'
                         } ${isActive ? 'font-semibold' : 'font-normal'}`}
                       >
                         {chap.title}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
                         <span
-                          className={`text-[11px] sm:text-xs font-mono px-1.5 py-0.5 rounded-[4px] border ${
+                          className={`text-xs font-mono px-1.5 py-0.5 rounded-sm border ${
                             isActive
-                              ? 'bg-[#ffffff] border-[#0d5c46]/30 text-[#0d5c46] font-medium'
-                              : 'bg-[#ffffff] border-[#e7e5e4] text-[#57534e]'
+                              ? 'bg-white border-primary/30 text-primary font-medium'
+                              : 'bg-white border-stone-200 text-stone-600'
                           }`}
                         >
                           {chap.formattedTime}
                         </span>
                         {isActive && (
-                          <span className="text-[10px] sm:text-[11px] font-medium text-[#0d5c46]">
+                          <span className="text-2xs sm:text-xs font-medium text-primary">
                             Now playing
                           </span>
                         )}
                         {isCompleted && !isActive && (
-                          <span className="text-[10px] sm:text-[11px] font-medium text-[#57534e]">
+                          <span className="text-2xs sm:text-xs font-medium text-stone-600">
                             Completed
                           </span>
                         )}
@@ -897,18 +897,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       </div>
 
       {/* Course Details & Sharing Section */}
-      <section aria-label="Course details and sharing" className="mt-6 sm:mt-8 bg-[#ffffff] border border-[#e7e5e4] rounded-[12px] p-4 sm:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e7e5e4]">
+      <section aria-label="Course details and sharing" className="mt-6 sm:mt-8 bg-white border border-stone-200 rounded-xl p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-[#1c1917]">Course Details</h2>
-            <p className="text-xs text-[#57534e]">Bookmark this page or share the link to resume directly at the active timestamp.</p>
+            <h2 className="text-base sm:text-lg font-semibold text-stone-900">Course Details</h2>
+            <p className="text-xs text-stone-600">Bookmark this page or share the link to resume directly at the active timestamp.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={handleCopyShareLink}
               aria-label={copiedLink ? 'Course bookmark link copied to clipboard' : 'Copy bookmark link to clipboard'}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[8px] transition-colors cursor-pointer min-h-[40px] touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover rounded-lg transition-colors cursor-pointer min-h-10 touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {copiedLink ? (
                 <>
@@ -928,10 +928,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Watch ${playlist.video.title} on YouTube (opens in new tab)`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors min-h-[40px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 border border-stone-200 rounded-lg transition-colors min-h-10 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <span>Watch on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
+              <ExternalLink className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
             </a>
 
             <a
@@ -939,59 +939,59 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Subscribe to ${playlist.video.author || 'channel'} on YouTube (opens in new tab)`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] transition-colors min-h-[40px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 border border-stone-200 rounded-lg transition-colors min-h-10 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <svg className="w-3.5 h-3.5 fill-[#ff0000]" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-3.5 h-3.5 fill-red-600" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
               </svg>
               <span>Subscribe on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#57534e]" aria-hidden="true" />
+              <ExternalLink className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
             </a>
           </div>
         </div>
 
         {/* Course Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-[#e7e5e4] text-xs">
-          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
-            <span className="text-[#57534e] block text-[11px]">Total Chapters</span>
-            <span className="font-semibold text-sm text-[#1c1917]">{totalChapters}</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-stone-200 text-xs">
+          <div className="bg-stone-50 p-3 rounded-lg border border-stone-200">
+            <span className="text-stone-600 block text-xs">Total Chapters</span>
+            <span className="font-semibold text-sm text-stone-900">{totalChapters}</span>
           </div>
-          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
-            <span className="text-[#57534e] block text-[11px]">Completed</span>
-            <span className="font-semibold text-sm text-[#0d5c46]">{completedCount} ({progressPercentage}%)</span>
+          <div className="bg-stone-50 p-3 rounded-lg border border-stone-200">
+            <span className="text-stone-600 block text-xs">Completed</span>
+            <span className="font-semibold text-sm text-primary">{completedCount} ({progressPercentage}%)</span>
           </div>
-          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
-            <span className="text-[#57534e] block text-[11px]">Duration</span>
-            <span className="font-semibold text-sm text-[#1c1917] font-mono">
+          <div className="bg-stone-50 p-3 rounded-lg border border-stone-200">
+            <span className="text-stone-600 block text-xs">Duration</span>
+            <span className="font-semibold text-sm text-stone-900 font-mono">
               {duration > 0 ? secondsToTimestamp(Math.floor(duration)) : 'Auto-detected'}
             </span>
           </div>
-          <div className="bg-[#fafaf9] p-3 rounded-[8px] border border-[#e7e5e4]">
-            <span className="text-[#57534e] block text-[11px]">Storage Status</span>
-            <span className="font-semibold text-sm text-[#1c1917]">IndexedDB (Saved)</span>
+          <div className="bg-stone-50 p-3 rounded-lg border border-stone-200">
+            <span className="text-stone-600 block text-xs">Storage Status</span>
+            <span className="font-semibold text-sm text-stone-900">IndexedDB (Saved)</span>
           </div>
         </div>
 
         {/* Timestamps Section */}
         <div className="pt-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#1c1917]">Course Timestamps</span>
+            <span className="text-xs font-semibold text-stone-900">Course Timestamps</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleCopyTimestamps}
                 aria-label={copiedTimestamps ? 'Course timestamps copied to clipboard' : 'Copy course timestamps to clipboard'}
-                className="text-xs font-medium text-[#0d5c46] hover:underline cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
+                className="text-xs font-medium text-primary hover:underline cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 {copiedTimestamps ? '✓ Timestamps Copied' : 'Copy Timestamps'}
               </button>
-              <span className="text-[#d6d3d1]" aria-hidden="true">•</span>
+              <span className="text-stone-300" aria-hidden="true">•</span>
               <button
                 type="button"
                 onClick={() => setShowRawTimestamps(!showRawTimestamps)}
                 aria-expanded={showRawTimestamps}
                 aria-controls="raw-timestamps-pre"
-                className="text-xs font-medium text-[#57534e] hover:text-[#1c1917] underline cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d5c46]"
+                className="text-xs font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 {showRawTimestamps ? 'Hide' : 'View Raw'}
               </button>
@@ -1003,7 +1003,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               id="raw-timestamps-pre"
               tabIndex={0}
               aria-label="Course raw timestamps"
-              className="p-3.5 bg-[#fafaf9] border border-[#e7e5e4] rounded-[8px] text-[11px] sm:text-xs font-mono text-[#57534e] overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#0d5c46]"
+              className="p-3.5 bg-stone-50 border border-stone-200 rounded-lg text-xs font-mono text-stone-600 overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
             </pre>

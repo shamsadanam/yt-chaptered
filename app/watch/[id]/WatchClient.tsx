@@ -181,15 +181,15 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   // Loading state while storage initializes or video info is auto-fetched
   if (!savedCourse && isAutoFetching) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#fafaf9] text-[#1c1917]">
+      <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900">
         <Navbar onReset={() => router.push('/')} showReset={true} onOpenAbout={() => setIsAboutOpen(true)} />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
-          <div className="bg-[#ffffff] border border-[#e7e5e4] rounded-[16px] p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
-            <Loader2 className="animate-spin h-8 w-8 text-[#0d5c46] mx-auto mb-4" aria-hidden="true" />
-            <h2 className="text-base sm:text-lg font-semibold text-[#1c1917] mb-1">
+          <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
+            <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto mb-4" aria-hidden="true" />
+            <h2 className="text-base sm:text-lg font-semibold text-stone-900 mb-1">
               Loading Course Details...
             </h2>
-            <p className="text-xs text-[#57534e]">
+            <p className="text-xs text-stone-600">
               Detecting chapters and course data for video <span className="font-mono">{videoId}</span>
             </p>
           </div>
@@ -201,23 +201,23 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   // Error state if video cannot be resolved
   if (!savedCourse && fetchError) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#fafaf9] text-[#1c1917]">
+      <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900">
         <Navbar onReset={() => router.push('/')} showReset={true} onOpenAbout={() => setIsAboutOpen(true)} />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
-          <div role="alert" className="bg-[#ffffff] border border-[#e7e5e4] rounded-[16px] p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
-            <div className="w-12 h-12 rounded-full bg-[#fef2f2] text-[#e11d48] flex items-center justify-center mx-auto mb-3" aria-hidden="true">
+          <div role="alert" className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3" aria-hidden="true">
               <AlertTriangle className="w-6 h-6" aria-hidden="true" />
             </div>
-            <h2 className="text-base sm:text-lg font-semibold text-[#1c1917] mb-1">
+            <h2 className="text-base sm:text-lg font-semibold text-stone-900 mb-1">
               Course Not Found
             </h2>
-            <p className="text-xs text-[#57534e] mb-5">
+            <p className="text-xs text-stone-600 mb-5">
               {fetchError}
             </p>
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#0d5c46] hover:bg-[#0a4635] text-white text-xs font-semibold rounded-[8px] transition-colors cursor-pointer w-full min-h-[44px]"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer w-full min-h-11"
             >
               <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Return to Home</span>
@@ -233,7 +233,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafaf9] text-[#1c1917] pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 pb-16 md:pb-0">
       <Navbar
         onReset={() => router.push('/')}
         showReset={true}
@@ -261,7 +261,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         onClose={() => setIsAboutOpen(false)}
       />
 
-      <footer className="hidden md:block border-t border-[#e7e5e4] py-6 px-4 text-center text-xs text-[#57534e]">
+      <footer className="hidden md:block border-t border-stone-200 py-6 px-4 text-center text-xs text-stone-600">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
           <p>
             © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
@@ -269,7 +269,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
               href="https://shamsad.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1c1917] font-semibold hover:text-[#0d5c46] transition-colors underline"
+              className="text-stone-900 font-semibold hover:text-primary transition-colors underline"
             >
               Shamsad Anam
             </a>

@@ -16,10 +16,10 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
   const { isInstallable, promptInstall } = usePwa();
 
   return (
-    <header className="w-full border-b border-[#e7e5e4] bg-[#fafaf9]/95 backdrop-blur-md sticky top-0 z-30">
+    <header className="w-full border-b border-stone-200 bg-stone-50/95 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
         <Link href="/" aria-label="ytChaptered home" className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-[10px] sm:rounded-[12px] overflow-hidden shrink-0 shadow-xs">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-lg sm:rounded-xl overflow-hidden shrink-0 shadow-xs">
             <Image
               src="/logo.svg"
               alt=""
@@ -29,11 +29,11 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
             />
           </div>
           <div className="min-w-0">
-            <span className="font-semibold text-[#1c1917] text-base sm:text-lg tracking-tight block truncate">
+            <span className="font-semibold text-stone-900 text-base sm:text-lg tracking-tight block truncate">
               ytChaptered
             </span>
             {videoTitle && (
-              <span className="text-[11px] sm:text-xs text-[#57534e] truncate block max-w-[160px] xs:max-w-[220px] sm:max-w-md md:max-w-xl">
+              <span className="text-xs text-stone-600 truncate block max-w-40 xs:max-w-55 sm:max-w-md md:max-w-xl">
                 {videoTitle}
               </span>
             )}
@@ -48,7 +48,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               onClick={promptInstall}
               title="Install ytChaptered app"
               aria-label="Install ytChaptered app"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-[#0d5c46] hover:bg-[#0a4635] active:bg-[#0a4635] rounded-[10px] sm:rounded-[12px] shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover rounded-lg sm:rounded-xl shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-11 touch-manipulation cursor-pointer shrink-0"
             >
               <Download className="w-4 h-4" aria-hidden="true" />
               <span>Install</span>
@@ -61,7 +61,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
             rel="noopener noreferrer"
             title="ytChaptered on GitHub"
             aria-label="ytChaptered on GitHub"
-            className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] sm:rounded-[10px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[34px] sm:min-h-[36px] touch-manipulation cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 border border-stone-200 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-8.5 sm:min-h-9 touch-manipulation cursor-pointer"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -81,7 +81,7 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               onClick={onOpenAbout}
               title="About ytChaptered & Creator"
               aria-label="About ytChaptered & Creator"
-              className="inline-flex items-center justify-center p-1.5 sm:p-2 text-[#57534e] hover:text-[#1c1917] bg-[#ffffff] hover:bg-[#f5f5f4] active:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[8px] sm:rounded-[10px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[34px] sm:min-h-[36px] min-w-[34px] sm:min-w-[36px] touch-manipulation cursor-pointer"
+              className="inline-flex items-center justify-center p-1.5 sm:p-2 text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 border border-stone-200 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-8.5 sm:min-h-9 min-w-8.5 sm:min-w-9 touch-manipulation cursor-pointer"
             >
               <Info className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -92,9 +92,9 @@ export function Navbar({ onReset, showReset, videoTitle, onOpenAbout }: NavbarPr
               type="button"
               onClick={onReset}
               aria-label="Load another video or course"
-              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#1c1917] bg-[#ffffff] active:bg-[#f5f5f4] hover:bg-[#f5f5f4] border border-[#e7e5e4] rounded-[10px] sm:rounded-[12px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0d5c46] min-h-[40px] sm:min-h-[44px] touch-manipulation cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 border border-stone-200 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-11 touch-manipulation cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-[#57534e]" aria-hidden="true" />
+              <ArrowLeft className="w-4 h-4 text-stone-600" aria-hidden="true" />
               <span className="hidden xs:inline">Load Another</span>
               <span className="xs:hidden">New</span>
             </button>
