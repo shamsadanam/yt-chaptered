@@ -80,26 +80,26 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
     >
       <div
         ref={modalRef}
-        className="w-full sm:max-w-xl bg-stone-50 border border-stone-200 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-modal flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-200"
+        className="w-full sm:max-w-xl bg-stone-50 border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-modal flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-200"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200 bg-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm shadow-xs" aria-hidden="true">
               yt
             </div>
             <div>
-              <h2 id="about-modal-title" className="text-base font-semibold text-stone-900 leading-tight">
+              <h2 id="about-modal-title" className="text-base font-semibold text-stone-900 dark:text-stone-100 leading-tight">
                 About ytChaptered
               </h2>
-              <p className="text-xs text-stone-600">Local-first YouTube course playlist creator</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400">Local-first YouTube course playlist creator</p>
             </div>
           </div>
           <button
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Close about dialog"
           >
             <X className="w-5 h-5" aria-hidden="true" />
@@ -109,14 +109,14 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
         {/* Content Body */}
         <div className="p-5 sm:p-6 space-y-6 overflow-y-auto">
           {/* Creator Profile Section */}
-          <div className="bg-white p-4 rounded-xl border border-stone-200">
+          <div className="bg-white dark:bg-stone-950 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-stone-900">Shamsad Anam</h3>
-              <span className="text-2xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              <h3 className="text-base font-semibold text-stone-900 dark:text-stone-100">Shamsad Anam</h3>
+              <span className="text-2xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:bg-emerald-950/60 dark:text-emerald-400">
                 Made By
               </span>
             </div>
-            <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">
               Full-stack developer building thoughtful local-first tools and productive web experiences.
             </p>
             <div className="flex items-center gap-3 mt-3">
@@ -124,7 +124,7 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
                 href="https://github.com/shamsadanam"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-900 hover:text-primary transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-900 dark:text-stone-100 hover:text-primary dark:hover:text-emerald-400 transition-colors"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -136,19 +136,19 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
           {/* Motivation & About ytChaptered */}
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-600">Why ytChaptered?</h4>
-            <p className="text-xs sm:text-sm text-stone-900 leading-relaxed">
-              Long-form tutorials on YouTube are incredible learning resources, but navigating them with standard players is messy. <strong className="font-semibold text-primary">ytChaptered</strong> transforms timestamped videos into structured interactive courses with auto-advancing, completion tracking, and private browser-only storage.
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-600 dark:text-stone-400">Why ytChaptered?</h4>
+            <p className="text-xs sm:text-sm text-stone-900 dark:text-stone-100 leading-relaxed">
+              Long-form tutorials on YouTube are incredible learning resources, but navigating them with standard players is messy. <strong className="font-semibold text-primary dark:text-emerald-400">ytChaptered</strong> transforms timestamped videos into structured interactive courses with auto-advancing, completion tracking, and private browser-only storage.
             </p>
           </div>
 
           {/* GitHub Star Banner */}
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-xl bg-primary/5 dark:bg-emerald-950/20 border border-primary/20 dark:border-emerald-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <p className="text-xs sm:text-sm font-semibold text-stone-900 flex items-center gap-1.5">
+              <p className="text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
                 <span>⭐</span> Star the repository on GitHub
               </p>
-              <p className="text-xs text-stone-600 mt-0.5">
+              <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
                 Support the project, file issues, or contribute features.
               </p>
             </div>
@@ -171,12 +171,12 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
           {/* Install App Section */}
           {isInstallable && (
-            <div className="p-3.5 bg-stone-100 rounded-lg border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-3.5 bg-stone-100 dark:bg-stone-950 rounded-lg border border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="font-semibold text-stone-900 text-xs sm:text-sm block">
+                <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs sm:text-sm block">
                   Install ytChaptered
                 </span>
-                <span className="text-stone-600 text-xs block mt-0.5">
+                <span className="text-stone-600 dark:text-stone-400 text-xs block mt-0.5">
                   Launch full screen like a native app with quick access to your courses and saved progress.
                 </span>
               </div>
@@ -196,26 +196,26 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           )}
 
           {/* Tech Stack & Privacy */}
-          <div className="pt-2 border-t border-stone-200 grid grid-cols-2 gap-3 text-xs">
-            <div className="bg-white p-3 rounded-lg border border-stone-200">
-              <span className="font-semibold text-stone-900 block">Local-First</span>
-              <span className="text-stone-600 text-xs mt-0.5 block">Stored in browser IndexedDB. Zero cloud tracking.</span>
+          <div className="pt-2 border-t border-stone-200 dark:border-stone-800 grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-white dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
+              <span className="font-semibold text-stone-900 dark:text-stone-100 block">Local-First</span>
+              <span className="text-stone-600 dark:text-stone-400 text-xs mt-0.5 block">Stored in browser IndexedDB. Zero cloud tracking.</span>
             </div>
-            <div className="bg-white p-3 rounded-lg border border-stone-200">
-              <span className="font-semibold text-stone-900 block">Built With</span>
-              <span className="text-stone-600 text-xs mt-0.5 block">Next.js 16, React 19, Tailwind CSS v4.</span>
+            <div className="bg-white dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
+              <span className="font-semibold text-stone-900 dark:text-stone-100 block">Built With</span>
+              <span className="text-stone-600 dark:text-stone-400 text-xs mt-0.5 block">Next.js 16, React 19, Tailwind CSS v4.</span>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-between text-xs text-stone-600">
+        <div className="px-5 py-3 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 flex items-center justify-between text-xs text-stone-600 dark:text-stone-400">
           <span>ytChaptered v0.1.0</span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close about dialog"
-            className="px-3 py-1.5 font-medium text-stone-900 hover:bg-stone-100 rounded-md transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+            className="px-3 py-1.5 font-medium text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
           >
             Close
           </button>

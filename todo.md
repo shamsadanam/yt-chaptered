@@ -41,8 +41,9 @@
 - [ ] Also add bot protection.
 - [ ] Check if an api route is really needed or not.
 - [ ] Add new logo and remove trackers from the logo.
-- [ ] Add darkmode.
+- [x] Add darkmode (Light/Dark toggle with system default, zero-flicker head script, and SSR-safe CSS switching).
 - [ ] Add cloudflare web analytics.
+- [ ] Show placeholder while data is loading ? there is layout shift when there is previous data.
 
 ## Future Planning
 

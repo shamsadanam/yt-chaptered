@@ -64,10 +64,10 @@ export function InstallBanner() {
   return (
     <aside
       aria-label="Install app prompt"
-      className="fixed z-40 bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md bg-white border border-stone-200 rounded-2xl p-4 shadow-xl animate-in slide-in-from-bottom-3 duration-200 transition-all touch-manipulation"
+      className="fixed z-40 bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-4 shadow-xl animate-in slide-in-from-bottom-3 duration-200 transition-all touch-manipulation"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 relative rounded-lg overflow-hidden shrink-0 shadow-2xs border border-stone-200/50" aria-hidden="true">
+        <div className="w-10 h-10 relative rounded-lg overflow-hidden shrink-0 shadow-2xs border border-stone-200/50 dark:border-stone-700/50" aria-hidden="true">
           <Image
             src="/logo.svg"
             alt=""
@@ -78,19 +78,19 @@ export function InstallBanner() {
 
         <div className="flex-1 min-w-0 pr-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-stone-900 tracking-tight truncate">
+            <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 tracking-tight truncate">
               Install ytChaptered
             </h3>
             <button
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss install prompt"
-              className="w-6 h-6 rounded-md text-stone-500 hover:text-stone-900 hover:bg-stone-100 active:bg-stone-200 flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-6 h-6 rounded-md text-stone-500 hover:text-stone-900 hover:bg-stone-100 active:bg-stone-200 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 dark:active:bg-stone-700 flex items-center justify-center text-xs transition-colors cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
+          <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 leading-relaxed">
             Install on your device for standalone distraction-free learning and instant access.
           </p>
 
@@ -108,7 +108,7 @@ export function InstallBanner() {
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss install prompt for now"
-              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-1 focus:ring-primary rounded"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-1 focus:ring-primary rounded"
             >
               Not now
             </button>

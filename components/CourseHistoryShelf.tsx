@@ -80,13 +80,13 @@ export function CourseHistoryShelf({
   if (courses.length === 0) {
     if (!isStandaloneView) {
       return (
-        <div className={`w-full ${isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200'}`}>
+        <div className={`w-full ${isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200 dark:border-stone-800'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-medium text-stone-900 tracking-tight">
+              <h2 className="text-base sm:text-lg font-medium text-stone-900 dark:text-stone-100 tracking-tight">
                 Continue Watching
               </h2>
-              <p className="text-xs text-stone-600">
+              <p className="text-xs text-stone-600 dark:text-stone-400">
                 Restore your previous learning progress or backups.
               </p>
             </div>
@@ -94,11 +94,11 @@ export function CourseHistoryShelf({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
                 title="Import JSON backup"
                 aria-label="Import courses from JSON backup file"
               >
-                <Download className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
+                <Download className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
                 <span>Import JSON</span>
               </button>
               <input
@@ -112,13 +112,13 @@ export function CourseHistoryShelf({
             </div>
           </div>
           {importStatus && (
-            <div role="status" aria-live="polite" className="p-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 flex items-center justify-between">
+            <div role="status" aria-live="polite" className="p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
               <span>{importStatus}</span>
               <button
                 type="button"
                 onClick={() => setImportStatus(null)}
                 aria-label="Dismiss import status"
-                className="text-stone-500 hover:text-stone-900 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
+                className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
@@ -130,22 +130,22 @@ export function CourseHistoryShelf({
 
     return (
       <div className="w-full max-w-4xl mx-auto px-4 py-8 text-center">
-        <div className="w-12 h-12 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-600 mx-auto mb-3 shadow-xs">
+        <div className="w-12 h-12 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-600 dark:text-stone-400 mx-auto mb-3 shadow-xs">
           📚
         </div>
-        <h2 className="text-xl font-medium text-stone-900 mb-2">No saved courses yet</h2>
-        <p className="text-sm text-stone-600 max-w-sm mx-auto mb-6">
+        <h2 className="text-xl font-medium text-stone-900 dark:text-stone-100 mb-2">No saved courses yet</h2>
+        <p className="text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-6">
           Paste any YouTube URL in the Create tab to generate a chaptered course, or restore a backup from a JSON file.
         </p>
 
         {importStatus && (
-          <div role="status" aria-live="polite" className="max-w-md mx-auto mb-6 p-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 flex items-center justify-between">
+          <div role="status" aria-live="polite" className="max-w-md mx-auto mb-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
             <span>{importStatus}</span>
             <button
               type="button"
               onClick={() => setImportStatus(null)}
               aria-label="Dismiss import status"
-              className="text-stone-500 hover:text-stone-900 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
+              className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
@@ -167,9 +167,9 @@ export function CourseHistoryShelf({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Import courses from JSON backup file"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-stone-100 active:bg-stone-100 text-stone-900 text-sm font-semibold border border-stone-200 rounded-xl shadow-xs touch-manipulation cursor-pointer min-h-11 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 text-stone-900 dark:text-stone-100 text-sm font-semibold border border-stone-200 dark:border-stone-800 rounded-xl shadow-xs touch-manipulation cursor-pointer min-h-11 focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <Download className="w-4 h-4 text-stone-600" aria-hidden="true" />
+            <Download className="w-4 h-4 text-stone-600 dark:text-stone-400" aria-hidden="true" />
             <span>Import JSON</span>
           </button>
           <input
@@ -186,14 +186,14 @@ export function CourseHistoryShelf({
   }
 
   return (
-    <div className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200'}`}>
+    <div className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200 dark:border-stone-800'}`}>
       {/* Header & Export/Import Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-lg sm:text-2xl font-medium text-stone-900 tracking-tight">
+          <h2 className="text-lg sm:text-2xl font-medium text-stone-900 dark:text-stone-100 tracking-tight">
             Continue Watching
           </h2>
-          <p className="text-xs sm:text-sm text-stone-600">
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
             Resume previous learning sessions or backup progress locally.
           </p>
         </div>
@@ -215,11 +215,11 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             title="Download JSON backup"
             aria-label="Export saved courses to JSON backup file"
           >
-            <Upload className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
+            <Upload className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
             <span className="hidden xs:inline">Export JSON</span>
             <span className="xs:hidden">Export</span>
           </button>
@@ -228,11 +228,11 @@ export function CourseHistoryShelf({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             title="Import JSON backup"
             aria-label="Import courses from JSON backup file"
           >
-            <Download className="w-3.5 h-3.5 text-stone-600" aria-hidden="true" />
+            <Download className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
             <span className="hidden xs:inline">Import JSON</span>
             <span className="xs:hidden">Import</span>
           </button>
@@ -248,13 +248,13 @@ export function CourseHistoryShelf({
       </div>
 
       {importStatus && (
-        <div role="status" aria-live="polite" className="mb-4 p-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 flex items-center justify-between">
+        <div role="status" aria-live="polite" className="mb-4 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
           <span>{importStatus}</span>
           <button
             type="button"
             onClick={() => setImportStatus(null)}
             aria-label="Dismiss import status"
-            className="text-stone-500 hover:text-stone-900 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
+            className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
@@ -274,12 +274,12 @@ export function CourseHistoryShelf({
           return (
             <div
               key={c.video.id}
-              className="relative group bg-white hover:border-primary border border-stone-200 rounded-xl p-3 sm:p-4 transition-all duration-200 flex flex-col justify-between shadow-xs touch-manipulation"
+              className="relative group bg-white dark:bg-stone-900 hover:border-primary dark:hover:border-emerald-500 border border-stone-200 dark:border-stone-800 rounded-xl p-3 sm:p-4 transition-all duration-200 flex flex-col justify-between shadow-xs touch-manipulation"
             >
               <div>
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   {/* Video Thumbnail */}
-                  <div className="w-20 h-14 sm:w-24 sm:h-16 bg-black rounded-md overflow-hidden shrink-0 relative border border-stone-200" aria-hidden="true">
+                  <div className="w-20 h-14 sm:w-24 sm:h-16 bg-black rounded-md overflow-hidden shrink-0 relative border border-stone-200 dark:border-stone-800" aria-hidden="true">
                     {c.video.thumbnailUrl ? (
                       <Image
                         src={c.video.thumbnailUrl}
@@ -302,7 +302,7 @@ export function CourseHistoryShelf({
 
                   {/* Title & Channel */}
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                    <h3 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-primary dark:text-stone-100 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">
                       <Link
                         href={courseUrl}
                         onClick={() => onResumeCourse(c)}
@@ -313,7 +313,7 @@ export function CourseHistoryShelf({
                       </Link>
                     </h3>
                     {c.video.author && (
-                      <p className="text-xs text-stone-600 truncate mt-0.5 sm:mt-1">{c.video.author}</p>
+                      <p className="text-xs text-stone-600 dark:text-stone-400 truncate mt-0.5 sm:mt-1">{c.video.author}</p>
                     )}
                   </div>
 
@@ -323,15 +323,15 @@ export function CourseHistoryShelf({
                     onClick={(e) => handleDelete(c.video.id, e)}
                     title="Remove course from saved list"
                     aria-label={`Remove ${c.video.title} from saved courses`}
-                    className="relative z-10 w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-stone-500 hover:text-rose-600 active:text-rose-600 rounded-md transition-colors touch-manipulation shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-600"
+                    className="relative z-10 w-10 h-10 -mr-1.5 -mt-1.5 flex items-center justify-center text-stone-500 hover:text-rose-600 active:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 rounded-md transition-colors touch-manipulation shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-600"
                   >
                     <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
 
                 {/* Last Watched Segment */}
-                <div className="mt-2.5 sm:mt-3 text-xs text-stone-600 flex items-center gap-1.5">
-                  <span className="font-medium text-stone-900">Last at:</span>
+                <div className="mt-2.5 sm:mt-3 text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
+                  <span className="font-medium text-stone-900 dark:text-stone-100">Last at:</span>
                   <span className="truncate">
                     {lastChapter ? `Ch. ${c.lastPlayedChapterIndex + 1}: ${lastChapter.title}` : 'Start'}
                   </span>
@@ -339,11 +339,11 @@ export function CourseHistoryShelf({
               </div>
 
               {/* Progress Bar & Resume Indicator */}
-              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-stone-200 flex items-center justify-between gap-3">
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 mb-1">
+                  <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 dark:text-stone-400 mb-1">
                     <span>{completedCount}/{totalChapters} completed</span>
-                    <span className="font-semibold text-stone-900 font-mono">{percentage}%</span>
+                    <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono">{percentage}%</span>
                   </div>
                   <div
                     role="progressbar"
@@ -351,7 +351,7 @@ export function CourseHistoryShelf({
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label={`Course completion progress: ${percentage}%`}
-                    className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden"
+                    className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden"
                   >
                     <div
                       className="h-full bg-primary rounded-full transition-all"
@@ -360,7 +360,7 @@ export function CourseHistoryShelf({
                   </div>
                 </div>
 
-                <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-primary dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
                   <span>Resume</span>
                   <span>→</span>
                 </span>
