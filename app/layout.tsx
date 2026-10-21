@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { PwaProvider } from "../components/PwaProvider";
 import { ThemeProvider } from "../components/ThemeProvider";
@@ -44,6 +45,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cfBeaconToken =
+    process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN ||
+    process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
+  const isProd = process.env.NODE_ENV === "production";
+
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
       <head>
@@ -63,6 +69,13 @@ export default function RootLayout({
         <ThemeProvider>
           <PwaProvider>{children}</PwaProvider>
         </ThemeProvider>
+        {isProd && cfBeaconToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+          />
+        )}
       </body>
     </html>
   );

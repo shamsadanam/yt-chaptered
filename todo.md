@@ -42,7 +42,7 @@
 - [x] Check if an api route is really needed or not.
 - [ ] Add new logo and remove trackers from the logo.
 - [x] Add darkmode (Light/Dark toggle with system default, zero-flicker head script, and SSR-safe CSS switching).
-- [ ] Add cloudflare web analytics.
+- [x] Add cloudflare web analytics.
 
 ## Future Planning
 
