@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
@@ -8,6 +8,7 @@ import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
 import { AboutModal } from '../../../components/AboutModal';
 import { CopyrightYear } from '../../../components/CopyrightYear';
+import { TurnstileWidget } from '../../../components/TurnstileWidget';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
 import {
   subscribeCourses,
@@ -29,6 +30,9 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isAutoFetching, setIsAutoFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [needsFetch, setNeedsFetch] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   // Subscribe to reactive IndexedDB course updates
   useSyncExternalStore(
@@ -69,7 +73,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     return parsed;
   }, [savedCourse, initialTimeParam]);
 
-  // If course is not present in local storage (e.g. fresh direct link or bookmark), auto-fetch details
+  // If course is not present in local storage (e.g. fresh direct link or bookmark), trigger auto-fetch
   useEffect(() => {
     let isCancelled = false;
 
@@ -80,95 +84,17 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
           const existing = getSavedCourse(videoId);
           if (existing) {
             setIsAutoFetching(false);
-            return;
+            setNeedsFetch(false);
+          } else {
+            setIsAutoFetching(true);
+            setNeedsFetch(true);
           }
-
-          setIsAutoFetching(true);
-          setFetchError(null);
-
-          return fetch(`/api/protected/youtube-info?videoId=${videoId}`)
-            .then((res) => {
-              if (!res.ok) throw new Error('Video info request failed');
-              return res.json();
-            })
-            .then(async (data) => {
-              if (isCancelled) return;
-              if (data && data.success) {
-                let parsedChapters = data.chapters || [];
-                if (parsedChapters.length === 0 && data.description) {
-                  parsedChapters = parseTimestamps(data.description, data.duration);
-                }
-                if (parsedChapters.length === 0) {
-                  parsedChapters = [
-                    {
-                      id: `chap-${videoId}-0`,
-                      index: 1,
-                      title: 'Full Video',
-                      startTime: 0,
-                      endTime: Infinity,
-                      formattedTime: '0:00',
-                      status: 'not_started',
-                    },
-                  ];
-                }
-
-                let finalTitle = data.title;
-                let finalAuthor = data.author;
-                const finalChannelId = data.channelId;
-                let finalChannelUrl = data.channelUrl;
-                let finalThumbnail = data.thumbnailUrl;
-
-                if (!finalTitle || !finalChannelUrl) {
-                  try {
-                    const oembedRes = await fetch(
-                      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
-                    );
-                    if (oembedRes.ok) {
-                      const oembed = await oembedRes.json();
-                      if (oembed.title && !finalTitle) finalTitle = oembed.title;
-                      if (oembed.author_name && !finalAuthor) finalAuthor = oembed.author_name;
-                      if (oembed.author_url && !finalChannelUrl) finalChannelUrl = oembed.author_url;
-                      if (oembed.thumbnail_url && !finalThumbnail) finalThumbnail = oembed.thumbnail_url;
-                    }
-                  } catch {
-                    // Silent fallback
-                  }
-                }
-
-                const newCourse: SavedCourse = {
-                  video: {
-                    id: videoId,
-                    url: `https://www.youtube.com/watch?v=${videoId}`,
-                    title: finalTitle || 'YouTube Video',
-                    author: finalAuthor,
-                    channelId: finalChannelId,
-                    channelUrl: finalChannelUrl,
-                    thumbnailUrl: finalThumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-                    duration: data.duration,
-                  },
-                  chapters: parsedChapters,
-                  rawTimestampsText: data.description || '',
-                  completedChapterIds: [],
-                  lastPlayedChapterIndex: 0,
-                  lastPlayedSeconds: 0,
-                  updatedAt: Date.now(),
-                };
-
-                saveCourse(newCourse);
-              } else {
-                setFetchError(data?.error || 'Video could not be loaded or auto-detected.');
-              }
-            });
         })
         .catch((err) => {
           if (!isCancelled) {
-            console.warn('Auto-fetch course failed:', err);
-            setFetchError('Could not load course. Please check the YouTube video URL or ID.');
-          }
-        })
-        .finally(() => {
-          if (!isCancelled) {
-            setIsAutoFetching(false);
+            console.warn('Init storage failed:', err);
+            setIsAutoFetching(true);
+            setNeedsFetch(true);
           }
         });
     }
@@ -178,8 +104,110 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     };
   }, [videoId, savedCourse]);
 
+  // Execute protected fetch once Turnstile token is available
+  useEffect(() => {
+    let isCancelled = false;
+    if (!needsFetch || !turnstileToken || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    setIsAutoFetching(true);
+    setFetchError(null);
+
+    fetch(`/api/protected/youtube-info?videoId=${videoId}`, {
+      headers: {
+        'x-turnstile-token': turnstileToken,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Video info request failed');
+        return res.json();
+      })
+      .then(async (data) => {
+        if (isCancelled) return;
+        if (data && data.success) {
+          let parsedChapters = data.chapters || [];
+          if (parsedChapters.length === 0 && data.description) {
+            parsedChapters = parseTimestamps(data.description, data.duration);
+          }
+          if (parsedChapters.length === 0) {
+            parsedChapters = [
+              {
+                id: `chap-${videoId}-0`,
+                index: 1,
+                title: 'Full Video',
+                startTime: 0,
+                endTime: Infinity,
+                formattedTime: '0:00',
+                status: 'not_started',
+              },
+            ];
+          }
+
+          let finalTitle = data.title;
+          let finalAuthor = data.author;
+          const finalChannelId = data.channelId;
+          let finalChannelUrl = data.channelUrl;
+          let finalThumbnail = data.thumbnailUrl;
+
+          if (!finalTitle || !finalChannelUrl) {
+            try {
+              const oembedRes = await fetch(
+                `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+              );
+              if (oembedRes.ok) {
+                const oembed = await oembedRes.json();
+                if (oembed.title && !finalTitle) finalTitle = oembed.title;
+                if (oembed.author_name && !finalAuthor) finalAuthor = oembed.author_name;
+                if (oembed.author_url && !finalChannelUrl) finalChannelUrl = oembed.author_url;
+                if (oembed.thumbnail_url && !finalThumbnail) finalThumbnail = oembed.thumbnail_url;
+              }
+            } catch {
+              // Silent fallback
+            }
+          }
+
+          const newCourse: SavedCourse = {
+            video: {
+              id: videoId,
+              url: `https://www.youtube.com/watch?v=${videoId}`,
+              title: finalTitle || 'YouTube Video',
+              author: finalAuthor,
+              channelId: finalChannelId,
+              channelUrl: finalChannelUrl,
+              thumbnailUrl: finalThumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+              duration: data.duration,
+            },
+            chapters: parsedChapters,
+            rawTimestampsText: data.description || '',
+            completedChapterIds: [],
+            lastPlayedChapterIndex: 0,
+            lastPlayedSeconds: 0,
+            updatedAt: Date.now(),
+          };
+
+          saveCourse(newCourse);
+        } else {
+          setFetchError(data?.error || 'Video could not be loaded or auto-detected.');
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          console.warn('Auto-fetch course failed:', err);
+          setFetchError('Could not load course. Please check the YouTube video URL or ID.');
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsAutoFetching(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [videoId, needsFetch, turnstileToken]);
+
   // Loading state while storage initializes or video info is auto-fetched
-  if (!savedCourse && isAutoFetching) {
+  if (!savedCourse && (isAutoFetching || needsFetch)) {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
         <Navbar onReset={() => router.push('/')} showReset={true} onOpenAbout={() => setIsAboutOpen(true)} />
@@ -192,6 +220,11 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
             <p className="text-xs text-stone-600 dark:text-stone-400">
               Detecting chapters and course data for video <span className="font-mono">{videoId}</span>
             </p>
+            <TurnstileWidget
+              onTokenChange={setTurnstileToken}
+              action="watch_auto_fetch"
+              className="flex justify-center empty:hidden mt-4"
+            />
           </div>
         </main>
       </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseTimestamps } from '@/lib/youtubeParser';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 export async function GET(request: NextRequest) {
   // Reject cross-origin and direct-access requests (browser fetch always sends at least Referer)
@@ -48,6 +49,22 @@ export async function GET(request: NextRequest) {
         }
       );
     }
+  }
+
+  const turnstileToken = request.headers.get('x-turnstile-token');
+  if (!turnstileToken) {
+    return NextResponse.json(
+      { success: false, error: 'Turnstile verification token missing' },
+      { status: 403 }
+    );
+  }
+
+  const verification = await verifyTurnstileToken(turnstileToken, clientIp);
+  if (!verification.success) {
+    return NextResponse.json(
+      { success: false, error: verification.error || 'Bot verification failed' },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = new URL(request.url);
