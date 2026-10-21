@@ -11,6 +11,7 @@ import {
   subscribeCourses,
   getSavedCoursesSnapshot,
   getSavedCoursesServerSnapshot,
+  useIsStorageLoading,
 } from '../lib/storage';
 import { CourseHistoryShelf } from './CourseHistoryShelf';
 
@@ -58,6 +59,7 @@ export function InputView({ onGenerate }: InputViewProps) {
     duration?: number;
   } | null>(null);
 
+  const isStorageLoading = useIsStorageLoading();
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
     getSavedCoursesSnapshot,
@@ -273,19 +275,20 @@ export function InputView({ onGenerate }: InputViewProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-10">
-      {/* Returning User View: Continue Watching Shelf at Top */}
-      {hasSavedCourses && (
+      {/* Returning User View or Storage Loading: Continue Watching Shelf at Top */}
+      {(hasSavedCourses || isStorageLoading) && (
         <CourseHistoryShelf
           courses={savedCourses}
           onResumeCourse={handleResumeCourse}
           onRefresh={handleRefreshCourses}
+          isLoading={isStorageLoading}
           isTopShelf={true}
           onAddNewCourse={handleFocusAddCourse}
         />
       )}
 
       {/* First-time User View: Prominent Hero Header */}
-      {!hasSavedCourses ? (
+      {!hasSavedCourses && !isStorageLoading ? (
         <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-md text-xs font-semibold uppercase tracking-widest text-stone-600 dark:text-stone-400 mb-3 sm:mb-4">
             Local-first video chapters
@@ -485,7 +488,7 @@ export function InputView({ onGenerate }: InputViewProps) {
             </div>
 
       {/* First-time User: Shelf at bottom for importing backup */}
-      {!hasSavedCourses && (
+      {!hasSavedCourses && !isStorageLoading && (
         <CourseHistoryShelf
           courses={savedCourses}
           onResumeCourse={handleResumeCourse}

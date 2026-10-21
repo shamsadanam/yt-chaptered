@@ -15,6 +15,7 @@ import {
   getSavedCoursesSnapshot,
   getSavedCoursesServerSnapshot,
   saveCourse,
+  useIsStorageLoading,
 } from '../lib/storage';
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
   const [playlist, setPlaylist] = useState<ParsedPlaylist | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('create');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const isStorageLoading = useIsStorageLoading();
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
     getSavedCoursesSnapshot,
@@ -104,6 +106,7 @@ export default function Home() {
             courses={savedCourses}
             onResumeCourse={handleResumeCourse}
             onRefresh={handleRefreshCourses}
+            isLoading={isStorageLoading}
             isStandaloneView={true}
             onGoToCreate={() => setActiveTab('create')}
             onAddNewCourse={() => setActiveTab('create')}

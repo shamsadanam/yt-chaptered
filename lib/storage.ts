@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { SavedCourse } from '../types/playlist';
 
 const DB_NAME = 'yt_chaptered_db';
@@ -170,10 +171,33 @@ export function initStorage(): Promise<void> {
       requestPersistentStorage().catch(() => {});
     } catch (err) {
       console.error('Failed to initialize IndexedDB storage:', err);
+      isInitialized = true;
+      notifyListeners();
     }
   })();
 
   return initPromise;
+}
+
+export function isStorageInitialized(): boolean {
+  return isInitialized;
+}
+
+export function getIsStorageLoadingSnapshot(): boolean {
+  if (typeof window === 'undefined') return true;
+  return !isInitialized;
+}
+
+export function getIsStorageLoadingServerSnapshot(): boolean {
+  return true;
+}
+
+export function useIsStorageLoading(): boolean {
+  return useSyncExternalStore(
+    subscribeCourses,
+    getIsStorageLoadingSnapshot,
+    getIsStorageLoadingServerSnapshot
+  );
 }
 
 if (typeof window !== 'undefined') {

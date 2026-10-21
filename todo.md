@@ -43,7 +43,6 @@
 - [ ] Add new logo and remove trackers from the logo.
 - [x] Add darkmode (Light/Dark toggle with system default, zero-flicker head script, and SSR-safe CSS switching).
 - [ ] Add cloudflare web analytics.
-- [ ] Show placeholder while data is loading ? there is layout shift when there is previous data.
 
 ## Future Planning
 
