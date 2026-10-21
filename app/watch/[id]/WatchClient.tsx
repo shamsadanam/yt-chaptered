@@ -86,7 +86,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
           setIsAutoFetching(true);
           setFetchError(null);
 
-          return fetch(`/api/youtube-info?videoId=${videoId}`)
+          return fetch(`/api/protected/youtube-info?videoId=${videoId}`)
             .then((res) => {
               if (!res.ok) throw new Error('Video info request failed');
               return res.json();

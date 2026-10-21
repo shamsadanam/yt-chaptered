@@ -38,8 +38,8 @@
 - [x] Add compact player controls (seek ±10s with icons, chapter skips, speed selector, fullscreen with auto-landscape rotation, separate dedicated controls card & current chapter card)
 - [x] WCAG 2.1/2.2 AA accessibility compliance (skip-to-content link, accessible button & link labels, keyboard chapter list navigation, un-nested interactive cards, role=progressbar, visible focus indicators, dialog focus trapping)
 - [x] Add link to youtube channel for subscribing, for phase one just open the video/channel in a new tab.
-- [ ] Also add bot protection.
-- [ ] Check if an api route is really needed or not.
+- [x] Also add bot protection.
+- [x] Check if an api route is really needed or not.
 - [ ] Add new logo and remove trackers from the logo.
 - [x] Add darkmode (Light/Dark toggle with system default, zero-flicker head script, and SSR-safe CSS switching).
 - [ ] Add cloudflare web analytics.

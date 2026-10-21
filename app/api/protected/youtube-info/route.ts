@@ -1,7 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseTimestamps } from '@/lib/youtubeParser';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function GET(request: NextRequest) {
+  // Reject cross-origin and direct-access requests (browser fetch always sends at least Referer)
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const host =
+    request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+
+  let requestOriginHost = '';
+  if (origin) {
+    try {
+      requestOriginHost = new URL(origin).host;
+    } catch {
+      /* malformed */
+    }
+  } else if (referer) {
+    try {
+      requestOriginHost = new URL(referer).host;
+    } catch {
+      /* malformed */
+    }
+  }
+
+  if (!requestOriginHost || requestOriginHost !== host) {
+    return NextResponse.json(
+      { success: false, error: 'Forbidden' },
+      { status: 403 }
+    );
+  }
+
+  // CF-Connecting-IP is the real client IP when proxied through Cloudflare
+  const clientIp =
+    request.headers.get('cf-connecting-ip') ||
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    '127.0.0.1';
+
+  if (process.env.NODE_ENV === 'production') {
+    const limit = checkRateLimit(clientIp);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(limit.retryAfterSeconds) },
+        }
+      );
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const videoId = searchParams.get('videoId');
 
