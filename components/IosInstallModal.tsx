@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface IosInstallModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  useScrollLock(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,13 +54,10 @@ export function IosInstallModal({ isOpen, onClose }: IosInstallModalProps) {
       }
     };
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       clearTimeout(focusTimer);
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
       previousActiveElementRef.current?.focus();
     };

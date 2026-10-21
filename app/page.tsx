@@ -2,12 +2,14 @@
  
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { Play } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
-import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
+import { CourseHistoryShelf, CourseHistorySkeleton } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { AboutModal } from '../components/AboutModal';
+import { AddVideoModal } from '../components/AddVideoModal';
 import { CopyrightYear } from '../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
@@ -21,8 +23,9 @@ import {
 export default function Home() {
   const router = useRouter();
   const [playlist, setPlaylist] = useState<ParsedPlaylist | null>(null);
-  const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('history');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const isStorageLoading = useIsStorageLoading();
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
@@ -36,7 +39,11 @@ export default function Home() {
     const tab = params.get('tab');
     if (tab === 'history' || tab === 'create') {
       queueMicrotask(() => {
-        setActiveTab(tab);
+        if (tab === 'create') {
+          setIsAddModalOpen(true);
+        } else {
+          setActiveTab('history');
+        }
       });
     }
   }, []);
@@ -66,11 +73,15 @@ export default function Home() {
 
   const handleReset = () => {
     setPlaylist(null);
-    setActiveTab('create');
+    setActiveTab('history');
     handleRefreshCourses();
   };
 
   const handleTabChange = (tab: 'create' | 'player' | 'history') => {
+    if (tab === 'create') {
+      setIsAddModalOpen(true);
+      return;
+    }
     if (tab === 'player') {
       if (savedCourses.length > 0) {
         const recent = savedCourses[0];
@@ -88,34 +99,35 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
-        onReset={handleReset}
-        showReset={playlist !== null && activeTab === 'player'}
-        videoTitle={playlist?.video.title}
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
-        {/* View 1: Player View */}
+        {/* View 1: Active Player View */}
         {activeTab === 'player' && playlist && (
           <PlaylistView playlist={playlist} onReset={handleReset} />
         )}
 
-        {/* View 2: Standalone Courses & History View */}
-        {activeTab === 'history' && (
+        {/* View 2: Course Library (Dashboard for Returning Users) */}
+        {savedCourses.length > 0 && activeTab !== 'player' && (
           <CourseHistoryShelf
             courses={savedCourses}
             onResumeCourse={handleResumeCourse}
             onRefresh={handleRefreshCourses}
             isLoading={isStorageLoading}
             isStandaloneView={true}
-            onGoToCreate={() => setActiveTab('create')}
-            onAddNewCourse={() => setActiveTab('create')}
+            onAddNewCourse={() => setIsAddModalOpen(true)}
           />
         )}
 
-        {/* View 3: Create / Home Input View */}
-        {(activeTab === 'create' || (activeTab === 'player' && !playlist)) && (
+        {/* View 3: First-time User Experience (When No Courses Exist Yet) */}
+        {savedCourses.length === 0 && !isStorageLoading && activeTab !== 'player' && (
           <InputView onGenerate={handleGenerate} />
+        )}
+
+        {/* Loading skeleton while storage initializes */}
+        {savedCourses.length === 0 && isStorageLoading && activeTab !== 'player' && (
+          <CourseHistorySkeleton />
         )}
       </main>
 
@@ -130,7 +142,7 @@ export default function Home() {
           >
             <div className="flex items-center gap-2.5 min-w-0 text-left">
               <span className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-xs shrink-0 font-bold text-white" aria-hidden="true">
-                ▶
+                <Play className="w-3.5 h-3.5 fill-current ml-0.5 text-white" />
               </span>
               <div className="min-w-0">
                 <span className="text-2xs text-emerald-500 font-semibold uppercase tracking-wider block">
@@ -155,6 +167,13 @@ export default function Home() {
         activePlaylistTitle={playlist?.video.title}
         onTabChange={handleTabChange}
         onOpenAbout={() => setIsAboutOpen(true)}
+      />
+
+      {/* Add Video Modal Dialog */}
+      <AddVideoModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onGenerate={handleGenerate}
       />
 
       {/* About Me / App Modal */}

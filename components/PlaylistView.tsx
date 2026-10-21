@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import {
   Loader2,
   AlertTriangle,
@@ -17,7 +18,7 @@ import {
   RotateCw,
   Play,
   Pause,
-  Copy,
+  ArrowLeft,
 } from 'lucide-react';
 import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
@@ -35,7 +36,7 @@ import {
 
 interface PlaylistViewProps {
   playlist: ParsedPlaylist;
-  onReset: () => void;
+  onReset?: () => void;
 }
 
 export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
@@ -43,7 +44,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const sidebarListRef = useRef<HTMLOListElement>(null);
   const activeItemRef = useRef<HTMLLIElement | null>(null);
 
-  const [copiedLink, setCopiedLink] = useState(false);
   const [copiedTimestamps, setCopiedTimestamps] = useState(false);
   const [showRawTimestamps, setShowRawTimestamps] = useState(false);
 
@@ -231,9 +231,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   const activeChapter: Chapter | undefined = playlist.chapters[currentChapterIndex];
 
-  // Auto-scroll sidebar list so active chapter remains in view
+  // Auto-scroll sidebar list so active chapter remains in view on desktop sidebar
   useEffect(() => {
-    if (activeItemRef.current) {
+    if (activeItemRef.current && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       activeItemRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
@@ -330,17 +330,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     }
   };
 
-  const handleCopyShareLink = async () => {
-    if (typeof window === 'undefined') return;
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    } catch (err) {
-      console.warn('Failed to copy link:', err);
-    }
-  };
-
   const handleCopyTimestamps = async () => {
     const text =
       playlist.rawTimestampsText ||
@@ -385,48 +374,36 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 w-full pb-16">
       {/* Video Headline Header */}
       <div className="mb-4 sm:mb-6">
-        <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-primary cursor-pointer min-h-9 touch-manipulation"
+        {/* Breadcrumb above course title */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 mb-2 sm:mb-2.5 text-xs">
+          <Link
+            href="/"
+            onClick={() => onReset?.()}
+            className="inline-flex items-center gap-1.5 font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors py-1 px-1.5 -ml-1.5 rounded-md hover:bg-stone-200/60 dark:hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Back to Courses"
           >
-            <span>← Back to URL input</span>
-          </button>
-          <span className="text-xs text-stone-300">•</span>
-          <span className="px-2 py-0.5 bg-white border border-stone-200 rounded-md text-xs font-semibold uppercase tracking-widest text-stone-600">
-            Ch. {currentChapterIndex + 1} of {totalChapters}
+            <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Courses</span>
+          </Link>
+          <span className="text-stone-300 dark:text-stone-700" aria-hidden="true">/</span>
+          <span className="px-2 py-0.5 bg-stone-100 dark:bg-stone-800 rounded-md text-2xs font-semibold uppercase tracking-wider text-stone-600 dark:text-stone-400 font-mono font-tnum">
+            Chapter {currentChapterIndex + 1} of {totalChapters}
           </span>
-        </div>
-        <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-stone-900 tracking-tight">
+        </nav>
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-medium text-stone-900 dark:text-stone-100 tracking-tight">
           {playlist.video.title}
         </h1>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1.5">
-          {playlist.video.author && (
-            <p className="text-xs sm:text-sm text-stone-600">
-              By{' '}
-              <a
-                href={channelUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`Visit ${playlist.video.author} on YouTube (opens in new tab)`}
-                className="font-medium text-stone-900 hover:text-primary hover:underline underline-offset-2 transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded-xs"
-              >
-                {playlist.video.author}
-              </a>
-            </p>
-          )}
+        <div className="flex items-center gap-2 mt-1.5">
           <a
             href={channelUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Subscribe to ${playlist.video.author || 'channel'} on YouTube (opens in new tab)`}
-            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-800 rounded-full transition-colors touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary shadow-2xs"
+            title={`Visit ${playlist.video.author || 'YouTube Channel'} on YouTube (opens in new tab)`}
+            aria-label={`Visit ${playlist.video.author || 'YouTube Channel'} on YouTube (opens in new tab)`}
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded-xs group"
           >
-            <svg className="w-3.5 h-3.5 fill-red-600" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            <span>Subscribe</span>
+            <span>By <span className="font-semibold text-stone-900 dark:text-stone-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">{playlist.video.author || 'YouTube Channel'}</span></span>
+            <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors shrink-0" aria-hidden="true" />
           </a>
         </div>
       </div>
@@ -436,13 +413,13 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         {/* Left Column: Video Player, Dedicated Controls & Current Chapter */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3 sm:gap-4">
           {/* 16:9 Video Embed Container (Sticky below navbar on mobile) */}
-          <div className="sticky top-14 sm:static z-20 bg-stone-50 pt-1 pb-1 sm:py-0">
+          <div className="sticky top-14 sm:static z-20 bg-stone-50 dark:bg-stone-950 sm:bg-transparent py-0 -mx-3 sm:mx-0">
             <div
               ref={playerWrapperRef}
               className={`relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
                   ? 'fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center'
-                  : 'rounded-lg sm:rounded-xl shadow-xs border border-stone-200'
+                  : 'rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800'
               }`}
             >
               {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
@@ -501,19 +478,85 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             </div>
           </div>
 
-          {/* Section 1: Dedicated Compact Video Player Controls */}
+          {/* Unified Current Chapter & Playback Controls Panel */}
           <section
-            aria-label="Video Player Controls"
-            className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-lg sm:rounded-xl p-2.5 sm:p-3 shadow-xs"
+            aria-label="Playback controls and active chapter info"
+            className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-xl p-3.5 sm:p-4 flex flex-col gap-3 shadow-xs"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
+            {/* Top row: Chapter metadata + Mark Complete toggle */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
+                    Chapter {currentChapterIndex + 1} of {totalChapters}
+                  </span>
+                  <span className="text-stone-300 dark:text-stone-700" aria-hidden="true">•</span>
+                  <span className="text-xs font-mono font-tnum text-stone-500 dark:text-stone-400">
+                    {activeChapter ? activeChapter.formattedTime : '0:00'} → {activeChapterEndTimeFormatted}
+                  </span>
+                </div>
+                <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100 leading-snug break-words">
+                  {activeChapter ? activeChapter.title : 'Playing Course Video'}
+                </h2>
+              </div>
+
+              {/* Fast chapter completion check */}
+              {activeChapter && (
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isCurrentCompleted}
+                  onClick={(e) => handleToggleComplete(activeChapter.id, e)}
+                  title={isCurrentCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
+                  aria-label={isCurrentCompleted ? `Mark chapter ${currentChapterIndex + 1} as incomplete` : `Mark chapter ${currentChapterIndex + 1} as completed`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
+                    isCurrentCompleted
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800'
+                  }`}
+                >
+                  <div
+                    className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center ${
+                      isCurrentCompleted
+                        ? 'bg-white border-white text-primary'
+                        : 'border-stone-400 dark:border-stone-600'
+                    }`}
+                  >
+                    {isCurrentCompleted && (
+                      <Check className="w-2.5 h-2.5" strokeWidth={3} aria-hidden="true" />
+                    )}
+                  </div>
+                  <span>{isCurrentCompleted ? 'Completed' : 'Mark Complete'}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Chapter Progress Track */}
+            <div className="pt-0.5">
+              <div
+                role="progressbar"
+                aria-valuenow={chapterProgressPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Chapter progress"
+                className="w-full h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden"
+              >
+                <div
+                  className="h-full bg-primary transition-all duration-300 rounded-full"
+                  style={{ width: `${chapterProgressPercentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Bottom Controls Row: Live Time | Center Transport Cluster | Speed & Fullscreen */}
+            <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2.5">
               {/* Status & Live Timestamp Display */}
               <div className="flex items-center gap-2 order-1 shrink-0">
                 <span
                   className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-stone-600'}`}
                   aria-hidden="true"
                 />
-                <div className="font-mono text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1">
+                <div className="font-mono font-tnum text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1">
                   <span className="font-semibold text-stone-900 dark:text-stone-100">{secondsToTimestamp(Math.floor(currentTime))}</span>
                   <span className="text-stone-400 dark:text-stone-600">/</span>
                   <span>{secondsToTimestamp(Math.floor(duration))}</span>
@@ -532,7 +575,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     aria-haspopup="true"
                     aria-expanded={isSpeedMenuOpen}
                     aria-controls="speed-menu-dropdown"
-                    className="h-10 px-2.5 inline-flex items-center gap-1 rounded-lg sm:rounded-xl bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 text-xs font-semibold font-mono transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="h-9 px-2.5 inline-flex items-center gap-1 rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 text-xs font-semibold font-mono font-tnum transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <Zap className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
                     <span>{playbackRate}x</span>
@@ -556,7 +599,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                             setPlaybackRate(rate);
                             setIsSpeedMenuOpen(false);
                           }}
-                          className={`w-full text-left px-3 py-1.5 text-xs font-mono flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer ${
+                          className={`w-full text-left px-3 py-1.5 text-xs font-mono font-tnum flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer ${
                             playbackRate === rate ? 'text-primary dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50' : 'text-stone-900 dark:text-stone-100'
                           }`}
                         >
@@ -574,7 +617,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={handleToggleFullscreen}
                   title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (Auto-rotates Landscape)'}
                   aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isFullscreen ? (
                     <Minimize2 className="w-4 h-4 text-stone-600 dark:text-stone-400" aria-hidden="true" />
@@ -585,7 +628,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               </div>
 
               {/* Centered Primary Media Cluster */}
-              <div className="flex items-center justify-center gap-1.5 sm:gap-2 order-3 sm:order-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-stone-850 sm:dark:border-transparent">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 order-3 sm:order-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-stone-800">
                 {/* Previous Chapter */}
                 <button
                   type="button"
@@ -593,7 +636,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex <= 0}
                   title="Previous Chapter"
                   aria-label="Previous Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <SkipBack className="w-4 h-4 fill-current" aria-hidden="true" />
                 </button>
@@ -604,7 +647,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(-10)}
                   title="Rewind 10 seconds"
                   aria-label="Rewind 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <RotateCcw className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -633,7 +676,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       ? 'Pause video'
                       : 'Play video'
                   }
-                  className="h-10 w-21 sm:w-23 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-98 select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-20 sm:w-22 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-98 select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isPlayLoading ? (
                     <Loader2 className="animate-spin w-3.5 h-3.5 shrink-0 text-white" aria-hidden="true" />
@@ -651,7 +694,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   onClick={() => handleSeekBy(10)}
                   title="Forward 10 seconds"
                   aria-label="Forward 10 seconds"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <RotateCw className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -663,94 +706,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   disabled={currentChapterIndex >= playlist.chapters.length - 1}
                   title="Next Chapter"
                   aria-label="Next Chapter"
-                  className="h-10 w-10 inline-flex items-center justify-center rounded-lg sm:rounded-xl bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <SkipForward className="w-4 h-4 fill-current" aria-hidden="true" />
                 </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 2: Dedicated Current Chapter Information Card */}
-          <section
-            aria-label="Current Chapter Info"
-            className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-lg sm:rounded-xl p-3 sm:p-4 flex flex-col gap-2.5 shadow-xs"
-          >
-            {/* Header row: Chapter index & Completion toggle */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-emerald-50 text-primary border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/60 rounded-md text-2xs sm:text-xs font-semibold uppercase tracking-wider">
-                  Current Chapter
-                </span>
-                <span className="text-xs text-stone-600 dark:text-stone-400 font-medium">
-                  Chapter {currentChapterIndex + 1} of {totalChapters}
-                </span>
-              </div>
-
-              {/* Fast chapter completion check */}
-              {activeChapter && (
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={isCurrentCompleted}
-                  onClick={(e) => handleToggleComplete(activeChapter.id, e)}
-                  title={isCurrentCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
-                  aria-label={isCurrentCompleted ? `Mark chapter ${currentChapterIndex + 1} as incomplete` : `Mark chapter ${currentChapterIndex + 1} as completed`}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border focus:outline-none focus:ring-2 focus:ring-primary ${
-                    isCurrentCompleted
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800'
-                  }`}
-                >
-                  <div
-                    className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center ${
-                      isCurrentCompleted
-                        ? 'bg-white border-white text-primary'
-                        : 'border-stone-400 dark:border-stone-600'
-                    }`}
-                  >
-                    {isCurrentCompleted && (
-                      <Check className="w-2.5 h-2.5" strokeWidth={3} aria-hidden="true" />
-                    )}
-                  </div>
-                  <span>{isCurrentCompleted ? 'Completed' : 'Mark Complete'}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Chapter Title */}
-            <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold text-stone-900 dark:text-stone-100 leading-snug break-words">
-                {activeChapter ? activeChapter.title : 'Playing Course Video'}
-              </h2>
-            </div>
-
-            {/* Chapter Timing & Progress Bar */}
-            <div className="pt-0.5">
-              <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400 mb-1 font-mono">
-                <span>
-                  {activeChapter ? activeChapter.formattedTime : '0:00'}
-                  {' → '}
-                  {activeChapterEndTimeFormatted}
-                </span>
-                <span className="text-stone-900 dark:text-stone-100 font-semibold">
-                  {chapterProgressPercentage}% through chapter
-                </span>
-              </div>
-
-              {/* Chapter Progress Track */}
-              <div
-                role="progressbar"
-                aria-valuenow={chapterProgressPercentage}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Chapter progress"
-                className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden border border-stone-200 dark:border-stone-800"
-              >
-                <div
-                  className="h-full bg-primary transition-all duration-300 rounded-full"
-                  style={{ width: `${chapterProgressPercentage}%` }}
-                />
               </div>
             </div>
           </section>
@@ -767,7 +726,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   {completedCount} of {totalChapters} completed
                 </p>
               </div>
-              <span className="text-xs sm:text-sm font-mono font-semibold text-primary dark:text-emerald-400">
+              <span className="text-xs sm:text-sm font-mono font-tnum font-semibold text-primary dark:text-emerald-400">
                 {progressPercentage}%
               </span>
             </div>
@@ -851,7 +810,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       aria-hidden="true"
                     >
                       {isActive ? (
-                        <span className="animate-pulse">▶</span>
+                        <Play className="w-3 h-3 fill-current ml-0.5 animate-pulse text-white" aria-hidden="true" />
                       ) : (
                         <span>{chap.index}</span>
                       )}
@@ -868,7 +827,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
                         <span
-                          className={`text-xs font-mono px-1.5 py-0.5 rounded-sm border ${
+                          className={`text-xs font-mono font-tnum px-1.5 py-0.5 rounded-sm border ${
                             isActive
                               ? 'bg-white border-primary/30 text-primary font-medium dark:bg-stone-900 dark:border-emerald-500/30 dark:text-emerald-400'
                               : 'bg-white border-stone-200 text-stone-600 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-400'
@@ -896,119 +855,61 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         </div>
       </div>
 
-      {/* Course Details & Sharing Section */}
-      <section aria-label="Course details and sharing" className="mt-6 sm:mt-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-4 sm:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
+      {/* Course Resources & Timestamps Section */}
+      <section aria-label="Course resources and timestamps" className="mt-6 sm:mt-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-4 sm:p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200 dark:border-stone-800">
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100">Course Details</h2>
-            <p className="text-xs text-stone-600 dark:text-stone-400">Bookmark this page or share the link to resume directly at the active timestamp.</p>
+            <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100">Course Timestamps & Source</h2>
+            <p className="text-xs text-stone-600 dark:text-stone-400">Review structured timestamps or open the original video on YouTube.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={handleCopyShareLink}
-              aria-label={copiedLink ? 'Course bookmark link copied to clipboard' : 'Copy bookmark link to clipboard'}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover rounded-lg transition-colors cursor-pointer min-h-10 touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="w-4 h-4" aria-hidden="true" />
-                  <span>Link Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" aria-hidden="true" />
-                  <span>Copy Bookmark Link</span>
-                </>
-              )}
-            </button>
-
             <a
               href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Watch ${playlist.video.title} on YouTube (opens in new tab)`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 dark:text-stone-100 bg-white hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-10 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-9 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <span>Watch on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+              <ExternalLink className="w-3.5 h-3.5 text-stone-500" aria-hidden="true" />
             </a>
-
-            <a
-              href={channelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Subscribe to ${playlist.video.author || 'channel'} on YouTube (opens in new tab)`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 dark:text-stone-100 bg-white hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-10 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
+            <button
+              type="button"
+              onClick={handleCopyTimestamps}
+              aria-label={copiedTimestamps ? 'Course timestamps copied to clipboard' : 'Copy course timestamps to clipboard'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-9 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <svg className="w-3.5 h-3.5 fill-red-600" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              <span>Subscribe on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-
-        {/* Course Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-stone-200 dark:border-stone-800 text-xs">
-          <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
-            <span className="text-stone-600 dark:text-stone-400 block text-xs">Total Chapters</span>
-            <span className="font-semibold text-sm text-stone-900 dark:text-stone-100">{totalChapters}</span>
-          </div>
-          <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
-            <span className="text-stone-600 dark:text-stone-400 block text-xs">Completed</span>
-            <span className="font-semibold text-sm text-primary dark:text-emerald-400">{completedCount} ({progressPercentage}%)</span>
-          </div>
-          <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
-            <span className="text-stone-600 dark:text-stone-400 block text-xs">Duration</span>
-            <span className="font-semibold text-sm text-stone-900 dark:text-stone-100 font-mono">
-              {duration > 0 ? secondsToTimestamp(Math.floor(duration)) : 'Auto-detected'}
-            </span>
-          </div>
-          <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800">
-            <span className="text-stone-600 dark:text-stone-400 block text-xs">Storage Status</span>
-            <span className="font-semibold text-sm text-stone-900 dark:text-stone-100">IndexedDB (Saved)</span>
-          </div>
-        </div>
-
-        {/* Timestamps Section */}
-        <div className="pt-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">Course Timestamps</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopyTimestamps}
-                aria-label={copiedTimestamps ? 'Course timestamps copied to clipboard' : 'Copy course timestamps to clipboard'}
-                className="text-xs font-medium text-primary dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                {copiedTimestamps ? '✓ Timestamps Copied' : 'Copy Timestamps'}
-              </button>
-              <span className="text-stone-300 dark:text-stone-700" aria-hidden="true">•</span>
-              <button
-                type="button"
-                onClick={() => setShowRawTimestamps(!showRawTimestamps)}
-                aria-expanded={showRawTimestamps}
-                aria-controls="raw-timestamps-pre"
-                className="text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                {showRawTimestamps ? 'Hide' : 'View Raw'}
-              </button>
-            </div>
-          </div>
-
-          {showRawTimestamps && (
-            <pre
-              id="raw-timestamps-pre"
-              tabIndex={0}
-              aria-label="Course raw timestamps"
-              className="p-3.5 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg text-xs font-mono text-stone-600 dark:text-stone-300 overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary"
+              {copiedTimestamps ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-primary dark:text-emerald-400" aria-hidden="true" />
+                  <span className="text-primary dark:text-emerald-400 font-semibold">Copied</span>
+                </>
+              ) : (
+                <span>Copy Timestamps</span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRawTimestamps(!showRawTimestamps)}
+              aria-expanded={showRawTimestamps}
+              aria-controls="raw-timestamps-pre"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 rounded-lg transition-colors min-h-9 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
-            </pre>
-          )}
+              <span>{showRawTimestamps ? 'Hide' : 'View Raw'}</span>
+            </button>
+          </div>
         </div>
+
+        {showRawTimestamps && (
+          <pre
+            id="raw-timestamps-pre"
+            tabIndex={0}
+            aria-label="Course raw timestamps"
+            className="mt-3 p-3.5 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg text-xs font-mono font-tnum text-stone-600 dark:text-stone-300 overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
+          </pre>
+        )}
       </section>
     </div>
   );

@@ -15,6 +15,7 @@ interface ThemeContextValue {
 const STORAGE_KEY = 'yt_chaptered_theme';
 
 const themeListeners = new Set<() => void>();
+let memoryTheme: Theme = 'system';
 
 function notifyThemeListeners() {
   themeListeners.forEach((listener) => listener());
@@ -32,12 +33,13 @@ function getStoredThemeSnapshot(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'light' || stored === 'dark') {
+      memoryTheme = stored;
       return stored;
     }
   } catch {
     // Restricted environment fallback
   }
-  return 'system';
+  return memoryTheme;
 }
 
 function getStoredThemeServerSnapshot(): Theme {
@@ -111,6 +113,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setTheme = useCallback((newTheme: 'light' | 'dark') => {
+    memoryTheme = newTheme;
     try {
       localStorage.setItem(STORAGE_KEY, newTheme);
     } catch {
@@ -133,6 +136,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       current === 'system' ? getSystemSnapshot() : current;
     const nextTheme: 'light' | 'dark' = currentResolved === 'dark' ? 'light' : 'dark';
 
+    memoryTheme = nextTheme;
     try {
       localStorage.setItem(STORAGE_KEY, nextTheme);
     } catch {

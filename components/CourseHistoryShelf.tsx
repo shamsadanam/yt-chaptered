@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Upload, Plus, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import useEmblaCarousel from 'embla-carousel-react';
+import { Download, Upload, Trash2, X, BookOpen, Plus, Play, ArrowRight, Search, Loader2 } from 'lucide-react';
 import { SavedCourse } from '../types/playlist';
 import {
   deleteSavedCourse,
@@ -12,6 +11,8 @@ import {
   importCoursesJson,
 } from '../lib/storage';
 import { secondsToTimestamp } from '../lib/youtubeParser';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface CourseHistoryShelfProps {
   courses: SavedCourse[];
@@ -24,99 +25,16 @@ interface CourseHistoryShelfProps {
   onAddNewCourse?: () => void;
 }
 
-export function CourseHistorySkeleton({
-  isStandaloneView = false,
-  isTopShelf = false,
-  hasAddNewCourse = false,
-}: {
-  isStandaloneView?: boolean;
-  isTopShelf?: boolean;
-  hasAddNewCourse?: boolean;
-}) {
+export function CourseHistorySkeleton() {
   return (
-    <div
-      className={`w-full ${
-        isStandaloneView
-          ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8'
-          : isTopShelf
-          ? ''
-          : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200 dark:border-stone-800'
-      }`}
-      aria-busy="true"
-      aria-label="Loading saved courses"
-    >
-      <span className="sr-only">Loading saved courses...</span>
-
-      {/* Header & Placeholder Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-2xl font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-            Continue Watching
-          </h2>
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
-            Resume previous learning sessions or backup progress locally.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap" aria-hidden="true">
-          {hasAddNewCourse && (
-            <div className="h-10 sm:h-11 w-24 bg-stone-200 dark:bg-stone-800 rounded-lg animate-pulse shrink-0" />
-          )}
-          <div className="h-10 sm:h-11 w-20 bg-stone-200 dark:bg-stone-800 rounded-lg animate-pulse shrink-0" />
-          <div className="h-10 sm:h-11 w-20 bg-stone-200 dark:bg-stone-800 rounded-lg animate-pulse shrink-0" />
-        </div>
-      </div>
-
-      {/* Carousel Viewport Skeleton */}
-      <div className="overflow-hidden">
-        <div className="flex -ml-3 sm:-ml-4">
-          {[1, 2].map((id) => (
-            <div
-              key={id}
-              className="min-w-0 shrink-0 grow-0 pl-3 sm:pl-4 basis-full md:basis-1/2"
-              aria-hidden="true"
-            >
-              <div className="h-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-3 sm:p-4 flex flex-col justify-between shadow-xs animate-pulse">
-                <div>
-                  <div className="flex items-start gap-2.5 sm:gap-3">
-                    {/* Thumbnail placeholder */}
-                    <div className="w-20 h-14 sm:w-24 sm:h-16 bg-stone-200 dark:bg-stone-800 rounded-md shrink-0 border border-stone-200 dark:border-stone-800" />
-
-                    {/* Title and author placeholder */}
-                    <div className="min-w-0 flex-1 pt-0.5 space-y-2">
-                      <div className="h-3.5 sm:h-4 bg-stone-200 dark:bg-stone-800 rounded w-5/6" />
-                      <div className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-1/2" />
-                    </div>
-
-                    {/* Delete button placeholder */}
-                    <div className="w-11 h-11 rounded-md bg-stone-100 dark:bg-stone-800/60 shrink-0" />
-                  </div>
-
-                  {/* Last watched placeholder */}
-                  <div className="mt-2.5 sm:mt-3 flex items-center gap-1.5">
-                    <div className="h-3 w-12 bg-stone-200 dark:bg-stone-800 rounded" />
-                    <div className="h-3 w-28 sm:w-36 bg-stone-200 dark:bg-stone-800 rounded" />
-                  </div>
-                </div>
-
-                {/* Footer progress bar and resume link placeholder */}
-                <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
-                  <div className="flex-1 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="h-2.5 w-20 bg-stone-200 dark:bg-stone-800 rounded" />
-                      <div className="h-2.5 w-8 bg-stone-200 dark:bg-stone-800 rounded" />
-                    </div>
-                    <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-stone-200 dark:bg-stone-700 rounded-full w-1/3" />
-                    </div>
-                  </div>
-
-                  <div className="h-3.5 w-12 bg-stone-200 dark:bg-stone-800 rounded shrink-0" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6 animate-pulse" aria-busy="true">
+      <div className="h-8 w-44 bg-stone-200 dark:bg-stone-800 rounded-lg mb-2" />
+      <div className="h-4 w-72 bg-stone-200 dark:bg-stone-800 rounded mb-8" />
+      <div className="h-56 bg-stone-200 dark:bg-stone-800 rounded-2xl mb-8" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-44 bg-stone-200 dark:bg-stone-800 rounded-xl" />
+        ))}
       </div>
     </div>
   );
@@ -127,91 +45,46 @@ export function CourseHistoryShelf({
   onResumeCourse,
   onRefresh,
   isLoading = false,
-  isStandaloneView = false,
   onGoToCreate,
-  isTopShelf = false,
   onAddNewCourse,
 }: CourseHistoryShelfProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [courseToDelete, setCourseToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const isSearching = debouncedQuery.trim().length > 0;
+  const isDebouncing = searchQuery !== debouncedQuery && searchQuery.trim() !== '';
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
-    containScroll: 'trimSnaps',
-    slidesToScroll: 1,
-  });
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+  const filteredCourses = useMemo(() => {
+    const query = debouncedQuery.trim().toLowerCase();
+    if (!query) return courses;
+    return courses.filter((c) => {
+      const titleMatch = c.video.title.toLowerCase().includes(query);
+      const authorMatch = c.video.author ? c.video.author.toLowerCase().includes(query) : false;
+      const chapterMatch = c.chapters.some((ch) => ch.title.toLowerCase().includes(query));
+      return titleMatch || authorMatch || chapterMatch;
+    });
+  }, [courses, debouncedQuery]);
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
-  const scrollTo = useCallback((index: number) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap());
-      setCanScrollPrev(emblaApi.canScrollPrev());
-      setCanScrollNext(emblaApi.canScrollNext());
-    };
-
-    const onReInit = () => {
-      setScrollSnaps(emblaApi.scrollSnapList());
-      onSelect();
-    };
-
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onReInit);
-
-    queueMicrotask(onReInit);
-
-    return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onReInit);
-    };
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.reInit();
-  }, [emblaApi, courses.length]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      scrollPrev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      scrollNext();
-    }
-  };
+  const displayCourses = isSearching ? filteredCourses : courses;
 
   if (isLoading) {
-    return (
-      <CourseHistorySkeleton
-        isStandaloneView={isStandaloneView}
-        isTopShelf={isTopShelf}
-        hasAddNewCourse={Boolean(onAddNewCourse)}
-      />
-    );
+    return <CourseHistorySkeleton />;
   }
 
-  const handleDelete = (videoId: string, e: React.MouseEvent) => {
+  const handleOpenDelete = (videoId: string, title: string, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    deleteSavedCourse(videoId);
-    onRefresh();
+    setCourseToDelete({ id: videoId, title });
+  };
+
+  const handleConfirmDelete = () => {
+    if (courseToDelete) {
+      deleteSavedCourse(courseToDelete.id);
+      onRefresh();
+      setCourseToDelete(null);
+    }
   };
 
   const handleExport = () => {
@@ -250,171 +123,85 @@ export function CourseHistoryShelf({
     }
   };
 
-  if (courses.length === 0) {
-    if (!isStandaloneView) {
-      return (
-        <div className={`w-full ${isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200 dark:border-stone-800'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-                Continue Watching
-              </h2>
-              <p className="text-xs text-stone-600 dark:text-stone-400">
-                Restore your previous learning progress or backups.
-              </p>
-            </div>
-            <div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
-                title="Import JSON backup"
-                aria-label="Import courses from JSON backup file"
-              >
-                <Download className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
-                <span>Import</span>
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImportFile}
-                accept=".json,application/json"
-                aria-label="Upload JSON backup file"
-                className="hidden"
-              />
-            </div>
-          </div>
-          {importStatus && (
-            <div role="status" aria-live="polite" className="p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
-              <span>{importStatus}</span>
-              <button
-                type="button"
-                onClick={() => setImportStatus(null)}
-                aria-label="Dismiss import status"
-                className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" aria-hidden="true" />
-              </button>
-            </div>
-          )}
-        </div>
-      );
+  const handleTriggerAdd = () => {
+    if (onAddNewCourse) {
+      onAddNewCourse();
+    } else if (onGoToCreate) {
+      onGoToCreate();
     }
+  };
 
+  if (courses.length === 0) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8 text-center">
-        <div className="w-12 h-12 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-600 dark:text-stone-400 mx-auto mb-3 shadow-xs">
-          📚
+      <div className="w-full max-w-4xl mx-auto px-4 py-16 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-500 dark:text-stone-400 mx-auto mb-4 shadow-xs">
+          <BookOpen className="w-6 h-6" aria-hidden="true" />
         </div>
-        <h2 className="text-xl font-medium text-stone-900 dark:text-stone-100 mb-2">No saved courses yet</h2>
-        <p className="text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-6">
-          Paste any YouTube URL in the Create tab to generate a chaptered course, or restore a backup from a JSON file.
+        <h2 className="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+          Your Library is Empty
+        </h2>
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-6 leading-relaxed">
+          Add any YouTube video with timestamps to track your progress and navigate chapters locally.
         </p>
-
-        {importStatus && (
-          <div role="status" aria-live="polite" className="max-w-md mx-auto mb-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
-            <span>{importStatus}</span>
-            <button
-              type="button"
-              onClick={() => setImportStatus(null)}
-              aria-label="Dismiss import status"
-              className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {onGoToCreate && (
-            <button
-              type="button"
-              onClick={onGoToCreate}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl shadow-xs active:bg-primary-hover touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <span>+ Create First Playlist</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Import courses from JSON backup file"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 text-stone-900 dark:text-stone-100 text-sm font-semibold border border-stone-200 dark:border-stone-800 rounded-xl shadow-xs touch-manipulation cursor-pointer min-h-11 focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <Download className="w-4 h-4 text-stone-600 dark:text-stone-400" aria-hidden="true" />
-            <span>Import</span>
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            accept=".json,application/json"
-            aria-label="Upload JSON backup file"
-            className="hidden"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={handleTriggerAdd}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer min-h-11 active:scale-98"
+        >
+          <Plus className="w-4 h-4" aria-hidden="true" />
+          <span>Add Your First Video</span>
+        </button>
       </div>
     );
   }
 
-  return (
-    <section
-      role="region"
-      aria-roledescription="carousel"
-      aria-labelledby="history-shelf-heading"
-      className={`w-full ${isStandaloneView ? 'py-4 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8' : isTopShelf ? '' : 'mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-200 dark:border-stone-800'}`}
-    >
-      {/* Live region for screen reader slide changes */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        Showing slide {selectedIndex + 1} of {scrollSnaps.length}
-      </div>
+  // Most recent course for Continue Watching Hero
+  const recentCourse = courses[0];
+  const recentCompleted = recentCourse.completedChapterIds?.length || 0;
+  const recentTotal = recentCourse.chapters.length;
+  const recentPercentage = recentTotal > 0 ? Math.round((recentCompleted / recentTotal) * 100) : 0;
+  const recentLastChapter = recentCourse.chapters[recentCourse.lastPlayedChapterIndex] || recentCourse.chapters[0];
+  const recentUrl = `/watch/${recentCourse.video.id}${recentCourse.lastPlayedSeconds > 0 ? `?t=${Math.floor(recentCourse.lastPlayedSeconds)}` : ''}`;
 
-      {/* Header & Export/Import Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="min-w-0">
-          <h2 id="history-shelf-heading" className="text-lg sm:text-2xl font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-            Continue Watching
-          </h2>
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
-            Resume previous learning sessions or backup progress locally.
+  return (
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
+      {/* Header & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
+              My Courses
+            </h1>
+            <span className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-mono font-tnum">
+              {courses.length} {courses.length === 1 ? 'course' : 'courses'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1">
+            Local-first video chapters and saved learning progress.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
-          {onAddNewCourse && (
-            <button
-              type="button"
-              onClick={onAddNewCourse}
-              aria-label="Add new video"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary shrink-0 whitespace-nowrap"
-            >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Add Video</span>
-            </button>
-          )}
-
-          {/* Export */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Backup dropdown / buttons */}
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary shrink-0 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-9"
             title="Download JSON backup"
-            aria-label="Export saved courses to JSON backup file"
+            aria-label="Export backup"
           >
-            <Upload className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+            <Upload className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Export</span>
           </button>
 
-          {/* Import */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-900 bg-white active:bg-stone-100 hover:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-11 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary shrink-0 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-9"
             title="Import JSON backup"
-            aria-label="Import courses from JSON backup file"
+            aria-label="Import backup"
           >
-            <Download className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+            <Download className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Import</span>
           </button>
           <input
@@ -422,209 +209,335 @@ export function CourseHistoryShelf({
             ref={fileInputRef}
             onChange={handleImportFile}
             accept=".json,application/json"
-            aria-label="Upload JSON backup file"
+            aria-label="Upload JSON backup"
             className="hidden"
           />
+
+          {/* Primary + Add Video Button */}
+          <button
+            type="button"
+            onClick={handleTriggerAdd}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors cursor-pointer min-h-9 touch-manipulation active:scale-98"
+          >
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            <span>Add Video</span>
+          </button>
         </div>
       </div>
 
       {importStatus && (
-        <div role="status" aria-live="polite" className="mb-4 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between">
+        <div role="status" aria-live="polite" className="mb-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between shadow-xs">
           <span>{importStatus}</span>
           <button
             type="button"
             onClick={() => setImportStatus(null)}
             aria-label="Dismiss import status"
-            className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 focus:outline-none focus:ring-1 focus:ring-primary rounded cursor-pointer"
+            className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 cursor-pointer"
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       )}
 
-      {/* Course Cards Carousel Viewport */}
-      <div
-        id="history-carousel-viewport"
-        ref={emblaRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        aria-label="Course history carousel, use left and right arrow keys to navigate slides"
-        className="overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      >
-        <div className="flex -ml-3 sm:-ml-4">
-          {courses.map((c, index) => {
-            const completedCount = c.completedChapterIds?.length || 0;
-            const totalChapters = c.chapters.length;
-            const percentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-            const lastChapter = c.chapters[c.lastPlayedChapterIndex] || c.chapters[0];
+      {/* Hero Continue Watching Banner (hidden when actively searching) */}
+      {!isSearching && (
+        <div style={{ viewTransitionName: 'continue-watching-hero' }} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 sm:p-5 shadow-xs mb-8 transition-all">
+          <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch">
+          {/* Thumbnail Container with Corner Delete Button */}
+          <div className="relative aspect-video w-full md:w-80 rounded-xl overflow-hidden bg-black shrink-0 group border border-stone-200/50 dark:border-stone-800">
+            <Link
+              href={recentUrl}
+              onClick={() => onResumeCourse(recentCourse)}
+              className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
+              aria-label={`Resume course: ${recentCourse.video.title}`}
+            >
+              {recentCourse.video.thumbnailUrl ? (
+                <Image
+                  src={recentCourse.video.thumbnailUrl}
+                  alt=""
+                  fill
+                  className="object-cover group-hover:scale-102 transition-transform duration-300"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-stone-900">
+                  <Play className="w-8 h-8 text-stone-500" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                <div className="w-11 h-11 rounded-full bg-primary/95 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                  <Play className="w-5 h-5 fill-current ml-0.5" />
+                </div>
+              </div>
+              {recentCourse.lastPlayedSeconds > 0 && (
+                <div className="absolute bottom-2 right-2 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
+                  {secondsToTimestamp(recentCourse.lastPlayedSeconds)}
+                </div>
+              )}
+            </Link>
 
-            const courseUrl = `/watch/${c.video.id}${c.lastPlayedSeconds > 0 ? `?t=${Math.floor(c.lastPlayedSeconds)}` : ''}`;
+            {/* Corner Delete Button */}
+            <button
+              type="button"
+              onClick={(e) => handleOpenDelete(recentCourse.video.id, recentCourse.video.title, e)}
+              title="Remove course from saved list"
+              aria-label={`Remove ${recentCourse.video.title} from saved courses`}
+              className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
+            >
+              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          </div>
 
-            return (
-              <div
-                key={c.video.id}
-                role="group"
-                aria-roledescription="slide"
-                aria-label={`${index + 1} of ${courses.length}: ${c.video.title}`}
-                className="min-w-0 shrink-0 grow-0 pl-3 sm:pl-4 basis-full md:basis-1/2"
+          {/* Details & Resume CTA */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between pt-1">
+            <div>
+              <div className="mb-1.5">
+                <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
+                  Continue Learning
+                </span>
+              </div>
+
+              <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+                <Link
+                  href={recentUrl}
+                  onClick={() => onResumeCourse(recentCourse)}
+                  className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                >
+                  {recentCourse.video.title}
+                </Link>
+              </h2>
+
+              {recentCourse.video.author && (
+                <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-1 truncate">
+                  {recentCourse.video.author}
+                </p>
+              )}
+
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-1">
+                Resuming at Ch. {recentCourse.lastPlayedChapterIndex + 1}: {recentLastChapter.title}
+              </p>
+            </div>
+
+            {/* Bottom Progress & Button */}
+            <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 dark:text-stone-400 mb-1">
+                  <span>{recentCompleted}/{recentTotal} chapters</span>
+                  <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{recentPercentage}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${recentPercentage}%` }}
+                  />
+                </div>
+              </div>
+
+              <Link
+                href={recentUrl}
+                onClick={() => onResumeCourse(recentCourse)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors shrink-0 active:scale-98"
               >
-                <div className="h-full relative group bg-white dark:bg-stone-900 hover:border-primary dark:hover:border-emerald-500 border border-stone-200 dark:border-stone-800 rounded-xl p-3 sm:p-4 transition-all duration-200 flex flex-col justify-between shadow-xs touch-manipulation">
+                <span>Resume</span>
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* All Saved Courses / Search Results */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              {isSearching ? 'Search Results' : 'All Saved Courses'}
+            </h2>
+            <span
+              aria-live="polite"
+              className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-mono font-tnum"
+            >
+              {isSearching ? `${filteredCourses.length} of ${courses.length}` : courses.length}
+            </span>
+          </div>
+
+          {/* Debounced Search Bar */}
+          <div className="relative w-full sm:w-64 md:w-72">
+            {isDebouncing ? (
+              <Loader2
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin pointer-events-none"
+                aria-hidden="true"
+              />
+            ) : (
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500 pointer-events-none"
+                aria-hidden="true"
+              />
+            )}
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search courses or chapters..."
+              aria-label="Search saved courses"
+              className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl text-xs sm:text-sm pl-9 pr-8 py-2 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-9 transition-colors shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search query"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded-md cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isSearching && filteredCourses.length === 0 ? (
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-8 sm:p-12 text-center shadow-xs">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-400 dark:text-stone-500 mx-auto mb-3">
+              <Search className="w-5 h-5" aria-hidden="true" />
+            </div>
+            <h3 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100 mb-1">
+              No courses found
+            </h3>
+            <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto mb-4">
+              No courses or chapters match &ldquo;{debouncedQuery}&rdquo;. Try another search term.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 rounded-lg transition-colors cursor-pointer min-h-9"
+            >
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Clear search</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayCourses.map((c) => {
+              const completedCount = c.completedChapterIds?.length || 0;
+              const totalChapters = c.chapters.length;
+              const percentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+              const lastChapter = c.chapters[c.lastPlayedChapterIndex] || c.chapters[0];
+              const courseUrl = `/watch/${c.video.id}${c.lastPlayedSeconds > 0 ? `?t=${Math.floor(c.lastPlayedSeconds)}` : ''}`;
+
+              // If searching, identify if a specific chapter matched the search query
+              const queryLower = debouncedQuery.trim().toLowerCase();
+              const matchedChapter =
+                isSearching &&
+                !c.video.title.toLowerCase().includes(queryLower) &&
+                (!c.video.author || !c.video.author.toLowerCase().includes(queryLower))
+                  ? c.chapters.find((ch) => ch.title.toLowerCase().includes(queryLower))
+                  : null;
+
+              return (
+                <div
+                  key={c.video.id}
+                  style={{ viewTransitionName: `course-card-${c.video.id}` }}
+                  className="course-card-transition bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden shadow-xs hover:border-primary/50 dark:hover:border-emerald-500/50 transition-all flex flex-col justify-between group"
+                >
                   <div>
-                    <div className="flex items-start gap-2.5 sm:gap-3">
-                      {/* Video Thumbnail */}
-                      <div className="w-20 h-14 sm:w-24 sm:h-16 bg-black rounded-md overflow-hidden shrink-0 relative border border-stone-200 dark:border-stone-800" aria-hidden="true">
+                    {/* Thumbnail Container with Corner Delete Button */}
+                    <div className="relative aspect-video w-full bg-black block overflow-hidden rounded-t-xl">
+                      <Link
+                        href={courseUrl}
+                        onClick={() => onResumeCourse(c)}
+                        className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
+                        aria-label={`Open course: ${c.video.title}`}
+                      >
                         {c.video.thumbnailUrl ? (
                           <Image
                             src={c.video.thumbnailUrl}
                             alt=""
                             fill
-                            className="object-cover"
+                            className="object-cover group-hover:scale-102 transition-transform duration-300"
                             unoptimized
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-white">
-                            ▶
+                          <div className="w-full h-full flex items-center justify-center bg-stone-900">
+                            <Play className="w-6 h-6 text-stone-500" />
                           </div>
                         )}
                         {c.lastPlayedSeconds > 0 && (
-                          <div className="absolute bottom-0.5 right-0.5 bg-black/90 text-white px-1 py-0.5 text-2xs font-mono rounded">
+                          <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
                             {secondsToTimestamp(c.lastPlayedSeconds)}
                           </div>
                         )}
-                      </div>
+                      </Link>
 
-                      {/* Title & Channel */}
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-primary dark:text-stone-100 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">
-                          <Link
-                            href={courseUrl}
-                            onClick={() => onResumeCourse(c)}
-                            aria-label={`Resume course ${c.video.title}, chapter ${c.lastPlayedChapterIndex + 1}, ${percentage}% completed`}
-                            className="focus:outline-none focus:underline after:absolute after:inset-0 after:z-0"
-                          >
-                            {c.video.title}
-                          </Link>
-                        </h3>
-                        {c.video.author && (
-                          <p className="text-xs text-stone-600 dark:text-stone-400 truncate mt-0.5 sm:mt-1">{c.video.author}</p>
-                        )}
-                      </div>
-
-                      {/* Delete button with 44px tap zone - elevated above the stretched link */}
+                      {/* Corner Delete Button */}
                       <button
                         type="button"
-                        onClick={(e) => handleDelete(c.video.id, e)}
-                        title="Remove course from saved list"
-                        aria-label={`Remove ${c.video.title} from saved courses`}
-                        className="relative z-10 w-11 h-11 -mr-1.5 -mt-1.5 flex items-center justify-center text-stone-500 hover:text-rose-600 active:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 rounded-md transition-colors touch-manipulation shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-600"
+                        onClick={(e) => handleOpenDelete(c.video.id, c.video.title, e)}
+                        title="Remove course"
+                        aria-label={`Remove ${c.video.title}`}
+                        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
                       >
-                        <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </div>
 
-                    {/* Last Watched Segment */}
-                    <div className="mt-2.5 sm:mt-3 text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
-                      <span className="font-medium text-stone-900 dark:text-stone-100">Last at:</span>
-                      <span className="truncate">
-                        {lastChapter ? `Ch. ${c.lastPlayedChapterIndex + 1}: ${lastChapter.title}` : 'Start'}
-                      </span>
+                    {/* Content */}
+                    <div className="p-3 sm:p-4">
+                      <h3 className="text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+                        <Link
+                          href={courseUrl}
+                          onClick={() => onResumeCourse(c)}
+                          className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                        >
+                          {c.video.title}
+                        </Link>
+                      </h3>
+
+                      {c.video.author && (
+                        <p className="text-xs font-medium text-stone-700 dark:text-stone-300 truncate mt-1">
+                          {c.video.author}
+                        </p>
+                      )}
+
+                      {matchedChapter ? (
+                        <p className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium mt-1.5 truncate">
+                          Matched chapter: &ldquo;{matchedChapter.title}&rdquo;
+                        </p>
+                      ) : (
+                        <p className="text-2xs text-stone-500 dark:text-stone-400 mt-1.5 truncate">
+                          Ch. {c.lastPlayedChapterIndex + 1}: {lastChapter?.title || 'Start'}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Progress Bar & Resume Indicator */}
-                  <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 dark:text-stone-400 mb-1">
-                        <span>{completedCount}/{totalChapters} completed</span>
-                        <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono">{percentage}%</span>
-                      </div>
-                      <div
-                        role="progressbar"
-                        aria-valuenow={percentage}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label={`Course completion progress: ${percentage}%`}
-                        className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden"
-                      >
-                        <div
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
+                  {/* Progress Footer */}
+                  <div className="p-3 sm:p-4 pt-0">
+                    <div className="flex items-center justify-between text-2xs text-stone-600 dark:text-stone-400 mb-1">
+                      <span>{completedCount}/{totalChapters} completed</span>
+                      <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{percentage}%</span>
                     </div>
-
-                    <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-primary dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
-                      <span>Resume</span>
-                      <span>→</span>
-                    </span>
+                    <div className="w-full h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Carousel Pagination & Navigation Controls */}
-      {scrollSnaps.length > 1 && (
-        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400">
-          <span aria-hidden="true" className="font-medium shrink-0">
-            Course {selectedIndex + 1} of {scrollSnaps.length}
-          </span>
-
-          <div
-            role="tablist"
-            aria-label="Course carousel pagination"
-            className="flex items-center gap-1 overflow-x-auto py-1"
-          >
-            {scrollSnaps.map((_, index) => {
-              const isSelected = index === selectedIndex;
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  aria-label={`Go to slide ${index + 1} of ${scrollSnaps.length}`}
-                  onClick={() => scrollTo(index)}
-                  className="min-h-11 min-w-8 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full touch-manipulation"
-                >
-                  <span
-                    className={`h-2 rounded-full transition-all duration-200 ${
-                      isSelected
-                        ? 'w-6 bg-primary dark:bg-emerald-500'
-                        : 'w-2 bg-stone-300 dark:bg-stone-700 hover:bg-stone-400 dark:hover:bg-stone-600'
-                    }`}
-                  />
-                </button>
               );
             })}
           </div>
+        )}
+      </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={scrollPrev}
-              disabled={!canScrollPrev}
-              aria-label="Previous courses"
-              aria-controls="history-carousel-viewport"
-              className="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 active:bg-stone-100 dark:active:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary touch-manipulation shadow-2xs"
-            >
-              <ChevronLeft className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={scrollNext}
-              disabled={!canScrollNext}
-              aria-label="Next courses"
-              aria-controls="history-carousel-viewport"
-              className="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 active:bg-stone-100 dark:active:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary touch-manipulation shadow-2xs"
-            >
-              <ChevronRight className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-    </section>
+      {/* Confirmation Modal for Course Deletion */}
+      <DeleteConfirmModal
+        isOpen={Boolean(courseToDelete)}
+        courseTitle={courseToDelete?.title || ''}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCourseToDelete(null)}
+      />
+    </div>
   );
 }

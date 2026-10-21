@@ -44,8 +44,17 @@
   grid-template-rows: 1fr;
 }
 
+@utility font-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
 @utility max-h-modal {
   max-height: 90dvh;
+}
+
+@utility pr-scrollbar-compensation {
+  padding-right: var(--scrollbar-compensation, 0px);
 }
 
 /* ─── Entrance animation utilities (replaces tailwindcss-animate) ─── */
@@ -74,6 +83,33 @@
   --tw-enter-translate-y: 1rem;
 }
 
+/* ─── View Transitions for seamless search state cross-fade ─── */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(continue-watching-hero) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.course-card-transition {
+  view-transition-class: course-card;
+}
+
+::view-transition-group(.course-card) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 :root {
   --background: #fafaf9;
   --foreground: #1c1917;
@@ -85,6 +121,7 @@
 }
 
 html {
+  scrollbar-gutter: stable;
   background-color: var(--background);
   color-scheme: light;
 }
@@ -94,7 +131,7 @@ html.dark {
 }
 
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -102,9 +139,11 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Accessible focus visible ring for keyboard navigation */
