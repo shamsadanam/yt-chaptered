@@ -1,45 +1,70 @@
-# ytChaptered
+# Turn long YouTube videos into interactive chapter playlists
 
-Local-first YouTube Chaptered Playlist Creator. Turn long, timestamped videos into structured interactive chapter playlists right in your browser.
+ytChaptered is a local-first web application that converts timestamped YouTube videos into structured course playlists. You paste a video URL, extract chapters from the video description, and track your learning progress directly in your browser.
 
-## Features
+## Core features
 
-- **Auto Timestamp Detection**: Paste any YouTube link to parse chapters from the video description automatically.
-- **Interactive Chapter Player**: Clean chapter list with progress tracking, auto-advancing, and manual chapter checkboxes.
-- **Local-first Persistence**: Saved courses, playback progress, and completion states stay private in browser `IndexedDB`.
-- **Import / Export**: Backup or restore your learning library with lightweight JSON files.
+ytChaptered helps you study long video tutorials with dedicated playback and progress controls. Key capabilities include:
 
-## Getting Started
+- **Automatic timestamp parsing**: The app detects timestamp markers in video descriptions and creates ordered chapter breaks.
+- **Interactive chapter checklist**: You mark finished chapters, inspect remaining topics, and resume playback where you stopped.
+- **Local browser storage**: Your saved courses and chapter completions stay private in your browser’s IndexedDB database.
+- **Progressive Web App support**: You can install ytChaptered as a Progressive Web App (PWA) on desktop or mobile devices.
+- **JSON library backup**: You export your course collection to a JavaScript Object Notation (JSON) file and restore it on any browser.
 
-First, run the development server:
+## Getting started
+
+Follow these steps to set up and run ytChaptered on your local machine. You need Node.js 20 or later and the pnpm package manager installed.
+
+1. Clone the repository and navigate into the project directory:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your_username/yt-chaptered.git
+cd yt-chaptered
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install project dependencies using pnpm:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Configure optional environment variables:
 
-## Learn More
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+Development runs with dummy Cloudflare Turnstile keys automatically when environment variables are omitted. For production deployments, set your actual site key and secret key in `.env.local`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Start the local development server:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+Open the [local development server](http://localhost:3000) in your browser to explore the application.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application uses the Next.js App Router and manages playback state on the client. Key architectural components include:
+
+- **Next.js App Router**: Client routes under `app/page.tsx` and `app/watch/[id]/page.tsx` render the dashboard and player interfaces with React 19.
+- **IndexedDB client storage**: The `lib/storage.ts` module manages local course records without external database dependencies.
+- **YouTube IFrame API**: The `hooks/useYouTubePlayer.ts` hook coordinates video seeking, playback states, and chapter boundaries.
+- **Design tokens**: Visual styling follows custom design tokens defined in `app/globals.css` with dark mode support.
+
+## Available scripts
+
+You can run several development and maintenance scripts using pnpm:
+
+- **pnpm dev**: Starts the Next.js development server at port 3000.
+- **pnpm build**: Compiles the production build with Turbopack.
+- **pnpm start**: Runs the compiled production server locally.
+- **pnpm lint**: Checks code style and TypeScript rules using ESLint.
+
+## Data privacy and security
+
+ytChaptered prioritizes your privacy by storing your personal learning history on your device. No video bookmarks or completion records transmit to third-party servers.
+
+Automated metadata fetching runs through rate-limited API routes protected by Cloudflare Turnstile verification. You can also paste timestamps manually without calling server endpoints.
