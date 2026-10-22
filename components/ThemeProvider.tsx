@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useCallback, useSyncExternalStore } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 
 export type Theme = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
@@ -154,8 +154,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     notifyThemeListeners();
   }, []);
 
+  const contextValue = useMemo(
+    () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
+    [theme, resolvedTheme, setTheme, toggleTheme]
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

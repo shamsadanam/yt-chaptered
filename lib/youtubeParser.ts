@@ -1,5 +1,11 @@
 import { Chapter, VideoMetadata } from '../types/playlist';
 
+const YOUTUBE_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
+const YOUTUBE_URL_FALLBACK_REGEX = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/;
+const TIMESTAMP_REGEX = /(?:\[|\()?\b((?:\d{1,2}:)?\d{1,2}:\d{2})\b(?:\]|\)?)/;
+const LEADING_DELIMITERS_REGEX = /^[\s\-–—:|\.\]\)]+/;
+const TRAILING_DELIMITERS_REGEX = /[\s\-–—:|\.\[\(]+$/;
+
 /**
  * Extracts a standard YouTube video ID from various URL formats:
  * - https://www.youtube.com/watch?v=VIDEO_ID
@@ -12,7 +18,7 @@ export function extractYouTubeId(urlOrId: string): string | null {
   const trimmed = urlOrId.trim();
 
   // Direct 11-char ID check
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+  if (YOUTUBE_ID_REGEX.test(trimmed)) {
     return trimmed;
   }
 
@@ -21,13 +27,13 @@ export function extractYouTubeId(urlOrId: string): string | null {
 
     if (parsed.hostname.includes('youtube.com')) {
       const vParam = parsed.searchParams.get('v');
-      if (vParam && /^[a-zA-Z0-9_-]{11}$/.test(vParam)) {
+      if (vParam && YOUTUBE_ID_REGEX.test(vParam)) {
         return vParam;
       }
 
       const pathSegments = parsed.pathname.split('/').filter(Boolean);
       if (pathSegments[0] === 'embed' || pathSegments[0] === 'shorts' || pathSegments[0] === 'v') {
-        if (pathSegments[1] && /^[a-zA-Z0-9_-]{11}$/.test(pathSegments[1])) {
+        if (pathSegments[1] && YOUTUBE_ID_REGEX.test(pathSegments[1])) {
           return pathSegments[1];
         }
       }
@@ -35,13 +41,13 @@ export function extractYouTubeId(urlOrId: string): string | null {
 
     if (parsed.hostname === 'youtu.be') {
       const pathId = parsed.pathname.slice(1).split('?')[0];
-      if (/^[a-zA-Z0-9_-]{11}$/.test(pathId)) {
+      if (YOUTUBE_ID_REGEX.test(pathId)) {
         return pathId;
       }
     }
   } catch {
     // If URL parsing fails, attempt regex fallback
-    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+    const match = trimmed.match(YOUTUBE_URL_FALLBACK_REGEX);
     if (match && match[1]) {
       return match[1];
     }
@@ -103,15 +109,13 @@ export function parseTimestamps(text: string, maxDuration?: number): Chapter[] {
   if (!text || !text.trim()) return [];
 
   const lines = text.split(/\r?\n/);
-  const timestampRegex = /(?:\[|\()?\b((?:\d{1,2}:)?\d{1,2}:\d{2})\b(?:\]|\)?)/;
-
   const rawChapters: Array<{ title: string; startTime: number; formattedTime: string }> = [];
 
   for (const line of lines) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
-    const match = trimmedLine.match(timestampRegex);
+    const match = trimmedLine.match(TIMESTAMP_REGEX);
     if (!match || !match[1]) continue;
 
     const rawTimestamp = match[1];
@@ -127,8 +131,8 @@ export function parseTimestamps(text: string, maxDuration?: number): Chapter[] {
 
     // Clean up typical delimiters like leading "- ", "— ", ": ", numbering "1. ", etc.
     title = title
-      .replace(/^[\s\-–—:|\.\]\)]+/, '')
-      .replace(/[\s\-–—:|\.\[\(]+$/, '')
+      .replace(LEADING_DELIMITERS_REGEX, '')
+      .replace(TRAILING_DELIMITERS_REGEX, '')
       .trim();
 
     if (!title) {

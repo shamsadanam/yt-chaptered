@@ -3,6 +3,81 @@ import { parseTimestamps } from '@/lib/youtubeParser';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { verifyTurnstileToken } from '@/lib/turnstile';
 
+const YOUTUBE_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
+const YT_INITIAL_PLAYER_RESPONSE_REGEX = /ytInitialPlayerResponse\s*=\s*({.+?});(?:var\s+|const\s+|let\s+|window\[|<)/;
+const YT_INITIAL_DATA_REGEX = /ytInitialData\s*=\s*({.+?});<\/script>/;
+const PRIMARY_TITLE_REGEX = /"videoPrimaryInfoRenderer"\s*:\s*\{[^}]*?"title"\s*:\s*\{"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"/;
+const OVERLAY_TITLE_REGEX = /"playerOverlayVideoDetailsRenderer"\s*:\s*\{"title"\s*:\s*\{"simpleText"\s*:\s*"([^"]+)"/;
+const VIDEO_DETAILS_TITLE_REGEX = /"videoDetails"\s*:\s*\{[^}]*?"title"\s*:\s*"([^"]+)"/;
+
+// Search recursively for macroMarkersListItemRenderer entries in YouTube responses
+function findMarkers(obj: unknown, list: Array<Record<string, unknown>> = []): Array<Record<string, unknown>> {
+  if (!obj || typeof obj !== 'object') return list;
+  if (Array.isArray(obj)) {
+    for (const item of obj) findMarkers(item, list);
+    return list;
+  }
+  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    if (k === 'macroMarkersListItemRenderer' && v && typeof v === 'object') {
+      list.push(v as Record<string, unknown>);
+    } else {
+      findMarkers(v, list);
+    }
+  }
+  return list;
+}
+
+function extractChaptersFromMarkers(
+  markerItems: Array<Record<string, unknown>>,
+  videoDuration: number
+): ReturnType<typeof parseTimestamps> {
+  const seenTimes = new Set<number>();
+  const parsedNative: Array<{ title: string; startTime: number; formattedTime: string }> = [];
+
+  for (const item of markerItems) {
+    const itemTitleObj = item.title as { simpleText?: string; runs?: Array<{ text?: string }> } | undefined;
+    const itemTitle =
+      itemTitleObj?.simpleText ||
+      (itemTitleObj?.runs ? itemTitleObj.runs.map((r) => r.text || '').join('') : '') ||
+      '';
+
+    const tapEndpoint = item.onTap as { watchEndpoint?: { startTimeSeconds?: number } } | undefined;
+    const startTime = tapEndpoint?.watchEndpoint?.startTimeSeconds;
+
+    if (typeof startTime === 'number' && !seenTimes.has(startTime)) {
+      if (videoDuration > 0 && startTime >= videoDuration) {
+        continue;
+      }
+      seenTimes.add(startTime);
+      const timeDesc = item.timeDescription as { simpleText?: string } | undefined;
+      parsedNative.push({
+        title: itemTitle.trim() || `Chapter at ${startTime}`,
+        startTime,
+        formattedTime:
+          timeDesc?.simpleText ||
+          `${Math.floor(startTime / 60)}:${(startTime % 60).toString().padStart(2, '0')}`,
+      });
+    }
+  }
+
+  if (parsedNative.length === 0) return [];
+
+  parsedNative.sort((a, b) => a.startTime - b.startTime);
+  const finalEndTime = videoDuration > 0 ? videoDuration : Infinity;
+  return parsedNative.map((chap, idx) => {
+    const nextChapter = parsedNative[idx + 1];
+    return {
+      id: `chap-${idx}-${chap.startTime}`,
+      index: idx + 1,
+      title: chap.title,
+      startTime: chap.startTime,
+      endTime: nextChapter ? nextChapter.startTime : finalEndTime,
+      formattedTime: chap.formattedTime,
+      status: 'not_started' as const,
+    };
+  });
+}
+
 export async function GET(request: NextRequest) {
   // Reject cross-origin and direct-access requests (browser fetch always sends at least Referer)
   const origin = request.headers.get('origin');
@@ -51,6 +126,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const { searchParams } = new URL(request.url);
+  const videoId = searchParams.get('videoId');
+
+  if (!videoId || !YOUTUBE_ID_REGEX.test(videoId)) {
+    return NextResponse.json(
+      { success: false, error: 'Invalid or missing YouTube video ID' },
+      { status: 400 }
+    );
+  }
+
   const turnstileToken = request.headers.get('x-turnstile-token');
   const isDev = process.env.NODE_ENV !== 'production';
 
@@ -73,16 +158,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const { searchParams } = new URL(request.url);
-  const videoId = searchParams.get('videoId');
-
-  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-    return NextResponse.json(
-      { success: false, error: 'Invalid or missing YouTube video ID' },
-      { status: 400 }
-    );
-  }
-
   try {
     let title = '';
     let author = '';
@@ -92,74 +167,6 @@ export async function GET(request: NextRequest) {
     let thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     let duration = 0;
     let chapters: ReturnType<typeof parseTimestamps> = [];
-
-    // Search recursively for macroMarkersListItemRenderer entries in YouTube responses
-    const findMarkers = (obj: unknown, list: Array<Record<string, unknown>> = []): Array<Record<string, unknown>> => {
-      if (!obj || typeof obj !== 'object') return list;
-      if (Array.isArray(obj)) {
-        for (const item of obj) findMarkers(item, list);
-        return list;
-      }
-      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-        if (k === 'macroMarkersListItemRenderer' && v && typeof v === 'object') {
-          list.push(v as Record<string, unknown>);
-        } else {
-          findMarkers(v, list);
-        }
-      }
-      return list;
-    };
-
-    const extractChaptersFromMarkers = (
-      markerItems: Array<Record<string, unknown>>,
-      videoDuration: number
-    ): ReturnType<typeof parseTimestamps> => {
-      const seenTimes = new Set<number>();
-      const parsedNative: Array<{ title: string; startTime: number; formattedTime: string }> = [];
-
-      for (const item of markerItems) {
-        const itemTitleObj = item.title as { simpleText?: string; runs?: Array<{ text?: string }> } | undefined;
-        const itemTitle =
-          itemTitleObj?.simpleText ||
-          (itemTitleObj?.runs ? itemTitleObj.runs.map((r) => r.text || '').join('') : '') ||
-          '';
-
-        const tapEndpoint = item.onTap as { watchEndpoint?: { startTimeSeconds?: number } } | undefined;
-        const startTime = tapEndpoint?.watchEndpoint?.startTimeSeconds;
-
-        if (typeof startTime === 'number' && !seenTimes.has(startTime)) {
-          if (videoDuration > 0 && startTime >= videoDuration) {
-            continue;
-          }
-          seenTimes.add(startTime);
-          const timeDesc = item.timeDescription as { simpleText?: string } | undefined;
-          parsedNative.push({
-            title: itemTitle.trim() || `Chapter at ${startTime}`,
-            startTime,
-            formattedTime:
-              timeDesc?.simpleText ||
-              `${Math.floor(startTime / 60)}:${(startTime % 60).toString().padStart(2, '0')}`,
-          });
-        }
-      }
-
-      if (parsedNative.length === 0) return [];
-
-      parsedNative.sort((a, b) => a.startTime - b.startTime);
-      const finalEndTime = videoDuration > 0 ? videoDuration : Infinity;
-      return parsedNative.map((chap, idx) => {
-        const nextChapter = parsedNative[idx + 1];
-        return {
-          id: `chap-${idx}-${chap.startTime}`,
-          index: idx + 1,
-          title: chap.title,
-          startTime: chap.startTime,
-          endTime: nextChapter ? nextChapter.startTime : finalEndTime,
-          formattedTime: chap.formattedTime,
-          status: 'not_started' as const,
-        };
-      });
-    };
 
     // 1. YouTube Innertube API (Player and Next endpoints)
     // Server-side HTML scraping triggers HTTP 429 rate-limiting; Innertube v1 provides structured metadata and markers.
@@ -232,7 +239,6 @@ export async function GET(request: NextRequest) {
 
     // 2. Fall back to watch page HTML scraping if Innertube did not provide full data
     let html = '';
-    let pageFetchSucceeded = false;
     if (!title || chapters.length === 0) {
       try {
         const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -247,7 +253,6 @@ export async function GET(request: NextRequest) {
 
         if (response.ok) {
           html = await response.text();
-          pageFetchSucceeded = true;
         }
       } catch (err) {
         console.warn('Direct YouTube watch page fetch fallback failed:', err);
@@ -256,9 +261,7 @@ export async function GET(request: NextRequest) {
 
     // Extract from ytInitialPlayerResponse JSON if present in HTML
     if (html && (!title || !description)) {
-      const playerResponseMatch = html.match(
-        /ytInitialPlayerResponse\s*=\s*({.+?});(?:var\s+|const\s+|let\s+|window\[|<)/
-      );
+      const playerResponseMatch = html.match(YT_INITIAL_PLAYER_RESPONSE_REGEX);
 
       if (playerResponseMatch && playerResponseMatch[1]) {
         try {
@@ -289,7 +292,7 @@ export async function GET(request: NextRequest) {
     // Extract chapters and metadata from ytInitialData if present in HTML
     if (html && chapters.length === 0) {
       try {
-        const initDataMatch = html.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+        const initDataMatch = html.match(YT_INITIAL_DATA_REGEX);
         if (initDataMatch && initDataMatch[1]) {
           const initData = JSON.parse(initDataMatch[1]);
           const markerItems = findMarkers(initData);
@@ -304,15 +307,15 @@ export async function GET(request: NextRequest) {
 
     // Fall back to raw HTML title patterns if title is still missing
     if (!title && html) {
-      const m1 = html.match(/"videoPrimaryInfoRenderer"\s*:\s*\{[^}]*?"title"\s*:\s*\{"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"/);
+      const m1 = html.match(PRIMARY_TITLE_REGEX);
       if (m1 && m1[1]) title = m1[1];
     }
     if (!title && html) {
-      const m2 = html.match(/"playerOverlayVideoDetailsRenderer"\s*:\s*\{"title"\s*:\s*\{"simpleText"\s*:\s*"([^"]+)"/);
+      const m2 = html.match(OVERLAY_TITLE_REGEX);
       if (m2 && m2[1]) title = m2[1];
     }
     if (!title && html) {
-      const m3 = html.match(/"videoDetails"\s*:\s*\{[^}]*?"title"\s*:\s*"([^"]+)"/);
+      const m3 = html.match(VIDEO_DETAILS_TITLE_REGEX);
       if (m3 && m3[1]) title = m3[1];
     }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { IosInstallModal } from './IosInstallModal';
 import { InstallBanner } from './InstallBanner';
 
@@ -75,7 +75,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const promptInstall = async () => {
+  const promptInstall = useCallback(async () => {
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
@@ -86,17 +86,20 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     } else if (isIos && !isStandalone) {
       setIsIosModalOpen(true);
     }
-  };
+  }, [deferredPrompt, isIos, isStandalone]);
+
+  const contextValue = useMemo<PwaContextValue>(
+    () => ({
+      isInstallable: isInstallable && !isStandalone,
+      isStandalone,
+      isIos,
+      promptInstall,
+    }),
+    [isInstallable, isStandalone, isIos, promptInstall]
+  );
 
   return (
-    <PwaContext.Provider
-      value={{
-        isInstallable: isInstallable && !isStandalone,
-        isStandalone,
-        isIos,
-        promptInstall,
-      }}
-    >
+    <PwaContext.Provider value={contextValue}>
       {children}
 
       <IosInstallModal

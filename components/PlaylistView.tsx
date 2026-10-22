@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import {
   Loader2,
@@ -88,6 +88,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     useCallback(() => getCompletedChapterIdsSnapshot(playlist.video.id), [playlist.video.id]),
     getCompletedChapterIdsServerSnapshot
   );
+
+  const completedIdsSet = useMemo(() => new Set(completedIds), [completedIds]);
 
   const lastSaveTimeRef = useRef<number>(0);
 
@@ -347,7 +349,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const totalChapters = playlist.chapters.length;
   const progressPercentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
 
-  const isCurrentCompleted = activeChapter ? completedIds.includes(activeChapter.id) : false;
+  const isCurrentCompleted = activeChapter ? completedIdsSet.has(activeChapter.id) : false;
   const activeChapterEndTime = activeChapter
     ? Number.isFinite(activeChapter.endTime)
       ? activeChapter.endTime
@@ -755,7 +757,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           >
             {playlist.chapters.map((chap, idx) => {
               const isActive = idx === currentChapterIndex;
-              const isCompleted = completedIds.includes(chap.id);
+              const isCompleted = completedIdsSet.has(chap.id);
 
               return (
                 <li

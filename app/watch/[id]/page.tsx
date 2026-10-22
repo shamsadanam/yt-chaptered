@@ -16,8 +16,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
 }
 
 async function WatchContent({ params, searchParams }: WatchPageProps) {
-  const { id } = await params;
-  const { t } = await searchParams;
+  const [{ id }, { t }] = await Promise.all([params, searchParams]);
 
   return <WatchClient videoId={id} initialTimeParam={t} />;
 }

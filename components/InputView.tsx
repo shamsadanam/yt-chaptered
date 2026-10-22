@@ -68,12 +68,10 @@ export function InputView({ onGenerate }: InputViewProps) {
     duration?: number;
   } | null>(null);
 
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileTokenRef = useRef<string | null>(null);
 
   const handleTokenChange = useCallback((token: string | null) => {
     turnstileTokenRef.current = token;
-    setTurnstileToken(token);
   }, []);
 
   const waitForToken = useCallback(
