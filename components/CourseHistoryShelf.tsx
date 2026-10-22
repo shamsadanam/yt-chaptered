@@ -141,7 +141,7 @@ export function CourseHistoryShelf({
           Your Library is Empty
         </h2>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-6 leading-relaxed">
-          Add any YouTube video with timestamps to track your progress and navigate chapters locally.
+          Add any YouTube course with timestamps to track your progress and navigate chapters locally.
         </p>
         <button
           type="button"
@@ -149,7 +149,7 @@ export function CourseHistoryShelf({
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer min-h-11 active:scale-98"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
-          <span>Add Your First Video</span>
+          <span>Add Your First Course</span>
         </button>
       </div>
     );
@@ -177,7 +177,7 @@ export function CourseHistoryShelf({
             </span>
           </div>
           <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1">
-            Local-first video chapters and saved learning progress.
+            Local-first course chapters and saved learning progress.
           </p>
         </div>
 
@@ -213,14 +213,14 @@ export function CourseHistoryShelf({
             className="hidden"
           />
 
-          {/* Primary + Add Video Button */}
+          {/* Primary + Add Course Button */}
           <button
             type="button"
             onClick={handleTriggerAdd}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors cursor-pointer min-h-9 touch-manipulation active:scale-98"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
-            <span>Add Video</span>
+            <span>Add</span>
           </button>
         </div>
       </div>

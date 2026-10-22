@@ -38,7 +38,7 @@ export function MobileTabBar({
           <span className="text-xs tracking-tight">Courses</span>
         </button>
 
-        {/* Tab 2: Quick Add Video */}
+        {/* Tab 2: Quick Add Course */}
         <button
           type="button"
           onClick={() => onTabChange('create')}
@@ -67,8 +67,8 @@ export function MobileTabBar({
               ? 'text-primary dark:text-emerald-400 font-semibold'
               : 'text-stone-600 active:text-stone-900 dark:text-stone-400 dark:active:text-stone-100'
           }`}
-          title={hasActivePlaylist ? activePlaylistTitle || 'Now Playing' : 'No video currently playing'}
-          aria-label={hasActivePlaylist ? `Now Playing: ${activePlaylistTitle || 'Active Video'}` : 'Now Playing (No video currently active)'}
+          title={hasActivePlaylist ? activePlaylistTitle || 'Now Playing' : 'No course currently playing'}
+          aria-label={hasActivePlaylist ? `Now Playing: ${activePlaylistTitle || 'Active Course'}` : 'Now Playing (No course currently active)'}
         >
           <div className="relative pointer-events-none">
             <PlayCircle className="w-5 h-5 mb-0.5" aria-hidden="true" />

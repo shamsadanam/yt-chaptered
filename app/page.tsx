@@ -9,7 +9,7 @@ import { PlaylistView } from '../components/PlaylistView';
 import { CourseHistoryShelf, CourseHistorySkeleton } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { AboutModal } from '../components/AboutModal';
-import { AddVideoModal } from '../components/AddVideoModal';
+import { AddCourseModal } from '../components/AddCourseModal';
 import { CopyrightYear } from '../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
@@ -131,13 +131,13 @@ export default function Home() {
         )}
       </main>
 
-      {/* Floating Mini Player Bar on mobile when video loaded but viewing other tabs */}
+      {/* Floating Mini Player Bar on mobile when course loaded but viewing other tabs */}
       {playlist && activeTab !== 'player' && (
-        <aside aria-label="Active video player" className="md:hidden fixed bottom-16 left-3 right-3 z-40">
+        <aside aria-label="Active course player" className="md:hidden fixed bottom-16 left-3 right-3 z-40">
           <button
             type="button"
             onClick={() => setActiveTab('player')}
-            aria-label={`Open active video player: ${playlist.video.title}`}
+            aria-label={`Open active course player: ${playlist.video.title}`}
             className="w-full bg-stone-900 dark:bg-stone-900 border border-transparent dark:border-stone-800 text-white p-3 rounded-xl shadow-lg flex items-center justify-between gap-3 cursor-pointer active:scale-98 transition-transform touch-manipulation focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <div className="flex items-center gap-2.5 min-w-0 text-left">
@@ -169,8 +169,8 @@ export default function Home() {
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 
-      {/* Add Video Modal Dialog */}
-      <AddVideoModal
+      {/* Add Course Modal Dialog */}
+      <AddCourseModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onGenerate={handleGenerate}
@@ -185,7 +185,7 @@ export default function Home() {
       <footer className="hidden md:block border-t border-stone-200 dark:border-stone-800 py-6 px-4 text-center text-xs text-stone-600 dark:text-stone-400">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
           <p>
-            © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
+            © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Course Creator • Built by{' '}
             <a
               href="https://shamsad.com"
               target="_blank"

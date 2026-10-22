@@ -322,7 +322,7 @@ export function InputView({ onGenerate }: InputViewProps) {
       onGenerate(playlist);
     } catch (err) {
       setErrorMessage(
-        err instanceof Error ? err.message : "An error occurred while generating the playlist.",
+        err instanceof Error ? err.message : "An error occurred while creating the course.",
       );
       setIsLoading(false);
     }
@@ -333,7 +333,7 @@ export function InputView({ onGenerate }: InputViewProps) {
       {/* Clean Hero Header */}
       <div className="text-center mb-8 sm:mb-12">
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-medium text-stone-900 dark:text-stone-100 tracking-tight mb-3 sm:mb-4">
-          Turn timestamped videos into structured playlists
+          Turn timestamped videos into structured courses
         </h1>
         <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl mx-auto leading-relaxed">
           Paste any YouTube URL to automatically detect chapters, navigate segments, and track learning progress locally.
@@ -353,7 +353,7 @@ export function InputView({ onGenerate }: InputViewProps) {
                 htmlFor="yt-url"
                 className="block text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100"
               >
-                YouTube Video URL
+                YouTube Course URL
               </label>
               <button
                 type="button"
@@ -536,11 +536,11 @@ export function InputView({ onGenerate }: InputViewProps) {
                     className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                     aria-hidden="true"
                   />
-                  <span>Generating Playlist...</span>
+                  <span>Adding Course...</span>
                 </>
               ) : (
                 <>
-                  <span>Generate Playlist</span>
+                  <span>Add Course</span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </>
               )}
@@ -551,7 +551,7 @@ export function InputView({ onGenerate }: InputViewProps) {
         {/* Informational Note on Playback Compatibility */}
         <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-2 text-xs text-stone-500 dark:text-stone-400">
           <p className="leading-relaxed">
-            Auto-detects chapters from video description and timestamps. Local-first & private.
+            Auto-detects chapters from course description and timestamps. Local-first & private.
           </p>
         </div>
       </div>

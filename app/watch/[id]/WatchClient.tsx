@@ -218,7 +218,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
               Loading Course Details...
             </h2>
             <p className="text-xs text-stone-600 dark:text-stone-400">
-              Detecting chapters and course data for video <span className="font-mono">{videoId}</span>
+              Detecting chapters and course data for <span className="font-mono">{videoId}</span>
             </p>
             <TurnstileWidget
               onTokenChange={setTurnstileToken}

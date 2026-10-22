@@ -498,7 +498,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   </span>
                 </div>
                 <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100 leading-snug break-words">
-                  {activeChapter ? activeChapter.title : 'Playing Course Video'}
+                  {activeChapter ? activeChapter.title : 'Playing Course'}
                 </h2>
               </div>
 
@@ -777,7 +777,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onClick={(e) => handleToggleComplete(chap.id, e)}
                     title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
                     aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
-                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary rounded-md"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
                   >
                     <div
                       className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
@@ -798,7 +798,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onClick={() => handleSelectChapter(idx)}
                     aria-current={isActive ? 'true' : undefined}
                     aria-label={`Play chapter ${chap.index}: ${chap.title}, timestamp ${chap.formattedTime}${isCompleted ? ', completed' : ''}`}
-                    className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-98 focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1"
+                    className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-98 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md p-1 -m-1"
                   >
                     {/* Index Badge */}
                     <div

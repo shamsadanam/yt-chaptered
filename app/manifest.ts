@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ytChaptered — YouTube Chaptered Playlist Creator',
+    name: 'ytChaptered — YouTube Chaptered Course Creator',
     short_name: 'ytChaptered',
-    description: 'Turn timestamped YouTube videos into structured local playlists.',
+    description: 'Turn timestamped YouTube videos into structured local courses.',
     start_url: '/',
     id: '/',
     scope: '/',
@@ -61,9 +61,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: 'Quick Create Course',
-        short_name: 'Create',
-        description: 'Create a new chaptered course from a YouTube link',
+        name: 'Add Course',
+        short_name: 'Add',
+        description: 'Add a new chaptered course from a YouTube link',
         url: '/?tab=create',
         icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
       },

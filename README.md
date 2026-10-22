@@ -2,6 +2,10 @@
 
 ytChaptered is a local-first web application that converts timestamped YouTube videos into structured course playlists. You paste a video URL, extract chapters from the video description, and track your learning progress directly in your browser.
 
+<video src="https://github.com/shamsadanam/yt-chaptered/raw/main/public/demo.mp4" controls="controls" muted="muted" width="100%" poster="https://github.com/shamsadanam/yt-chaptered/raw/main/public/screenshots/desktop-preview.png">
+  Your browser does not support the video tag. View the demo video: <a href="https://github.com/shamsadanam/yt-chaptered/raw/main/public/demo.mp4">public/demo.mp4</a>
+</video>
+
 ## Core features
 
 ytChaptered helps you study long video tutorials with dedicated playback and progress controls. Key capabilities include:
@@ -19,7 +23,7 @@ Follow these steps to set up and run ytChaptered on your local machine. You need
 1. Clone the repository and navigate into the project directory:
 
 ```bash
-git clone https://github.com/your_username/yt-chaptered.git
+git clone https://github.com/shamsadanam/yt-chaptered.git
 cd yt-chaptered
 ```
 

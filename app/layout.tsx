@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ytChaptered — YouTube Timestamped Chapter Playlist Creator",
-  description: "Turn long, timestamped YouTube videos into an interactive chaptered playlist.",
+  title: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
+  description: "Turn long, timestamped YouTube videos into interactive chaptered courses.",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
