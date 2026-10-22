@@ -43,25 +43,39 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
 
   const savedCourse = getSavedCourse(videoId);
 
+  const initialParamsRef = useRef<{ videoId: string; startTime: number; chapterIndex: number } | null>(null);
+
+  if (!initialParamsRef.current || initialParamsRef.current.videoId !== videoId) {
+    if (savedCourse) {
+      const parsedTimeParam = initialTimeParam ? parseInt(initialTimeParam, 10) : NaN;
+      const initialStartTime = !isNaN(parsedTimeParam) && parsedTimeParam >= 0
+        ? parsedTimeParam
+        : (savedCourse.lastPlayedSeconds || 0);
+
+      let initialChapterIndex = savedCourse.lastPlayedChapterIndex || 0;
+      if (savedCourse.chapters && savedCourse.chapters.length > 0) {
+        for (let i = savedCourse.chapters.length - 1; i >= 0; i--) {
+          if (initialStartTime >= savedCourse.chapters[i].startTime) {
+            initialChapterIndex = i;
+            break;
+          }
+        }
+      }
+
+      initialParamsRef.current = {
+        videoId,
+        startTime: initialStartTime,
+        chapterIndex: initialChapterIndex,
+      };
+    }
+  }
+
   const playlist = useMemo(() => {
     if (!savedCourse) return null;
 
-    // Parse target start time from ?t= query param or fallback to saved playback seconds
-    const parsedTimeParam = initialTimeParam ? parseInt(initialTimeParam, 10) : NaN;
-    const initialStartTime = !isNaN(parsedTimeParam) && parsedTimeParam >= 0
-      ? parsedTimeParam
-      : (savedCourse.lastPlayedSeconds || 0);
-
-    // Match target timestamp to corresponding chapter
-    let initialChapterIndex = savedCourse.lastPlayedChapterIndex || 0;
-    if (savedCourse.chapters && savedCourse.chapters.length > 0) {
-      for (let i = savedCourse.chapters.length - 1; i >= 0; i--) {
-        if (initialStartTime >= savedCourse.chapters[i].startTime) {
-          initialChapterIndex = i;
-          break;
-        }
-      }
-    }
+    const initial = initialParamsRef.current;
+    const initialStartTime = initial?.videoId === videoId ? initial.startTime : 0;
+    const initialChapterIndex = initial?.videoId === videoId ? initial.chapterIndex : 0;
 
     const parsed: ParsedPlaylist = {
       video: savedCourse.video,
@@ -71,7 +85,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
       initialChapterIndex,
     };
     return parsed;
-  }, [savedCourse, initialTimeParam]);
+  }, [savedCourse?.video, savedCourse?.chapters, savedCourse?.rawTimestampsText, videoId]);
 
   // If course is not present in local storage (e.g. fresh direct link or bookmark), trigger auto-fetch
   useEffect(() => {

@@ -93,6 +93,16 @@ export function useYouTubePlayer({
 
   const playStateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const initialStartTimeRef = useRef(initialStartTime);
+  useEffect(() => {
+    initialStartTimeRef.current = initialStartTime;
+  }, [videoId, initialStartTime]);
+
+  const autoPlayRef = useRef(autoPlay);
+  useEffect(() => {
+    autoPlayRef.current = autoPlay;
+  }, [autoPlay]);
+
   // Keep chapters and index refs updated for interval callbacks inside effects
   const chaptersRef = useRef<Chapter[]>(chapters);
   useEffect(() => {
@@ -103,6 +113,11 @@ export function useYouTubePlayer({
   useEffect(() => {
     currentChapterIndexRef.current = currentChapterIndex;
   }, [currentChapterIndex]);
+
+  const onChapterChangeRef = useRef(onChapterChange);
+  useEffect(() => {
+    onChapterChangeRef.current = onChapterChange;
+  }, [onChapterChange]);
 
   const onTimeUpdateRef = useRef(onTimeUpdate);
   useEffect(() => {
@@ -119,6 +134,11 @@ export function useYouTubePlayer({
     onEndedRef.current = onEnded;
   }, [onEnded]);
 
+  const completedInSessionRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    completedInSessionRef.current.clear();
+  }, [videoId]);
+
   // Sync active chapter index and trigger completion when strictly reaching 100% of chapter end
   const updateActiveChapterIndex = useCallback(
     (time: number) => {
@@ -129,7 +149,7 @@ export function useYouTubePlayer({
         if (time >= list[i].startTime) {
           if (currentChapterIndexRef.current !== i) {
             setCurrentChapterIndex(i);
-            onChapterChange?.(i);
+            onChapterChangeRef.current?.(i);
           }
           break;
         }
@@ -139,13 +159,14 @@ export function useYouTubePlayer({
       for (let i = 0; i < list.length; i++) {
         const chap = list[i];
         if (typeof chap.endTime === 'number' && Number.isFinite(chap.endTime)) {
-          if (time >= chap.endTime) {
+          if (time >= chap.endTime && !completedInSessionRef.current.has(chap.id)) {
+            completedInSessionRef.current.add(chap.id);
             onChapterCompleteRef.current?.(i, chap);
           }
         }
       }
     },
-    [onChapterChange]
+    []
   );
 
   // Load YouTube IFrame API script
@@ -196,7 +217,7 @@ export function useYouTubePlayer({
         width: '100%',
         height: '100%',
         playerVars: {
-          autoplay: autoPlay ? 1 : 0,
+          autoplay: autoPlayRef.current ? 1 : 0,
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
@@ -216,9 +237,10 @@ export function useYouTubePlayer({
             }
 
             // Seek to initial resume timestamp if provided
-            if (initialStartTime > 0) {
-              event.target.seekTo(initialStartTime, true);
-              setCurrentTime(initialStartTime);
+            const startTime = initialStartTimeRef.current;
+            if (startTime > 0) {
+              event.target.seekTo(startTime, true);
+              setCurrentTime(startTime);
             } else if (chaptersRef.current.length > 0 && chaptersRef.current[0].startTime > 0) {
               event.target.seekTo(chaptersRef.current[0].startTime, true);
             }
@@ -278,7 +300,7 @@ export function useYouTubePlayer({
         playerRef.current = null;
       }
     };
-  }, [containerId, videoId, autoPlay, initialStartTime]);
+  }, [containerId, videoId]);
 
   // Periodic time polling when playing
   useEffect(() => {
@@ -317,7 +339,7 @@ export function useYouTubePlayer({
 
       setCurrentChapterIndex(index);
       currentChapterIndexRef.current = index;
-      onChapterChange?.(index);
+      onChapterChangeRef.current?.(index);
 
       // Optimistically sync displayed time and chapter before iframe settles
       pendingSeekTimeRef.current = targetChapter.startTime;
@@ -338,7 +360,7 @@ export function useYouTubePlayer({
         }, 150);
       }, 150);
     },
-    [onChapterChange]
+    []
   );
 
   const seekToTime = useCallback(

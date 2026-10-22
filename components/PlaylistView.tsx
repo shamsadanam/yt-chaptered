@@ -137,6 +137,16 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     }
   }, [playlist.video.id, playlist.chapters]);
 
+  const handleChapterChange = useCallback(
+    (newIndex: number) => {
+      const chap = playlist.chapters[newIndex];
+      if (chap) {
+        updateUrlTimestamp(chap.startTime);
+      }
+    },
+    [playlist.chapters, updateUrlTimestamp]
+  );
+
   const {
     isReady,
     isPlaying,
@@ -158,12 +168,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     autoPlay: true,
     initialStartTime: playlist.initialStartTime ?? 0,
     initialChapterIndex: playlist.initialChapterIndex ?? 0,
-    onChapterChange: (newIndex: number) => {
-      const chap = playlist.chapters[newIndex];
-      if (chap) {
-        updateUrlTimestamp(chap.startTime);
-      }
-    },
+    onChapterChange: handleChapterChange,
     onTimeUpdate: handleTimeUpdate,
     onChapterComplete: handleChapterComplete,
     onEnded: handleVideoEnded,
