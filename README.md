@@ -76,3 +76,7 @@ You can run several development and maintenance scripts using pnpm:
 ytChaptered prioritizes your privacy by storing your personal learning history on your device. No video bookmarks or completion records transmit to third-party servers.
 
 Automated metadata fetching runs through rate-limited API routes protected by Cloudflare Turnstile verification. You can also paste timestamps manually without calling server endpoints.
+
+## License
+
+ytChaptered is open-source software licensed under the [MIT license](LICENSE).
