@@ -53,7 +53,7 @@ const SAMPLE_DATA = {
 export function AddCourseModal({ isOpen, onClose, onGenerate }: AddCourseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isRendered, setIsRendered] = useState(false);
+  const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
   const [url, setUrl] = useState('');
@@ -62,6 +62,13 @@ export function AddCourseModal({ isOpen, onClose, onGenerate }: AddCourseModalPr
   const [isLoading, setIsLoading] = useState(false);
   const [autoFetchStatus, setAutoFetchStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (isOpen && !isRendered) {
+    setIsRendered(true);
+    setIsLoading(false);
+    setErrorMessage(null);
+    setAutoFetchStatus(null);
+  }
   const [cachedVideoInfo, setCachedVideoInfo] = useState<{
     videoId: string;
     title: string;
@@ -91,31 +98,27 @@ export function AddCourseModal({ isOpen, onClose, onGenerate }: AddCourseModalPr
   // Smooth opening and closing animation coordination
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
-      setIsLoading(false);
-      setErrorMessage(null);
-      setAutoFetchStatus(null);
       const frameId = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
+        setIsVisible(true);
       });
       return () => cancelAnimationFrame(frameId);
     } else {
-      setIsVisible(false);
+      const frameId = requestAnimationFrame(() => {
+        setIsVisible(false);
+      });
       const timer = setTimeout(() => {
         setIsRendered(false);
       }, 200);
-      return () => clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(frameId);
+        clearTimeout(timer);
+      };
     }
   }, [isOpen]);
 
   const handleRequestClose = useCallback(() => {
-    setIsVisible(false);
     setIsLoading(false);
-    setTimeout(() => {
-      onClose();
-    }, 200);
+    onClose();
   }, [onClose]);
 
   // Lock body & document scroll while modal is active without layout shift

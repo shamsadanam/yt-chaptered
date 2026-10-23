@@ -73,6 +73,7 @@ export function useYouTubePlayer({
   const seekDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const chapterDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
+  const playStateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -90,8 +91,6 @@ export function useYouTubePlayer({
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(initialChapterIndex);
   const [playerError, setPlayerError] = useState<string | null>(null);
-
-  const playStateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const initialStartTimeRef = useRef(initialStartTime);
   useEffect(() => {

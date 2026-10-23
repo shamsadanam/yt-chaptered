@@ -13,9 +13,10 @@
 - [x] Add a small video demo showcasing key features and workflow.
 - [x] Add SEO stuff
 - [x] Create social media announcement posts:
-  - [x] LinkedIn
-  - [x] Reddit
-  - [x] Facebook
+  - [ ] LinkedIn
+  - [ ] Reddit
+  - [ ] Facebook
+- [ ] I don't see the "install" button in mobile devices. need to show there as well - the header one does not show neither does the popup
 
 ## Future
 

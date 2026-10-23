@@ -17,33 +17,36 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const { isInstallable, promptInstall } = usePwa();
 
-  const [isRendered, setIsRendered] = useState(false);
+  const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
+
+  if (isOpen && !isRendered) {
+    setIsRendered(true);
+  }
 
   // Smooth opening and closing animation coordination
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
       const frameId = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
+        setIsVisible(true);
       });
       return () => cancelAnimationFrame(frameId);
     } else {
-      setIsVisible(false);
+      const frameId = requestAnimationFrame(() => {
+        setIsVisible(false);
+      });
       const timer = setTimeout(() => {
         setIsRendered(false);
       }, 200);
-      return () => clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(frameId);
+        clearTimeout(timer);
+      };
     }
   }, [isOpen]);
 
   const handleRequestClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 200);
+    onClose();
   }, [onClose]);
 
   useScrollLock(isRendered);

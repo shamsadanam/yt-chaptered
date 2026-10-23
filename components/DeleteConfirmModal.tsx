@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Trash2, AlertTriangle, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { useScrollLock } from '../hooks/useScrollLock';
 
 interface DeleteConfirmModalProps {
@@ -21,47 +21,45 @@ export function DeleteConfirmModal({
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
-  const [isRendered, setIsRendered] = useState(false);
+  const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const [cachedTitle, setCachedTitle] = useState(courseTitle);
 
-  useEffect(() => {
-    if (courseTitle) {
-      setCachedTitle(courseTitle);
-    }
-  }, [courseTitle]);
+  if (isOpen && !isRendered) {
+    setIsRendered(true);
+  }
+
+  if (courseTitle && courseTitle !== cachedTitle) {
+    setCachedTitle(courseTitle);
+  }
 
   // Smooth enter and exit animation
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
       const frameId = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
+        setIsVisible(true);
       });
       return () => cancelAnimationFrame(frameId);
     } else {
-      setIsVisible(false);
+      const frameId = requestAnimationFrame(() => {
+        setIsVisible(false);
+      });
       const timer = setTimeout(() => {
         setIsRendered(false);
       }, 200);
-      return () => clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(frameId);
+        clearTimeout(timer);
+      };
     }
   }, [isOpen]);
 
   const handleRequestClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 200);
+    onClose();
   }, [onClose]);
 
   const handleConfirmClick = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onConfirm();
-    }, 200);
+    onConfirm();
   }, [onConfirm]);
 
   // Lock scroll without layout shift
@@ -158,7 +156,7 @@ export function DeleteConfirmModal({
         </h2>
 
         <p id="delete-dialog-desc" className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed mb-6">
-          Are you sure you want to remove <strong className="font-semibold text-stone-900 dark:text-stone-100">"{cachedTitle || courseTitle}"</strong> from your library? Your saved playback position and completed chapters will be removed from this browser.
+          Are you sure you want to remove <strong className="font-semibold text-stone-900 dark:text-stone-100">&ldquo;{cachedTitle || courseTitle}&rdquo;</strong> from your library? Your saved playback position and completed chapters will be removed from this browser.
         </p>
 
         <div className="flex items-center justify-end gap-2.5">

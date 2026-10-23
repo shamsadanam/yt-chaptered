@@ -93,17 +93,23 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   const lastSaveTimeRef = useRef<number>(0);
 
+  const playlistRef = useRef(playlist);
+  useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
+
   // Ensure course is registered in storage if not already existing
   useEffect(() => {
+    const current = playlistRef.current;
     const existing = getSavedCourse(playlist.video.id);
     if (!existing) {
       const initialCourse: SavedCourse = {
-        video: playlist.video,
-        chapters: playlist.chapters,
-        rawTimestampsText: playlist.rawTimestampsText || '',
+        video: current.video,
+        chapters: current.chapters,
+        rawTimestampsText: current.rawTimestampsText || '',
         completedChapterIds: [],
-        lastPlayedChapterIndex: playlist.initialChapterIndex ?? 0,
-        lastPlayedSeconds: playlist.initialStartTime ?? 0,
+        lastPlayedChapterIndex: current.initialChapterIndex ?? 0,
+        lastPlayedSeconds: current.initialStartTime ?? 0,
         updatedAt: Date.now(),
       };
       saveCourse(initialCourse);

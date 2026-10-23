@@ -25,6 +25,34 @@ interface WatchClientProps {
   initialTimeParam?: string;
 }
 
+function getInitialPlaybackParams(
+  course: SavedCourse | null | undefined,
+  videoId: string,
+  initialTimeParam?: string
+) {
+  if (!course) return null;
+  const parsedTimeParam = initialTimeParam ? parseInt(initialTimeParam, 10) : NaN;
+  const initialStartTime = !isNaN(parsedTimeParam) && parsedTimeParam >= 0
+    ? parsedTimeParam
+    : (course.lastPlayedSeconds || 0);
+
+  let initialChapterIndex = course.lastPlayedChapterIndex || 0;
+  if (course.chapters && course.chapters.length > 0) {
+    for (let i = course.chapters.length - 1; i >= 0; i--) {
+      if (initialStartTime >= course.chapters[i].startTime) {
+        initialChapterIndex = i;
+        break;
+      }
+    }
+  }
+
+  return {
+    videoId,
+    startTime: initialStartTime,
+    chapterIndex: initialChapterIndex,
+  };
+}
+
 export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   const router = useRouter();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -43,49 +71,33 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
 
   const savedCourse = getSavedCourse(videoId);
 
-  const initialParamsRef = useRef<{ videoId: string; startTime: number; chapterIndex: number } | null>(null);
+  const [initialPlayback, setInitialPlayback] = useState(() =>
+    getInitialPlaybackParams(getSavedCourse(videoId), videoId, initialTimeParam)
+  );
 
-  if (!initialParamsRef.current || initialParamsRef.current.videoId !== videoId) {
-    if (savedCourse) {
-      const parsedTimeParam = initialTimeParam ? parseInt(initialTimeParam, 10) : NaN;
-      const initialStartTime = !isNaN(parsedTimeParam) && parsedTimeParam >= 0
-        ? parsedTimeParam
-        : (savedCourse.lastPlayedSeconds || 0);
-
-      let initialChapterIndex = savedCourse.lastPlayedChapterIndex || 0;
-      if (savedCourse.chapters && savedCourse.chapters.length > 0) {
-        for (let i = savedCourse.chapters.length - 1; i >= 0; i--) {
-          if (initialStartTime >= savedCourse.chapters[i].startTime) {
-            initialChapterIndex = i;
-            break;
-          }
-        }
-      }
-
-      initialParamsRef.current = {
-        videoId,
-        startTime: initialStartTime,
-        chapterIndex: initialChapterIndex,
-      };
-    }
+  if (savedCourse && (!initialPlayback || initialPlayback.videoId !== videoId)) {
+    setInitialPlayback(getInitialPlaybackParams(savedCourse, videoId, initialTimeParam));
   }
 
-  const playlist = useMemo(() => {
-    if (!savedCourse) return null;
+  const playlistVideo = savedCourse?.video;
+  const playlistChapters = savedCourse?.chapters;
+  const playlistRawTimestampsText = savedCourse?.rawTimestampsText;
 
-    const initial = initialParamsRef.current;
-    const initialStartTime = initial?.videoId === videoId ? initial.startTime : 0;
-    const initialChapterIndex = initial?.videoId === videoId ? initial.chapterIndex : 0;
+  const playlist = useMemo(() => {
+    if (!playlistVideo || !playlistChapters) return null;
+
+    const initialStartTime = initialPlayback?.videoId === videoId ? initialPlayback.startTime : 0;
+    const initialChapterIndex = initialPlayback?.videoId === videoId ? initialPlayback.chapterIndex : 0;
 
     const parsed: ParsedPlaylist = {
-      video: savedCourse.video,
-      chapters: savedCourse.chapters,
-      rawTimestampsText: savedCourse.rawTimestampsText,
+      video: playlistVideo,
+      chapters: playlistChapters,
+      rawTimestampsText: playlistRawTimestampsText,
       initialStartTime,
       initialChapterIndex,
     };
     return parsed;
-  }, [savedCourse?.video, savedCourse?.chapters, savedCourse?.rawTimestampsText, videoId]);
+  }, [playlistVideo, playlistChapters, playlistRawTimestampsText, initialPlayback, videoId]);
 
   // If course is not present in local storage (e.g. fresh direct link or bookmark), trigger auto-fetch
   useEffect(() => {
