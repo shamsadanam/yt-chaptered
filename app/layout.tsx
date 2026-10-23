@@ -20,9 +20,43 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ytchaptered.com';
+
 export const metadata: Metadata = {
-  title: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
-  description: "Turn long, timestamped YouTube videos into interactive chaptered courses.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
+    template: "%s | ytChaptered",
+  },
+  description:
+    "Turn long, timestamped YouTube videos into interactive chaptered courses. 100% free, local-first progress tracking, and distraction-free playback.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
+    description:
+      "Turn long, timestamped YouTube videos into interactive chaptered courses. 100% free, local-first progress tracking, and distraction-free playback.",
+    url: siteUrl,
+    siteName: "ytChaptered",
+    images: [
+      {
+        url: "/screenshots/desktop-preview.png",
+        width: 1280,
+        height: 800,
+        alt: "ytChaptered Course Creator and Chapter Navigation",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
+    description:
+      "Turn long, timestamped YouTube videos into interactive chaptered courses. 100% free, local-first progress tracking, and distraction-free playback.",
+    images: ["/screenshots/desktop-preview.png"],
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -38,6 +72,29 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "ytChaptered",
   },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'ytChaptered',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'All',
+  browserRequirements: 'Requires JavaScript and HTML5 video support',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  description:
+    'Turn long, timestamped YouTube videos into interactive chaptered courses with local progress tracking and distraction-free playback.',
+  featureList: [
+    'Automatic YouTube timestamp and chapter detection',
+    'Local-first progress tracking with zero account requirement',
+    'Distraction-free chapter segment playback',
+    'Offline course library',
+    'Installable Progressive Web App (PWA)',
+  ],
 };
 
 export default function RootLayout({
@@ -56,6 +113,12 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var s=localStorage.getItem('yt_chaptered_theme');var d=(s&&s!=='system')?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd),
           }}
         />
       </head>

@@ -1,0 +1,16 @@
+# ytChaptered
+
+> Turn timestamped YouTube videos into structured local courses.
+
+ytChaptered is a free, local-first web application and Progressive Web App (PWA) that converts long YouTube videos with chapter timestamps into interactive, segment-by-segment courses. All course content, notes, and completion states are stored client-side in the user's browser via IndexedDB and localStorage, with no accounts, sign-ups, or servers required.
+
+## Core Capabilities
+- **Automatic Chapter Detection**: Extracts video titles, channel information, and chapter timestamps from YouTube URLs or pasted description text.
+- **Interactive Chapter Player**: Clean distraction-free player with automatic chapter highlighting, segment looping, speed control, and completion checkmarks.
+- **Local Course Library**: Preserves course progress, resume timestamps, and completed chapters entirely on device.
+- **Offline & PWA Support**: Installable on desktop and mobile devices with fast launch shortcuts.
+
+## Links
+- [ytChaptered Web Application](https://ytchaptered.com): Main interactive course creation and playback interface.
+- [GitHub Repository](https://github.com/shamsadanam/yt-chaptered): Open source repository, issue tracker, and project architecture.
+- [Developer Portfolio](https://shamsad.com): Creator profile and personal projects by Shamsad Anam.

@@ -24,7 +24,7 @@ export function Navbar({ onOpenAbout }: NavbarProps) {
           <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-lg sm:rounded-xl overflow-hidden shrink-0 shadow-xs">
             <Image
               src="/logo.svg"
-              alt=""
+              alt="ytChaptered logo"
               fill
               priority
               className="object-contain"

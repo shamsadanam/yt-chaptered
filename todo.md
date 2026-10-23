@@ -11,7 +11,7 @@
 
 - [x] Update README and/or create a landing page explaining what problem ytChaptered solves.
 - [x] Add a small video demo showcasing key features and workflow.
-- [ ] Add SEO stuff
+- [x] Add SEO stuff
 - [ ] Create social media announcement posts:
   - [ ] LinkedIn
   - [ ] Reddit

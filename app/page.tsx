@@ -6,7 +6,7 @@ import { Play } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
 import { PlaylistView } from '../components/PlaylistView';
-import { CourseHistoryShelf, CourseHistorySkeleton } from '../components/CourseHistoryShelf';
+import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { AboutModal } from '../components/AboutModal';
 import { AddCourseModal } from '../components/AddCourseModal';
@@ -120,14 +120,9 @@ export default function Home() {
           />
         )}
 
-        {/* View 3: First-time User Experience (When No Courses Exist Yet) */}
-        {savedCourses.length === 0 && !isStorageLoading && activeTab !== 'player' && (
+        {/* View 3: First-time user experience and default SSR view */}
+        {savedCourses.length === 0 && activeTab !== 'player' && (
           <InputView onGenerate={handleGenerate} />
-        )}
-
-        {/* Loading skeleton while storage initializes */}
-        {savedCourses.length === 0 && isStorageLoading && activeTab !== 'player' && (
-          <CourseHistorySkeleton />
         )}
       </main>
 
