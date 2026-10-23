@@ -780,29 +780,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       : 'hover:bg-stone-50 dark:hover:bg-stone-800/50 border border-transparent'
                   }`}
                 >
-                  {/* Manual Completion Checkbox button with full 44px+ tap zone */}
-                  <button
-                    type="button"
-                    role="checkbox"
-                    aria-checked={isCompleted}
-                    onClick={(e) => handleToggleComplete(chap.id, e)}
-                    title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
-                    aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
-                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
-                        isCompleted
-                          ? 'bg-primary border-primary text-white'
-                          : 'bg-white dark:bg-stone-900 border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600'
-                      }`}
-                    >
-                      {isCompleted && (
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
-                      )}
-                    </div>
-                  </button>
-
                   {/* Primary Chapter Select Button */}
                   <button
                     type="button"
@@ -859,6 +836,29 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                           </span>
                         )}
                       </div>
+                    </div>
+                  </button>
+
+                  {/* Manual Completion Checkbox button with full 44px+ tap zone */}
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isCompleted}
+                    onClick={(e) => handleToggleComplete(chap.id, e)}
+                    title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
+                    aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
+                    className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
+                        isCompleted
+                          ? 'bg-primary border-primary text-white'
+                          : 'bg-white dark:bg-stone-900 border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600'
+                      }`}
+                    >
+                      {isCompleted && (
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
+                      )}
                     </div>
                   </button>
                 </li>
