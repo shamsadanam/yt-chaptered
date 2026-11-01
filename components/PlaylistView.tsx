@@ -6,8 +6,11 @@ import {
   Loader2,
   AlertTriangle,
   ExternalLink,
-  X,
   Zap,
+  Subtitles,
+  Volume1,
+  Volume2,
+  VolumeX,
   ChevronDown,
   Check,
   Maximize2,
@@ -23,6 +26,7 @@ import {
 import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { secondsToTimestamp } from '../lib/youtubeParser';
+import { FullscreenOverlay } from './FullscreenOverlay';
 import {
   saveCourse,
   getSavedCourse,
@@ -162,11 +166,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     playbackRate,
     currentChapterIndex,
     playerError,
+    isCaptionsEnabled,
+    volume,
+    isMuted,
     seekToChapter,
     seekBy,
+    seekToTime,
     setPlaybackRate,
+    setVolume,
+    toggleMute,
     play,
     pause,
+    toggleCaptions,
   } = useYouTubePlayer({
     containerId,
     videoId: playlist.video.id,
@@ -254,8 +265,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     }
   }, [currentChapterIndex]);
 
-  const handleToggleComplete = (chapterId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleComplete = (chapterId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     toggleChapterCompletion(playlist.video.id, chapterId);
   };
 
@@ -288,7 +299,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     updateUrlTimestamp(newTime);
   };
 
-  const handleToggleFullscreen = async () => {
+  const handleSeekToTime = (seconds: number) => {
+    seekToTime(seconds);
+    updateUrlTimestamp(seconds);
+  };
+
+  const handleToggleFullscreen = useCallback(async () => {
     const elem = playerWrapperRef.current;
     if (!elem) return;
 
@@ -341,7 +357,29 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         console.warn('Exit fullscreen failed:', err);
       }
     }
-  };
+  }, []);
+
+  // Keyboard shortcut 'F' to toggle fullscreen with chapters
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        handleToggleFullscreen();
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        toggleCaptions();
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMute();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleToggleFullscreen, toggleCaptions, toggleMute]);
 
   const handleCopyTimestamps = async () => {
     const text =
@@ -429,15 +467,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           <div className="sticky top-14 sm:static z-20 bg-stone-50 dark:bg-stone-950 sm:bg-transparent py-0 -mx-3 sm:mx-0">
             <div
               ref={playerWrapperRef}
-              className={`relative w-full aspect-video bg-black overflow-hidden ${
+              className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
                   ? 'fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center'
                   : 'rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800'
               }`}
             >
+              {/* Floating Fullscreen button on video hover in normal mode */}
+              {!isFullscreen && (
+                <button
+                  type="button"
+                  onClick={handleToggleFullscreen}
+                  className="absolute top-3 right-3 z-20 min-h-11 px-3 inline-flex items-center gap-1.5 bg-black/75 hover:bg-black text-white text-xs font-semibold rounded-full border border-white/20 shadow-md backdrop-blur-xs opacity-0 hover:opacity-100 focus-visible:opacity-100 group-hover/player:opacity-100 transition-opacity cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  title="Fullscreen with Chapters (F)"
+                  aria-label="Enter Fullscreen with Chapters"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Fullscreen</span>
+                </button>
+              )}
               {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
               <div
-                className="w-full h-full"
+                className="w-full h-full relative"
                 style={
                   isFullscreen && isPortrait
                     ? {
@@ -473,21 +524,38 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     </a>
                   </div>
                 )}
-              </div>
 
-              {/* Floating Exit Button in Fullscreen Mode */}
-              {isFullscreen && (
-                <button
-                  type="button"
-                  onClick={handleToggleFullscreen}
-                  className="absolute top-4 right-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/80 hover:bg-black text-white text-xs font-semibold rounded-full border border-white/20 shadow-md cursor-pointer touch-manipulation"
-                  title="Exit Fullscreen"
-                  aria-label="Exit Fullscreen"
-                >
-                  <X className="w-4 h-4" aria-hidden="true" />
-                  <span>Exit</span>
-                </button>
-              )}
+                {/* Rich Fullscreen Overlay with transport bar & chapter drawer */}
+                {isFullscreen && (
+                  <FullscreenOverlay
+                    playlist={playlist}
+                    activeChapter={activeChapter}
+                    currentChapterIndex={currentChapterIndex}
+                    totalChapters={totalChapters}
+                    completedIdsSet={completedIdsSet}
+                    currentTime={currentTime}
+                    duration={duration}
+                    isPlaying={isPlaying}
+                    isPlayLoading={isPlayLoading}
+                    isReady={isReady}
+                    playbackRate={playbackRate}
+                    seekToChapter={handleSelectChapter}
+                    seekBy={handleSeekBy}
+                    seekToTime={handleSeekToTime}
+                    setPlaybackRate={setPlaybackRate}
+                    play={play}
+                    pause={pause}
+                    volume={volume}
+                    isMuted={isMuted}
+                    onSetVolume={setVolume}
+                    onToggleMute={toggleMute}
+                    isCaptionsEnabled={isCaptionsEnabled}
+                    onToggleCaptions={toggleCaptions}
+                    onToggleComplete={handleToggleComplete}
+                    onExitFullscreen={handleToggleFullscreen}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -624,6 +692,22 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   )}
                 </div>
 
+                {/* Closed Captions / Subtitles Toggle (C) */}
+                <button
+                  type="button"
+                  onClick={toggleCaptions}
+                  title={isCaptionsEnabled ? 'Turn off captions (C)' : 'Turn on captions (C)'}
+                  aria-label={isCaptionsEnabled ? 'Turn off captions' : 'Turn on captions'}
+                  aria-pressed={isCaptionsEnabled}
+                  className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${
+                    isCaptionsEnabled
+                      ? 'bg-primary text-white border-primary shadow-xs'
+                      : 'bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100'
+                  }`}
+                >
+                  <Subtitles className={`w-4 h-4 ${isCaptionsEnabled ? 'text-white' : 'text-stone-600 dark:text-stone-400'}`} aria-hidden="true" />
+                </button>
+
                 {/* Fullscreen Toggle */}
                 <button
                   type="button"
@@ -723,6 +807,44 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 >
                   <SkipForward className="w-4 h-4 fill-current" aria-hidden="true" />
                 </button>
+
+                {/* Vertical Divider */}
+                <div className="h-5 w-px bg-stone-200 dark:bg-stone-800 mx-0.5 sm:mx-1 hidden xs:block" aria-hidden="true" />
+
+                {/* Volume Control */}
+                <div className="flex items-center gap-1 group/volume">
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
+                    aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                    className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
+                    ) : volume < 50 ? (
+                      <Volume1 className="w-4 h-4 text-stone-700 dark:text-stone-300" aria-hidden="true" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-stone-700 dark:text-stone-300" aria-hidden="true" />
+                    )}
+                  </button>
+                  <div className="hidden xs:flex items-center w-16 sm:w-20 px-1">
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={isMuted ? 0 : volume}
+                      onChange={(e) => setVolume(Number(e.target.value))}
+                      aria-label="Volume slider"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={isMuted ? 0 : volume}
+                      aria-valuetext={`${isMuted ? 0 : volume}%`}
+                      className="w-full h-1.5 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </section>

@@ -11,6 +11,16 @@ export interface YTPlayerInstance {
   getDuration: () => number;
   getPlaybackRate?: () => number;
   setPlaybackRate?: (rate: number) => void;
+  getVolume?: () => number;
+  setVolume?: (vol: number) => void;
+  mute?: () => void;
+  unMute?: () => void;
+  isMuted?: () => boolean;
+  loadModule?: (name: string) => void;
+  unloadModule?: (name: string) => void;
+  getOption?: (module: string, option: string) => unknown;
+  setOption?: (module: string, option: string, value: unknown) => void;
+  getOptions?: (module?: string) => unknown;
   destroy: () => void;
 }
 
@@ -31,6 +41,7 @@ export interface YTNamespace {
         onReady?: (event: YTPlayerEvent) => void;
         onStateChange?: (event: YTPlayerEvent) => void;
         onError?: (event: YTPlayerEvent) => void;
+        onApiChange?: (event: YTPlayerEvent) => void;
       };
     }
   ) => YTPlayerInstance;
@@ -74,12 +85,15 @@ export function useYouTubePlayer({
   const chapterDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const playStateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const lastReportedTimeRef = useRef<number>(-1);
 
   useEffect(() => {
     return () => {
       if (seekDebounceTimerRef.current) clearTimeout(seekDebounceTimerRef.current);
       if (chapterDebounceTimerRef.current) clearTimeout(chapterDebounceTimerRef.current);
       if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
   }, []);
 
@@ -91,6 +105,13 @@ export function useYouTubePlayer({
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(initialChapterIndex);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  const [isCaptionsEnabled, setIsCaptionsEnabled] = useState(false);
+  const isCaptionsEnabledRef = useRef(isCaptionsEnabled);
+  useEffect(() => {
+    isCaptionsEnabledRef.current = isCaptionsEnabled;
+  }, [isCaptionsEnabled]);
+  const [volume, setVolumeState] = useState(100);
+  const [isMuted, setIsMutedState] = useState(false);
 
   const initialStartTimeRef = useRef(initialStartTime);
   useEffect(() => {
@@ -221,6 +242,8 @@ export function useYouTubePlayer({
           rel: 0,
           playsinline: 1,
           enablejsapi: 1,
+          fs: 0,
+          cc_lang_pref: 'en',
           origin: typeof window !== 'undefined' ? window.location.origin : undefined,
         },
         events: {
@@ -235,6 +258,20 @@ export function useYouTubePlayer({
               if (initialRate) setPlaybackRateState(initialRate);
             }
 
+            if (typeof event.target.getVolume === 'function') {
+              const initialVol = event.target.getVolume();
+              if (typeof initialVol === 'number') setVolumeState(initialVol);
+            }
+
+            if (typeof event.target.isMuted === 'function') {
+              setIsMutedState(Boolean(event.target.isMuted()));
+            }
+
+            // Pre-load captions module in the background so tracklist is available on demand
+            if (typeof event.target.loadModule === 'function') {
+              event.target.loadModule('captions');
+            }
+
             // Seek to initial resume timestamp if provided
             const startTime = initialStartTimeRef.current;
             if (startTime > 0) {
@@ -244,6 +281,15 @@ export function useYouTubePlayer({
               event.target.seekTo(chaptersRef.current[0].startTime, true);
             }
           },
+          onApiChange: () => {
+            if (isCancelled || !playerRef.current) return;
+            const p = playerRef.current;
+            if (typeof p.getOption === 'function') {
+              const track = p.getOption('captions', 'track');
+              const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
+              setIsCaptionsEnabled(isCurrentlyOn);
+            }
+          },
           onStateChange: (event: YTPlayerEvent) => {
             if (isCancelled) return;
             const playerState = event.data;
@@ -251,6 +297,10 @@ export function useYouTubePlayer({
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
               setIsPlaying(true);
               setIsPlayLoading(false);
+              // Ensure captions module is active when playback begins
+              if (typeof event.target.loadModule === 'function') {
+                event.target.loadModule('captions');
+              }
             } else if (playerState === 2) {
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
               setIsPlaying(false);
@@ -310,15 +360,29 @@ export function useYouTubePlayer({
 
         if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
           const t = playerRef.current.getCurrentTime();
-          setCurrentTime(t);
-          updateActiveChapterIndex(t);
-          onTimeUpdateRef.current?.(t, currentChapterIndexRef.current);
+          if (typeof t !== 'number' || isNaN(t)) return;
+
+          // Skip queuing frame if time has not progressed by at least 0.25s
+          if (Math.abs(t - lastReportedTimeRef.current) < 0.25) return;
+          lastReportedTimeRef.current = t;
+
+          // Schedule updates inside requestAnimationFrame to keep setInterval handler instant (<1ms)
+          if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = requestAnimationFrame(() => {
+            setCurrentTime(t);
+            updateActiveChapterIndex(t);
+            onTimeUpdateRef.current?.(t, currentChapterIndexRef.current);
+          });
         }
-      }, 250);
+      }, 500);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
       }
     }
 
@@ -326,6 +390,10 @@ export function useYouTubePlayer({
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
       }
     };
   }, [isPlaying, updateActiveChapterIndex]);
@@ -457,6 +525,91 @@ export function useYouTubePlayer({
     }
   }, []);
 
+  const toggleCaptions = useCallback(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    try {
+      if (typeof player.loadModule === 'function') {
+        player.loadModule('captions');
+      }
+
+      const currentTrack = typeof player.getOption === 'function' ? player.getOption('captions', 'track') : null;
+      const isCurrentlyOn =
+        isCaptionsEnabledRef.current ||
+        Boolean(currentTrack && typeof currentTrack === 'object' && Object.keys(currentTrack).length > 0);
+
+      if (isCurrentlyOn) {
+        if (typeof player.setOption === 'function') {
+          player.setOption('captions', 'track', {});
+        }
+        if (typeof player.unloadModule === 'function') {
+          player.unloadModule('captions');
+        }
+        setIsCaptionsEnabled(false);
+      } else {
+        const activateCaptions = () => {
+          if (!playerRef.current) return;
+          const p = playerRef.current;
+          let trackToSet: unknown = { languageCode: 'en' };
+          if (typeof p.getOption === 'function') {
+            const trackList = p.getOption('captions', 'tracklist') as Array<{ languageCode?: string }> | undefined;
+            if (Array.isArray(trackList) && trackList.length > 0) {
+              const enTrack = trackList.find(
+                (t) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
+              );
+              trackToSet = enTrack || trackList[0];
+            }
+          }
+          if (typeof p.setOption === 'function') {
+            p.setOption('captions', 'track', trackToSet);
+          }
+        };
+
+        activateCaptions();
+        // Module might still be loading asynchronously: retry activating
+        setTimeout(activateCaptions, 150);
+        setTimeout(activateCaptions, 400);
+        setTimeout(activateCaptions, 800);
+
+        setIsCaptionsEnabled(true);
+      }
+    } catch (err) {
+      console.warn('Failed to toggle captions:', err);
+    }
+  }, []);
+
+  const setVolume = useCallback((newVolume: number) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(newVolume)));
+    if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
+      playerRef.current.setVolume(clamped);
+      if (clamped > 0 && typeof playerRef.current.unMute === 'function') {
+        playerRef.current.unMute();
+        setIsMutedState(false);
+      }
+      setVolumeState(clamped);
+    }
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    if (!playerRef.current) return;
+    const player = playerRef.current;
+    if (typeof player.isMuted === 'function' && typeof player.mute === 'function' && typeof player.unMute === 'function') {
+      const currentlyMuted = player.isMuted();
+      if (currentlyMuted) {
+        player.unMute();
+        setIsMutedState(false);
+        if (volume === 0 && typeof player.setVolume === 'function') {
+          player.setVolume(50);
+          setVolumeState(50);
+        }
+      } else {
+        player.mute();
+        setIsMutedState(true);
+      }
+    }
+  }, [volume]);
+
   return {
     isReady,
     isPlaying,
@@ -466,11 +619,17 @@ export function useYouTubePlayer({
     playbackRate,
     currentChapterIndex,
     playerError,
+    isCaptionsEnabled,
+    volume,
+    isMuted,
     seekToChapter,
     seekToTime,
     seekBy,
     setPlaybackRate,
+    setVolume,
+    toggleMute,
     play,
     pause,
+    toggleCaptions,
   };
 }

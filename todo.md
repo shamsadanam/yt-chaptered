@@ -1,9 +1,15 @@
 # Roadmap & Todo List
 
+## Priority 1: Fullscreen Overlay, In-App Search & Progress Sync
+
+- [x] Add overlay inside the fullscreen player for chapters, and some player controls.
+- [ ] Search YouTube from this web app and add video here; show if video is chapterable via an icon/small description.
+- [ ] Google Drive sync or free DB sync for account progress.
+
 ## Priority 2: PWA Experience & Storage Reliability
 
 - [x] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers.
-- [x] Update screenshots.
+- [ ] Update screenshots to also include/show homepage of the site.
 - [ ] Test installation and standalone launch on Chromium (desktop & Android) and Safari (iOS & macOS).
 - [ ] Run Google Lighthouse PWA audit (verify installability, manifest validity, theme color).
 
@@ -20,5 +26,4 @@
 
 ## Future
 
-1. Add Auth so that it syncs with users profile.
 2. Update readme and design, dot md files.
