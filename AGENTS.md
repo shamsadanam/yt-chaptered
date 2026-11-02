@@ -20,3 +20,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **No Unnecessary Arbitrary Values**: Avoid arbitrary classes (`-[...]`) for colors, dimensions, radii, tracking, or typography. If a custom utility or measurement is genuinely needed, declare it semantically in `app/globals.css` using `@theme` or `@utility`.
 - **Icon Props Over Arbitrary Classes**: Configure Lucide icon properties through native component props (such as `<Check className="w-3.5 h-3.5" strokeWidth={3} />`) rather than arbitrary classes like `stroke-[3]`.
 
+## Vercel Skills
+
+- **Follow Vercel Skills for New Features**: When adding new features, always consult and follow the Vercel skills located in `.agents/skills/` (such as `vercel-react-best-practices`, `vercel-react-view-transitions`, or any other relevant Vercel engineering skills).
+- **Prompt if Missing**: Before implementing new features, verify that the required Vercel skill(s) are installed in `.agents/skills/`. If any required Vercel skills are not installed, pause and ask the user to install them (listing specifically which skills are needed) before proceeding with code changes.
+
