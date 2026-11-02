@@ -23,6 +23,7 @@ interface CourseHistoryShelfProps {
   onGoToCreate?: () => void;
   isTopShelf?: boolean;
   onAddNewCourse?: () => void;
+  onOpenSearch?: () => void;
 }
 
 export function CourseHistorySkeleton() {
@@ -47,6 +48,7 @@ export function CourseHistoryShelf({
   isLoading = false,
   onGoToCreate,
   onAddNewCourse,
+  onOpenSearch,
 }: CourseHistoryShelfProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -407,14 +409,26 @@ export function CourseHistoryShelf({
             <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto mb-4">
               No courses or chapters match &ldquo;{debouncedQuery}&rdquo;. Try another search term.
             </p>
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 rounded-lg transition-colors cursor-pointer min-h-9"
-            >
-              <X className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Clear search</span>
-            </button>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 rounded-lg transition-colors cursor-pointer min-h-9"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Clear search</span>
+              </button>
+              {onOpenSearch && (
+                <button
+                  type="button"
+                  onClick={onOpenSearch}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary dark:text-emerald-400 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors cursor-pointer min-h-9"
+                >
+                  <Search className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Search YouTube</span>
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

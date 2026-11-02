@@ -10,6 +10,35 @@ interface TurnstileVerifyResponse {
   cdata?: string;
 }
 
+const clearanceStore = new Map<string, number>();
+let lastClearanceCleanup = Date.now();
+
+function evictStaleClearances(now: number) {
+  if (now - lastClearanceCleanup < 60_000) return;
+  lastClearanceCleanup = now;
+  for (const [key, expiresAt] of clearanceStore) {
+    if (now > expiresAt) clearanceStore.delete(key);
+  }
+}
+
+export function isClientCleared(key: string): boolean {
+  const now = Date.now();
+  evictStaleClearances(now);
+  const expiresAt = clearanceStore.get(key);
+  if (!expiresAt) return false;
+  if (now > expiresAt) {
+    clearanceStore.delete(key);
+    return false;
+  }
+  return true;
+}
+
+export function grantClientClearance(key: string, durationMs = 15 * 60 * 1000): void {
+  const now = Date.now();
+  evictStaleClearances(now);
+  clearanceStore.set(key, now + durationMs);
+}
+
 export async function verifyTurnstileToken(
   token: string,
   clientIp?: string

@@ -7,6 +7,7 @@ import {
   AlertCircle,
   ArrowRight,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import { extractYouTubeId, parseTimestamps } from "../lib/youtubeParser";
 import { ParsedPlaylist } from "../types/playlist";
@@ -14,6 +15,7 @@ import { TurnstileWidget } from "./TurnstileWidget";
 
 interface InputViewProps {
   onGenerate: (playlist: ParsedPlaylist) => void;
+  onOpenSearch?: () => void;
 }
 
 const SAMPLE_DATA = {
@@ -51,7 +53,7 @@ const SAMPLE_DATA = {
 3:11:14 How to Actually Get Better`,
 };
 
-export function InputView({ onGenerate }: InputViewProps) {
+export function InputView({ onGenerate, onOpenSearch }: InputViewProps) {
   const [url, setUrl] = useState("");
   const [timestampsText, setTimestampsText] = useState("");
   const [isExpandTimestamps, setIsExpandTimestamps] = useState(false);
@@ -355,26 +357,38 @@ export function InputView({ onGenerate }: InputViewProps) {
               >
                 YouTube Course URL
               </label>
-              <button
-                type="button"
-                onClick={handleAutoFetchClick}
-                disabled={isLoading || !url.trim()}
-                aria-label="Auto-detect timestamps and video info"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary dark:text-emerald-400 bg-primary/5 hover:bg-primary/10 active:bg-primary/15 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-primary/20 dark:border-emerald-800/50 rounded-lg transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-manipulation min-h-8.5"
-              >
-                {isLoading ? (
-                  <Loader2
-                    className="animate-spin w-3.5 h-3.5 text-primary dark:text-emerald-400"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <WandSparkles
-                    className="w-3.5 h-3.5 text-primary dark:text-emerald-400"
-                    aria-hidden="true"
-                  />
+              <div className="flex items-center gap-2">
+                {onOpenSearch && (
+                  <button
+                    type="button"
+                    onClick={onOpenSearch}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 rounded-lg transition-colors cursor-pointer min-h-8.5"
+                  >
+                    <Search className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Search YouTube</span>
+                  </button>
                 )}
-                <span>Auto Detect</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={handleAutoFetchClick}
+                  disabled={isLoading || !url.trim()}
+                  aria-label="Auto-detect timestamps and video info"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary dark:text-emerald-400 bg-primary/5 hover:bg-primary/10 active:bg-primary/15 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-primary/20 dark:border-emerald-800/50 rounded-lg transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-manipulation min-h-8.5"
+                >
+                  {isLoading ? (
+                    <Loader2
+                      className="animate-spin w-3.5 h-3.5 text-primary dark:text-emerald-400"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <WandSparkles
+                      className="w-3.5 h-3.5 text-primary dark:text-emerald-400"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span>Auto Detect</span>
+                </button>
+              </div>
             </div>
             <div className="relative">
               <input

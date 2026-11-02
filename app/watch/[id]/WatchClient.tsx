@@ -7,6 +7,7 @@ import { Navbar } from '../../../components/Navbar';
 import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
 import { AboutModal } from '../../../components/AboutModal';
+import { SearchModal } from '../../../components/SearchModal';
 import { CopyrightYear } from '../../../components/CopyrightYear';
 import { TurnstileWidget } from '../../../components/TurnstileWidget';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
@@ -56,6 +57,7 @@ function getInitialPlaybackParams(
 export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   const router = useRouter();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isAutoFetching, setIsAutoFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -129,6 +131,26 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
       isCancelled = true;
     };
   }, [videoId, savedCourse]);
+
+  // Global search keyboard shortcuts on watch page
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+        return;
+      }
+      if (
+        e.key === '/' &&
+        !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
+      ) {
+        e.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Execute protected fetch once Turnstile token is available
   useEffect(() => {
@@ -236,7 +258,12 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   if (!savedCourse && (isAutoFetching || needsFetch)) {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
-        <Navbar onReset={() => router.push('/')} showReset={true} onOpenAbout={() => setIsAboutOpen(true)} />
+        <Navbar
+          onReset={() => router.push('/')}
+          showReset={true}
+          onOpenAbout={() => setIsAboutOpen(true)}
+          onOpenSearch={() => setIsSearchModalOpen(true)}
+        />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
             <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto mb-4" aria-hidden="true" />
@@ -261,7 +288,10 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   if (!savedCourse && fetchError) {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
-        <Navbar onOpenAbout={() => setIsAboutOpen(true)} />
+        <Navbar
+          onOpenAbout={() => setIsAboutOpen(true)}
+          onOpenSearch={() => setIsSearchModalOpen(true)}
+        />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div role="alert" className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 flex items-center justify-center mx-auto mb-3" aria-hidden="true">
@@ -295,6 +325,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
         onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
@@ -306,10 +337,19 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         hasActivePlaylist={true}
         activePlaylistTitle={playlist.video.title}
         onTabChange={(tab) => {
-          if (tab === 'create') router.push('/');
+          if (tab === 'create') router.push('/?tab=create');
           else if (tab === 'history') router.push('/?tab=history');
         }}
         onOpenAbout={() => setIsAboutOpen(true)}
+      />
+
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onSwitchToAddModal={() => {
+          setIsSearchModalOpen(false);
+          router.push('/?tab=create');
+        }}
       />
 
       <AboutModal

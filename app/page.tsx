@@ -10,6 +10,7 @@ import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { AboutModal } from '../components/AboutModal';
 import { AddCourseModal } from '../components/AddCourseModal';
+import { SearchModal } from '../components/SearchModal';
 import { CopyrightYear } from '../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
@@ -26,6 +27,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('history');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const isStorageLoading = useIsStorageLoading();
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
@@ -37,15 +39,38 @@ export default function Home() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab === 'history' || tab === 'create') {
+    if (tab === 'history' || tab === 'create' || tab === 'search') {
       queueMicrotask(() => {
         if (tab === 'create') {
           setIsAddModalOpen(true);
+        } else if (tab === 'search') {
+          setIsSearchModalOpen(true);
         } else {
           setActiveTab('history');
         }
       });
     }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ⌘K or Ctrl+K shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+        return;
+      }
+
+      // "/" shortcut when active element is not an input or textarea
+      if (
+        e.key === '/' &&
+        !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
+      ) {
+        e.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleRefreshCourses = () => {};
@@ -100,6 +125,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
         onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
@@ -117,12 +143,16 @@ export default function Home() {
             isLoading={isStorageLoading}
             isStandaloneView={true}
             onAddNewCourse={() => setIsAddModalOpen(true)}
+            onOpenSearch={() => setIsSearchModalOpen(true)}
           />
         )}
 
         {/* View 3: First-time user experience and default SSR view */}
         {savedCourses.length === 0 && activeTab !== 'player' && (
-          <InputView onGenerate={handleGenerate} />
+          <InputView
+            onGenerate={handleGenerate}
+            onOpenSearch={() => setIsSearchModalOpen(true)}
+          />
         )}
       </main>
 
@@ -169,6 +199,20 @@ export default function Home() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onGenerate={handleGenerate}
+        onSwitchToSearch={() => {
+          setIsAddModalOpen(false);
+          setIsSearchModalOpen(true);
+        }}
+      />
+
+      {/* In-App YouTube Search Modal Dialog */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onSwitchToAddModal={() => {
+          setIsSearchModalOpen(false);
+          setIsAddModalOpen(true);
+        }}
       />
 
       {/* About Me / App Modal */}

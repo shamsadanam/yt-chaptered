@@ -11,6 +11,7 @@ interface AddCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerate: (playlist: ParsedPlaylist) => void;
+  onSwitchToSearch?: () => void;
 }
 
 export type AddVideoModalProps = AddCourseModalProps;
@@ -50,7 +51,7 @@ const SAMPLE_DATA = {
 3:11:14 How to Actually Get Better`,
 };
 
-export function AddCourseModal({ isOpen, onClose, onGenerate }: AddCourseModalProps) {
+export function AddCourseModal({ isOpen, onClose, onGenerate, onSwitchToSearch }: AddCourseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isRendered, setIsRendered] = useState(isOpen);
@@ -383,7 +384,21 @@ export function AddCourseModal({ isOpen, onClose, onGenerate }: AddCourseModalPr
               Add Course
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400">
-              Paste a YouTube URL to automatically detect chapters
+              Paste a YouTube URL {onSwitchToSearch && (
+                <>
+                  or{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleRequestClose();
+                      onSwitchToSearch();
+                    }}
+                    className="text-primary dark:text-emerald-400 font-semibold underline hover:no-underline cursor-pointer"
+                  >
+                    search YouTube
+                  </button>
+                </>
+              )}
             </p>
           </div>
           <button

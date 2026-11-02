@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseTimestamps } from '@/lib/youtubeParser';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { verifyTurnstileToken } from '@/lib/turnstile';
+import {
+  isClientCleared,
+  grantClientClearance,
+  verifyTurnstileToken,
+} from '@/lib/turnstile';
 
 const YOUTUBE_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
 const YT_INITIAL_PLAYER_RESPONSE_REGEX = /ytInitialPlayerResponse\s*=\s*({.+?});(?:var\s+|const\s+|let\s+|window\[|<)/;
@@ -139,22 +143,26 @@ export async function GET(request: NextRequest) {
   const turnstileToken = request.headers.get('x-turnstile-token');
   const isDev = process.env.NODE_ENV !== 'production';
 
-  if (!turnstileToken) {
-    if (!isDev || process.env.TURNSTILE_SECRET_KEY) {
-      return NextResponse.json(
-        { success: false, error: 'Turnstile verification token missing' },
-        { status: 403 }
-      );
-    }
-  } else {
-    const verification = await verifyTurnstileToken(turnstileToken, clientIp);
-    if (!verification.success) {
+  // Check if client IP already has an active 15-minute verification clearance
+  if (!isClientCleared(clientIp)) {
+    if (!turnstileToken) {
       if (!isDev || process.env.TURNSTILE_SECRET_KEY) {
         return NextResponse.json(
-          { success: false, error: verification.error || 'Bot verification failed' },
+          { success: false, error: 'Turnstile verification token missing' },
           { status: 403 }
         );
       }
+    } else {
+      const verification = await verifyTurnstileToken(turnstileToken, clientIp);
+      if (!verification.success) {
+        if (!isDev || process.env.TURNSTILE_SECRET_KEY) {
+          return NextResponse.json(
+            { success: false, error: verification.error || 'Bot verification failed' },
+            { status: 403 }
+          );
+        }
+      }
+      grantClientClearance(clientIp);
     }
   }
 
