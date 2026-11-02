@@ -1,16 +1,13 @@
 'use client';
  
 import { useState, useEffect, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Play } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { InputView } from '../components/InputView';
-import { PlaylistView } from '../components/PlaylistView';
 import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
-import { AboutModal } from '../components/AboutModal';
-import { AddCourseModal } from '../components/AddCourseModal';
-import { SearchModal } from '../components/SearchModal';
 import { CopyrightYear } from '../components/CopyrightYear';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
@@ -20,6 +17,23 @@ import {
   saveCourse,
   useIsStorageLoading,
 } from '../lib/storage';
+
+const AboutModal = dynamic(
+  () => import('../components/AboutModal').then((mod) => mod.AboutModal),
+  { ssr: false }
+);
+const AddCourseModal = dynamic(
+  () => import('../components/AddCourseModal').then((mod) => mod.AddCourseModal),
+  { ssr: false }
+);
+const SearchModal = dynamic(
+  () => import('../components/SearchModal').then((mod) => mod.SearchModal),
+  { ssr: false }
+);
+const PlaylistView = dynamic(
+  () => import('../components/PlaylistView').then((mod) => mod.PlaylistView),
+  { ssr: false }
+);
 
 export default function Home() {
   const router = useRouter();

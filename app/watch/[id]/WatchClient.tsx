@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
-import { AboutModal } from '../../../components/AboutModal';
-import { SearchModal } from '../../../components/SearchModal';
 import { CopyrightYear } from '../../../components/CopyrightYear';
 import { TurnstileWidget } from '../../../components/TurnstileWidget';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
@@ -20,6 +19,15 @@ import {
   initStorage,
 } from '../../../lib/storage';
 import { parseTimestamps } from '../../../lib/youtubeParser';
+
+const AboutModal = dynamic(
+  () => import('../../../components/AboutModal').then((mod) => mod.AboutModal),
+  { ssr: false }
+);
+const SearchModal = dynamic(
+  () => import('../../../components/SearchModal').then((mod) => mod.SearchModal),
+  { ssr: false }
+);
 
 interface WatchClientProps {
   videoId: string;

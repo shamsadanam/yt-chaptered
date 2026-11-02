@@ -16,6 +16,7 @@ interface SearchCacheEntry {
   expiresAt: number;
 }
 
+const MAX_SEARCH_CACHE_SIZE = 500;
 const searchCache = new Map<string, SearchCacheEntry>();
 let lastCacheCleanup = Date.now();
 
@@ -46,6 +47,12 @@ function setCachedSearch(
 ) {
   const now = Date.now();
   evictStaleCache(now);
+
+  if (searchCache.size >= MAX_SEARCH_CACHE_SIZE) {
+    const oldestKey = searchCache.keys().next().value;
+    if (oldestKey) searchCache.delete(oldestKey);
+  }
+
   searchCache.set(query.toLowerCase(), {
     results,
     expiresAt: now + ttlMs,
@@ -110,11 +117,14 @@ function extractVideoRenderers(
   }
 
   const record = obj as Record<string, unknown>;
-  for (const [key, value] of Object.entries(record)) {
-    if (key === 'videoRenderer' && value && typeof value === 'object') {
-      list.push(value as InnertubeVideoRenderer);
-    } else {
-      extractVideoRenderers(value, list);
+  for (const key in record) {
+    if (Object.prototype.hasOwnProperty.call(record, key)) {
+      const value = record[key];
+      if (key === 'videoRenderer' && value && typeof value === 'object') {
+        list.push(value as InnertubeVideoRenderer);
+      } else {
+        extractVideoRenderers(value, list);
+      }
     }
   }
 
@@ -176,6 +186,19 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Validate search query before async bot verification (cheap sync condition first)
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get('q');
+
+  if (!query || query.trim().length < 2) {
+    return NextResponse.json(
+      { success: false, error: 'Search query must be at least 2 characters long' },
+      { status: 400 }
+    );
+  }
+
+  const trimmedQuery = query.trim();
+
   const turnstileToken = request.headers.get('x-turnstile-token');
   const isDev = process.env.NODE_ENV !== 'production';
 
@@ -202,18 +225,6 @@ export async function GET(request: NextRequest) {
       grantClientClearance(clientIp);
     }
   }
-
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
-
-  if (!query || query.trim().length < 2) {
-    return NextResponse.json(
-      { success: false, error: 'Search query must be at least 2 characters long' },
-      { status: 400 }
-    );
-  }
-
-  const trimmedQuery = query.trim();
 
   // Check server cache first (saves outbound calls to YouTube)
   const cachedResults = getCachedSearch(trimmedQuery);

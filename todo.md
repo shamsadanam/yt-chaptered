@@ -6,6 +6,7 @@
 - [x] Search YouTube from this web app and add video here; show if video is chapterable via an icon/small description.
   - [ ] make the cc button work, if not then find alternative
   - [ ] redesign the mobile header and bottom navbar
+  - [ ] do a code review using this - `npx skills@latest add mattpocock/skills --skill=setup-matt-pocock-skills`
 - [ ] Google Drive sync or free DB sync for account progress.
 
 ## Priority 2: PWA Experience & Storage Reliability

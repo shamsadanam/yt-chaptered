@@ -10,6 +10,7 @@ interface TurnstileVerifyResponse {
   cdata?: string;
 }
 
+const MAX_CLEARANCE_ENTRIES = 5000;
 const clearanceStore = new Map<string, number>();
 let lastClearanceCleanup = Date.now();
 
@@ -36,6 +37,12 @@ export function isClientCleared(key: string): boolean {
 export function grantClientClearance(key: string, durationMs = 15 * 60 * 1000): void {
   const now = Date.now();
   evictStaleClearances(now);
+
+  if (clearanceStore.size >= MAX_CLEARANCE_ENTRIES) {
+    const oldestKey = clearanceStore.keys().next().value;
+    if (oldestKey) clearanceStore.delete(oldestKey);
+  }
+
   clearanceStore.set(key, now + durationMs);
 }
 

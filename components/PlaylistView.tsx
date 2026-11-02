@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   Loader2,
@@ -26,7 +27,10 @@ import {
 import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { secondsToTimestamp } from '../lib/youtubeParser';
-import { FullscreenOverlay } from './FullscreenOverlay';
+const FullscreenOverlay = dynamic(
+  () => import('./FullscreenOverlay').then((mod) => mod.FullscreenOverlay),
+  { ssr: false }
+);
 import {
   saveCourse,
   getSavedCourse,

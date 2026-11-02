@@ -139,20 +139,27 @@ export function FullscreenOverlay({
     };
   }, [isPlaying, isDrawerOpen, isSpeedMenuOpen, isHoveringControls, isScrubbing]);
 
+  const resetHideTimerRef = useRef(resetHideTimer);
+  useEffect(() => {
+    resetHideTimerRef.current = resetHideTimer;
+  });
+
   // Global window pointermove listener to ensure controls wake up on mouse movement
   useEffect(() => {
     const handleWindowPointer = () => {
-      resetHideTimer();
+      resetHideTimerRef.current();
     };
-    window.addEventListener('pointermove', handleWindowPointer);
+    window.addEventListener('pointermove', handleWindowPointer, { passive: true });
     return () => {
       window.removeEventListener('pointermove', handleWindowPointer);
     };
-  }, [resetHideTimer]);
+  }, []);
 
   // Keyboard navigation inside fullscreen
+  const handleKeyDownRef = useRef<(e: KeyboardEvent) => void>(() => {});
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    handleKeyDownRef.current = (e: KeyboardEvent) => {
       // Do not intercept hotkeys if user is typing in the search filter input
       const target = e.target as HTMLElement | null;
       if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') {
@@ -269,29 +276,17 @@ export function FullscreenOverlay({
           break;
       }
     };
+  });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      handleKeyDownRef.current(e);
+    };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [
-    isPlaying,
-    isDrawerOpen,
-    isSpeedMenuOpen,
-    currentChapterIndex,
-    totalChapters,
-    volume,
-    isMuted,
-    play,
-    pause,
-    seekBy,
-    seekToChapter,
-    onExitFullscreen,
-    onToggleCaptions,
-    effectiveSetVolume,
-    effectiveToggleMute,
-    resetHideTimer,
-  ]);
+  }, []);
 
   // Auto-scroll chapter drawer to active item when opened
   useEffect(() => {
@@ -324,6 +319,27 @@ export function FullscreenOverlay({
     );
   }, [playlist.chapters, filterQuery]);
 
+  // Map chapter ID to its original index for O(1) lookup in drawer list
+  const chapterIndexMap = useMemo(() => {
+    return new Map(playlist.chapters.map((chap, i) => [chap.id, i]));
+  }, [playlist.chapters]);
+
+  // Memoize split notches to avoid recalculating on every currentTime tick (4x/sec)
+  const splitNotches = useMemo(() => {
+    if (duration <= 0) return null;
+    return playlist.chapters.map((c) => {
+      if (c.startTime <= 0) return null;
+      const leftPercent = (c.startTime / duration) * 100;
+      return (
+        <div
+          key={c.id}
+          className="absolute top-0 bottom-0 w-0.5 bg-black/60 z-10 pointer-events-none"
+          style={{ left: `${leftPercent}%` }}
+        />
+      );
+    });
+  }, [duration, playlist.chapters]);
+
   // Overall course progress
   const completedCount = completedIdsSet.size;
   const courseProgressPercentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
@@ -352,9 +368,7 @@ export function FullscreenOverlay({
       setHoveredTime(targetTime);
 
       // Find corresponding chapter title for hovered timestamp
-      const foundChap = [...playlist.chapters]
-        .reverse()
-        .find((chap) => targetTime >= chap.startTime);
+      const foundChap = playlist.chapters.findLast((chap) => targetTime >= chap.startTime);
       setHoveredChapterTitle(foundChap ? foundChap.title : null);
 
       if (isScrubbing) {
@@ -555,7 +569,7 @@ export function FullscreenOverlay({
             </li>
           ) : (
             filteredChapters.map((chap) => {
-              const originalIndex = playlist.chapters.findIndex((c) => c.id === chap.id);
+              const originalIndex = chapterIndexMap.get(chap.id) ?? chap.index - 1;
               const isActive = originalIndex === currentChapterIndex;
               const isCompleted = completedIdsSet.has(chap.id);
 
@@ -721,18 +735,7 @@ export function FullscreenOverlay({
               />
 
               {/* Chapter Boundary Split Notches */}
-              {duration > 0 &&
-                playlist.chapters.map((c) => {
-                  if (c.startTime <= 0) return null;
-                  const leftPercent = (c.startTime / duration) * 100;
-                  return (
-                    <div
-                      key={c.id}
-                      className="absolute top-0 bottom-0 w-0.5 bg-black/60 z-10 pointer-events-none"
-                      style={{ left: `${leftPercent}%` }}
-                    />
-                  );
-                })}
+              {splitNotches}
             </div>
           </div>
         </div>
