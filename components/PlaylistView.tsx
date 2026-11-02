@@ -478,14 +478,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <button
                   type="button"
                   onClick={handleToggleFullscreen}
-                  className="absolute top-3 right-3 z-20 min-h-11 px-3 inline-flex items-center gap-1.5 bg-black/75 hover:bg-black text-white text-xs font-semibold rounded-full border border-white/20 shadow-md backdrop-blur-xs opacity-0 hover:opacity-100 focus-visible:opacity-100 group-hover/player:opacity-100 transition-opacity cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  className="absolute bottom-3 right-3 z-20 w-9 h-9 inline-flex items-center justify-center bg-black/75 hover:bg-black active:bg-black text-white rounded-lg border border-white/20 shadow-md backdrop-blur-xs opacity-0 hover:opacity-100 focus-visible:opacity-100 group-hover/player:opacity-100 transition-opacity cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                   title="Fullscreen with Chapters (F)"
                   aria-label="Enter Fullscreen with Chapters"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>Fullscreen</span>
+                  <Maximize2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               )}
+
               {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
               <div
                 className="w-full h-full relative"
@@ -828,7 +828,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       <Volume2 className="w-4 h-4 text-stone-700 dark:text-stone-300" aria-hidden="true" />
                     )}
                   </button>
-                  <div className="hidden xs:flex items-center w-16 sm:w-20 px-1">
+                  <div className="hidden xs:flex items-center w-20 sm:w-28 md:w-32 lg:w-36 px-1.5">
                     <input
                       type="range"
                       min={0}

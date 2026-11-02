@@ -289,9 +289,26 @@ export function useYouTubePlayer({
               const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
               setIsCaptionsEnabled(isCurrentlyOn);
             }
+            if (typeof p.isMuted === 'function') {
+              setIsMutedState(Boolean(p.isMuted()));
+            }
+            if (typeof p.getVolume === 'function') {
+              const v = p.getVolume();
+              if (typeof v === 'number' && !isNaN(v)) setVolumeState(v);
+            }
           },
           onStateChange: (event: YTPlayerEvent) => {
             if (isCancelled) return;
+
+            // Sync volume and mute on state changes
+            if (typeof event.target.isMuted === 'function') {
+              setIsMutedState(Boolean(event.target.isMuted()));
+            }
+            if (typeof event.target.getVolume === 'function') {
+              const v = event.target.getVolume();
+              if (typeof v === 'number' && !isNaN(v)) setVolumeState(v);
+            }
+
             const playerState = event.data;
             if (playerState === 1) {
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
@@ -373,6 +390,29 @@ export function useYouTubePlayer({
             updateActiveChapterIndex(t);
             onTimeUpdateRef.current?.(t, currentChapterIndexRef.current);
           });
+        }
+
+        // Sync volume, mute & captions if adjusted inside YouTube iframe
+        if (playerRef.current) {
+          if (typeof playerRef.current.isMuted === 'function') {
+            const m = Boolean(playerRef.current.isMuted());
+            setIsMutedState((prev) => (prev !== m ? m : prev));
+          }
+          if (typeof playerRef.current.getVolume === 'function') {
+            const v = playerRef.current.getVolume();
+            if (typeof v === 'number' && !isNaN(v)) {
+              setVolumeState((prev) => (prev !== v ? v : prev));
+            }
+          }
+          if (typeof playerRef.current.getOption === 'function') {
+            try {
+              const track = playerRef.current.getOption('captions', 'track');
+              const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
+              setIsCaptionsEnabled((prev) => (prev !== isCurrentlyOn ? isCurrentlyOn : prev));
+            } catch {
+              // Module loading
+            }
+          }
         }
       }, 500);
     } else {

@@ -15,10 +15,10 @@ import {
   ChevronDown,
   Check,
   Search,
-  Subtitles,
   Volume1,
   Volume2,
   VolumeX,
+  Subtitles,
   Minimize2,
 } from 'lucide-react';
 import { Chapter, ParsedPlaylist } from '../types/playlist';
@@ -438,7 +438,7 @@ export function FullscreenOverlay({
             aria-controls="fullscreen-chapter-drawer"
             aria-label={isDrawerOpen ? 'Hide course chapter list' : 'Show course chapter list'}
             title="Toggle Chapter List (I)"
-            className={`min-h-11 px-3.5 inline-flex items-center gap-2 rounded-full text-xs font-semibold border transition-all cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+            className={`min-h-11 px-3.5 inline-flex items-center gap-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
               isDrawerOpen
                 ? 'bg-primary text-white border-primary shadow-sm'
                 : 'bg-stone-900/80 hover:bg-stone-800 active:bg-stone-800 text-stone-100 border-white/20'
@@ -446,7 +446,7 @@ export function FullscreenOverlay({
           >
             <List className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden xs:inline">{isDrawerOpen ? 'Close Chapters' : 'Chapters'}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-2xs font-mono font-tnum">
+            <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-2xs font-mono font-tnum">
               {currentChapterIndex + 1}/{totalChapters}
             </span>
           </button>
@@ -462,19 +462,8 @@ export function FullscreenOverlay({
           </span>
         </div>
 
-        {/* Right: Exit Fullscreen Button */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onExitFullscreen}
-            title="Exit Fullscreen (Esc)"
-            aria-label="Exit Fullscreen"
-            className="min-h-11 px-3.5 inline-flex items-center gap-1.5 bg-stone-900/80 hover:bg-stone-800 active:bg-stone-800 text-stone-100 text-xs font-semibold rounded-full border border-white/20 shadow-sm cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            <X className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span className="hidden xs:inline">Exit</span>
-          </button>
-        </div>
+        {/* Right header spacer to balance left chapter button while keeping top-right clean */}
+        <div className="w-11" aria-hidden="true" />
       </header>
 
       {/* SLIDE-IN CHAPTER DRAWER (Mounted on Right) */}
@@ -506,7 +495,7 @@ export function FullscreenOverlay({
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
                 aria-label="Close chapter list"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
               >
                 <X className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -911,7 +900,7 @@ export function FullscreenOverlay({
                   <Volume2 className="w-4 h-4 text-stone-200" aria-hidden="true" />
                 )}
               </button>
-              <div className="flex items-center w-16 sm:w-20 md:w-24 px-1">
+              <div className="flex items-center w-20 sm:w-28 md:w-36 px-1.5">
                 <input
                   type="range"
                   min={0}
@@ -1022,13 +1011,13 @@ export function FullscreenOverlay({
               <List className="w-4 h-4" aria-hidden="true" />
             </button>
 
-            {/* Exit Fullscreen */}
+            {/* Exit Fullscreen (Fullscreen Out Icon) */}
             <button
               type="button"
               onClick={onExitFullscreen}
               title="Exit Fullscreen (Esc)"
               aria-label="Exit Fullscreen"
-              className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg bg-stone-900/80 hover:bg-stone-800 text-stone-100 border border-white/15 transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg bg-stone-900/80 hover:bg-stone-800 active:bg-stone-800 text-stone-100 border border-white/15 transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             >
               <Minimize2 className="w-4 h-4" aria-hidden="true" />
             </button>
