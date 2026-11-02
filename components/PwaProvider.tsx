@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { IosInstallModal } from './IosInstallModal';
-import { InstallBanner } from './InstallBanner';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -106,8 +105,6 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
         isOpen={isIosModalOpen}
         onClose={() => setIsIosModalOpen(false)}
       />
-
-      <InstallBanner />
     </PwaContext.Provider>
   );
 }
