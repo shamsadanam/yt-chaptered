@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rateLimit';
+import { checkRateLimit, RATE_LIMIT_CONFIG } from '@/lib/rateLimit';
+import { MemoryCache } from '@/lib/cache';
 import {
   isClientCleared,
   grantClientClearance,
@@ -10,34 +11,10 @@ import { YouTubeSearchResultItem } from '@/types/search';
 const YOUTUBE_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
 const TIMESTAMP_REGEX = /(?:\[|\()?\b((?:\d{1,2}:)?\d{1,2}:\d{2})\b(?:\]|\)?)/;
 
-// In-memory server cache for search results (15-minute TTL)
-interface SearchCacheEntry {
-  results: YouTubeSearchResultItem[];
-  expiresAt: number;
-}
-
-const MAX_SEARCH_CACHE_SIZE = 500;
-const searchCache = new Map<string, SearchCacheEntry>();
-let lastCacheCleanup = Date.now();
-
-function evictStaleCache(now: number) {
-  if (now - lastCacheCleanup < 60_000) return;
-  lastCacheCleanup = now;
-  for (const [key, entry] of searchCache) {
-    if (now > entry.expiresAt) searchCache.delete(key);
-  }
-}
+const searchCache = new MemoryCache<YouTubeSearchResultItem[]>(500);
 
 function getCachedSearch(query: string): YouTubeSearchResultItem[] | null {
-  const now = Date.now();
-  evictStaleCache(now);
-  const entry = searchCache.get(query.toLowerCase());
-  if (!entry) return null;
-  if (now > entry.expiresAt) {
-    searchCache.delete(query.toLowerCase());
-    return null;
-  }
-  return entry.results;
+  return searchCache.get(query.toLowerCase());
 }
 
 function setCachedSearch(
@@ -45,18 +22,7 @@ function setCachedSearch(
   results: YouTubeSearchResultItem[],
   ttlMs = 15 * 60 * 1000
 ) {
-  const now = Date.now();
-  evictStaleCache(now);
-
-  if (searchCache.size >= MAX_SEARCH_CACHE_SIZE) {
-    const oldestKey = searchCache.keys().next().value;
-    if (oldestKey) searchCache.delete(oldestKey);
-  }
-
-  searchCache.set(query.toLowerCase(), {
-    results,
-    expiresAt: now + ttlMs,
-  });
+  searchCache.set(query.toLowerCase(), results, ttlMs);
 }
 
 interface InnertubeVideoRenderer {
@@ -100,6 +66,13 @@ interface InnertubeVideoRenderer {
       runs?: Array<{ text?: string }>;
     };
   }>;
+}
+
+function getExpandableMetadataRuns(
+  vr: InnertubeVideoRenderer
+): Array<{ text?: string }> | undefined {
+  return vr.expandableMetadata?.expandableMetadataRenderer?.header?.collapsedTitle
+    ?.runs;
 }
 
 // Traverse YouTube Innertube JSON response to find all videoRenderer objects
@@ -167,10 +140,7 @@ export async function GET(request: NextRequest) {
     '127.0.0.1';
 
   if (process.env.NODE_ENV === 'production') {
-    const limit = checkRateLimit(`search:${clientIp}`, {
-      windowMs: 60_000,
-      max: 30,
-    });
+    const limit = checkRateLimit(`search:${clientIp}`, RATE_LIMIT_CONFIG.search);
     if (!limit.ok) {
       return NextResponse.json(
         {
@@ -322,9 +292,7 @@ export async function GET(request: NextRequest) {
       let hasChapters = false;
       let chapterTitles: string[] | undefined;
 
-      const expRuns =
-        vr.expandableMetadata?.expandableMetadataRenderer?.header?.collapsedTitle
-          ?.runs;
+      const expRuns = getExpandableMetadataRuns(vr);
       if (expRuns && expRuns.length > 0) {
         const expText = expRuns.map((r) => r.text || '').join('');
         if (expText.includes('|')) {

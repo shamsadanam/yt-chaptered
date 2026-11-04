@@ -1,8 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import {
   Loader2,
   AlertTriangle,
@@ -23,13 +30,13 @@ import {
   Play,
   Pause,
   ArrowLeft,
-} from 'lucide-react';
-import { Chapter, ParsedPlaylist, SavedCourse } from '../types/playlist';
-import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
-import { secondsToTimestamp } from '../lib/youtubeParser';
+} from "lucide-react";
+import { Chapter, ParsedPlaylist, SavedCourse } from "../types/playlist";
+import { useYouTubePlayer } from "../hooks/useYouTubePlayer";
+import { secondsToTimestamp } from "../lib/youtubeParser";
 const FullscreenOverlay = dynamic(
-  () => import('./FullscreenOverlay').then((mod) => mod.FullscreenOverlay),
-  { ssr: false }
+  () => import("./FullscreenOverlay").then((mod) => mod.FullscreenOverlay),
+  { ssr: false },
 );
 import {
   saveCourse,
@@ -40,7 +47,7 @@ import {
   subscribeCourses,
   getCompletedChapterIdsSnapshot,
   getCompletedChapterIdsServerSnapshot,
-} from '../lib/storage';
+} from "../lib/storage";
 
 interface PlaylistViewProps {
   playlist: ParsedPlaylist;
@@ -48,7 +55,7 @@ interface PlaylistViewProps {
 }
 
 export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
-  const containerId = 'youtube-active-player';
+  const containerId = "youtube-active-player";
   const sidebarListRef = useRef<HTMLOListElement>(null);
   const activeItemRef = useRef<HTMLLIElement | null>(null);
 
@@ -59,16 +66,16 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   // Debounce updating URL query parameter to avoid flooding browser history during rapid seeks
   const updateUrlTimestamp = useCallback((seconds: number) => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     if (urlDebounceTimerRef.current) {
       clearTimeout(urlDebounceTimerRef.current);
     }
     urlDebounceTimerRef.current = setTimeout(() => {
       const url = new URL(window.location.href);
       const targetT = Math.floor(seconds).toString();
-      if (url.searchParams.get('t') !== targetT) {
-        url.searchParams.set('t', targetT);
-        window.history.replaceState(null, '', url.pathname + url.search);
+      if (url.searchParams.get("t") !== targetT) {
+        url.searchParams.set("t", targetT);
+        window.history.replaceState(null, "", url.pathname + url.search);
       }
     }, 250);
   }, []);
@@ -83,9 +90,13 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
 
   // Ensure initial URL parameter is reflected if starting from non-zero
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (!url.searchParams.has('t') && playlist.initialStartTime !== undefined && playlist.initialStartTime > 0) {
+    if (
+      !url.searchParams.has("t") &&
+      playlist.initialStartTime !== undefined &&
+      playlist.initialStartTime > 0
+    ) {
       updateUrlTimestamp(playlist.initialStartTime);
     }
   }, [playlist.initialStartTime, updateUrlTimestamp]);
@@ -93,8 +104,11 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   // Load initial completed state & last playback time
   const completedIds = useSyncExternalStore(
     subscribeCourses,
-    useCallback(() => getCompletedChapterIdsSnapshot(playlist.video.id), [playlist.video.id]),
-    getCompletedChapterIdsServerSnapshot
+    useCallback(
+      () => getCompletedChapterIdsSnapshot(playlist.video.id),
+      [playlist.video.id],
+    ),
+    getCompletedChapterIdsServerSnapshot,
   );
 
   const completedIdsSet = useMemo(() => new Set(completedIds), [completedIds]);
@@ -114,7 +128,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       const initialCourse: SavedCourse = {
         video: current.video,
         chapters: current.chapters,
-        rawTimestampsText: current.rawTimestampsText || '',
+        rawTimestampsText: current.rawTimestampsText || "",
         completedChapterIds: [],
         lastPlayedChapterIndex: current.initialChapterIndex ?? 0,
         lastPlayedSeconds: current.initialStartTime ?? 0,
@@ -133,14 +147,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         updateCoursePlaybackProgress(playlist.video.id, chapterIndex, seconds);
       }
     },
-    [playlist.video.id]
+    [playlist.video.id],
   );
 
   const handleChapterComplete = useCallback(
     (_chapterIndex: number, chapter: Chapter) => {
       markChapterCompleted(playlist.video.id, chapter.id);
     },
-    [playlist.video.id]
+    [playlist.video.id],
   );
 
   const handleVideoEnded = useCallback(() => {
@@ -158,7 +172,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         updateUrlTimestamp(chap.startTime);
       }
     },
-    [playlist.chapters, updateUrlTimestamp]
+    [playlist.chapters, updateUrlTimestamp],
   );
 
   const {
@@ -204,11 +218,15 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   // Sync fullscreen state across vendor implementations
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const isNowFullscreen = !!(document.fullscreenElement || (document as { webkitFullscreenElement?: Element }).webkitFullscreenElement);
+      const isNowFullscreen = !!(
+        document.fullscreenElement ||
+        (document as { webkitFullscreenElement?: Element })
+          .webkitFullscreenElement
+      );
       setIsFullscreen(isNowFullscreen);
       if (!isNowFullscreen) {
         try {
-          if (screen.orientation && 'unlock' in screen.orientation) {
+          if (screen.orientation && "unlock" in screen.orientation) {
             (screen.orientation as { unlock: () => void }).unlock();
           }
         } catch {
@@ -217,54 +235,65 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       }
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
     };
   }, []);
 
   // Track portrait vs landscape to handle fullscreen rotation transforms
   useEffect(() => {
     const checkOrientation = () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         setIsPortrait(window.innerHeight > window.innerWidth);
       }
     };
     checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
     return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
     };
   }, []);
 
   // Dismiss playback speed popover on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (speedMenuRef.current && !speedMenuRef.current.contains(e.target as Node)) {
+      if (
+        speedMenuRef.current &&
+        !speedMenuRef.current.contains(e.target as Node)
+      ) {
         setIsSpeedMenuOpen(false);
       }
     };
     if (isSpeedMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isSpeedMenuOpen]);
 
-  const activeChapter: Chapter | undefined = playlist.chapters[currentChapterIndex];
+  const activeChapter: Chapter | undefined =
+    playlist.chapters[currentChapterIndex];
 
   // Auto-scroll sidebar list so active chapter remains in view on desktop sidebar
   useEffect(() => {
-    if (activeItemRef.current && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+    if (
+      activeItemRef.current &&
+      typeof window !== "undefined" &&
+      window.innerWidth >= 1024
+    ) {
       activeItemRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
+        behavior: "smooth",
+        block: "nearest",
       });
     }
   }, [currentChapterIndex]);
@@ -333,15 +362,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         }
 
         // Lock landscape orientation on mobile devices supporting the Screen Orientation API
-        if (screen.orientation && 'lock' in screen.orientation) {
+        if (screen.orientation && "lock" in screen.orientation) {
           try {
-            await (screen.orientation as unknown as { lock: (orientation: string) => Promise<void> }).lock('landscape');
+            await (
+              screen.orientation as unknown as {
+                lock: (orientation: string) => Promise<void>;
+              }
+            ).lock("landscape");
           } catch {
             // Orientation lock may fail if unsupported or unpermitted
           }
         }
       } catch (err) {
-        console.warn('Fullscreen request failed:', err);
+        console.warn("Fullscreen request failed:", err);
       }
     } else {
       try {
@@ -350,7 +383,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         } else if (doc.webkitExitFullscreen) {
           await doc.webkitExitFullscreen();
         }
-        if (screen.orientation && 'unlock' in screen.orientation) {
+        if (screen.orientation && "unlock" in screen.orientation) {
           try {
             (screen.orientation as unknown as { unlock: () => void }).unlock();
           } catch {
@@ -358,7 +391,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           }
         }
       } catch (err) {
-        console.warn('Exit fullscreen failed:', err);
+        console.warn("Exit fullscreen failed:", err);
       }
     }
   }, []);
@@ -367,56 +400,73 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
         return;
       }
-      if (e.key === 'f' || e.key === 'F') {
+      if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         handleToggleFullscreen();
-      } else if (e.key === 'c' || e.key === 'C') {
+      } else if (e.key === "c" || e.key === "C") {
         e.preventDefault();
         toggleCaptions();
-      } else if (e.key === 'm' || e.key === 'M') {
+      } else if (e.key === "m" || e.key === "M") {
         e.preventDefault();
         toggleMute();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleToggleFullscreen, toggleCaptions, toggleMute]);
 
   const handleCopyTimestamps = async () => {
     const text =
       playlist.rawTimestampsText ||
-      playlist.chapters.map((c) => `${c.formattedTime} ${c.title}`).join('\n');
+      playlist.chapters.map((c) => `${c.formattedTime} ${c.title}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
       setCopiedTimestamps(true);
       setTimeout(() => setCopiedTimestamps(false), 2000);
     } catch (err) {
-      console.warn('Failed to copy timestamps:', err);
+      console.warn("Failed to copy timestamps:", err);
     }
   };
 
   const completedCount = completedIds.length;
   const totalChapters = playlist.chapters.length;
-  const progressPercentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+  const progressPercentage =
+    totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
 
-  const isCurrentCompleted = activeChapter ? completedIdsSet.has(activeChapter.id) : false;
+  const isCurrentCompleted = activeChapter
+    ? completedIdsSet.has(activeChapter.id)
+    : false;
   const activeChapterEndTime = activeChapter
     ? Number.isFinite(activeChapter.endTime)
       ? activeChapter.endTime
       : duration > 0
-      ? duration
-      : activeChapter.startTime
+        ? duration
+        : activeChapter.startTime
     : 0;
   const activeChapterEndTimeFormatted =
-    activeChapterEndTime > 0 ? secondsToTimestamp(Math.floor(activeChapterEndTime)) : 'End';
+    activeChapterEndTime > 0
+      ? secondsToTimestamp(Math.floor(activeChapterEndTime))
+      : "End";
   const chapterDuration = activeChapter
     ? Math.max(1, activeChapterEndTime - activeChapter.startTime)
     : 1;
   const chapterProgressPercentage = activeChapter
-    ? Math.min(100, Math.max(0, Math.round(((currentTime - activeChapter.startTime) / chapterDuration) * 100)))
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          Math.round(
+            ((currentTime - activeChapter.startTime) / chapterDuration) * 100,
+          ),
+        ),
+      )
     : 0;
 
   const channelUrl =
@@ -430,7 +480,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       {/* Video Headline Header */}
       <div className="mb-4 sm:mb-6">
         {/* Breadcrumb above course title */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 mb-2 sm:mb-2.5 text-xs">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-2 mb-2 sm:mb-2.5 text-xs"
+        >
           <Link
             href="/"
             onClick={() => onReset?.()}
@@ -440,7 +493,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Courses</span>
           </Link>
-          <span className="text-stone-300 dark:text-stone-700" aria-hidden="true">/</span>
+          <span
+            className="text-stone-300 dark:text-stone-700"
+            aria-hidden="true"
+          >
+            /
+          </span>
           <span className="px-2 py-0.5 bg-stone-100 dark:bg-stone-800 rounded-md text-2xs font-semibold uppercase tracking-wider text-stone-600 dark:text-stone-400 font-mono font-tnum">
             Chapter {currentChapterIndex + 1} of {totalChapters}
           </span>
@@ -453,12 +511,20 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             href={channelUrl}
             target="_blank"
             rel="noopener noreferrer"
-            title={`Visit ${playlist.video.author || 'YouTube Channel'} on YouTube (opens in new tab)`}
-            aria-label={`Visit ${playlist.video.author || 'YouTube Channel'} on YouTube (opens in new tab)`}
+            title={`Visit ${playlist.video.author || "YouTube Channel"} on YouTube (opens in new tab)`}
+            aria-label={`Visit ${playlist.video.author || "YouTube Channel"} on YouTube (opens in new tab)`}
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded-xs group"
           >
-            <span>By <span className="font-semibold text-stone-900 dark:text-stone-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">{playlist.video.author || 'YouTube Channel'}</span></span>
-            <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors shrink-0" aria-hidden="true" />
+            <span>
+              By{" "}
+              <span className="font-semibold text-stone-900 dark:text-stone-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
+                {playlist.video.author || "YouTube Channel"}
+              </span>
+            </span>
+            <ExternalLink
+              className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors shrink-0"
+              aria-hidden="true"
+            />
           </a>
         </div>
       </div>
@@ -473,8 +539,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               ref={playerWrapperRef}
               className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
-                  ? 'fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center'
-                  : 'rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800'
+                  ? "fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center"
+                  : "rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800"
               }`}
             >
               {/* Floating Fullscreen button on video hover in normal mode */}
@@ -496,12 +562,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 style={
                   isFullscreen && isPortrait
                     ? {
-                        position: 'absolute',
-                        width: '100vh',
-                        height: '100vw',
-                        transform: 'translate(-50%, -50%) rotate(90deg)',
-                        top: '50%',
-                        left: '50%',
+                        position: "absolute",
+                        width: "100vh",
+                        height: "100vw",
+                        transform: "translate(-50%, -50%) rotate(90deg)",
+                        top: "50%",
+                        left: "50%",
                       }
                     : undefined
                 }
@@ -509,14 +575,24 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <div id={containerId} className="w-full h-full" />
                 {!isReady && !playerError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900 text-white gap-3">
-                    <Loader2 className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-emerald-500" aria-hidden="true" />
-                    <span className="text-xs sm:text-sm font-medium text-white/80">Loading YouTube Player...</span>
+                    <Loader2
+                      className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-emerald-500"
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs sm:text-sm font-medium text-white/80">
+                      Loading YouTube Player...
+                    </span>
                   </div>
                 )}
                 {playerError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/95 text-white p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
-                    <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500" aria-hidden="true" />
-                    <p className="text-xs sm:text-sm font-semibold max-w-md">{playerError}</p>
+                    <AlertTriangle
+                      className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500"
+                      aria-hidden="true"
+                    />
+                    <p className="text-xs sm:text-sm font-semibold max-w-md">
+                      {playerError}
+                    </p>
                     <a
                       href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
                       target="_blank"
@@ -524,7 +600,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-md transition-colors min-h-11 touch-manipulation"
                     >
                       <span>Open directly on YouTube</span>
-                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                      <ExternalLink
+                        className="w-3.5 h-3.5"
+                        aria-hidden="true"
+                      />
                     </a>
                   </div>
                 )}
@@ -537,24 +616,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     currentChapterIndex={currentChapterIndex}
                     totalChapters={totalChapters}
                     completedIdsSet={completedIdsSet}
-                    currentTime={currentTime}
-                    duration={duration}
-                    isPlaying={isPlaying}
-                    isPlayLoading={isPlayLoading}
-                    isReady={isReady}
-                    playbackRate={playbackRate}
-                    seekToChapter={handleSelectChapter}
-                    seekBy={handleSeekBy}
-                    seekToTime={handleSeekToTime}
-                    setPlaybackRate={setPlaybackRate}
-                    play={play}
-                    pause={pause}
-                    volume={volume}
-                    isMuted={isMuted}
-                    onSetVolume={setVolume}
-                    onToggleMute={toggleMute}
-                    isCaptionsEnabled={isCaptionsEnabled}
-                    onToggleCaptions={toggleCaptions}
+                    playerState={{
+                      isPlaying,
+                      isPlayLoading,
+                      isReady,
+                      currentTime,
+                      duration,
+                      playbackRate,
+                      volume,
+                      isMuted,
+                      isCaptionsEnabled,
+                    }}
+                    playerActions={{
+                      play,
+                      pause,
+                      seekToChapter: handleSelectChapter,
+                      seekBy: handleSeekBy,
+                      seekToTime: handleSeekToTime,
+                      setPlaybackRate,
+                      setVolume,
+                      toggleMute,
+                      toggleCaptions,
+                    }}
                     onToggleComplete={handleToggleComplete}
                     onExitFullscreen={handleToggleFullscreen}
                   />
@@ -575,13 +658,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
                     Chapter {currentChapterIndex + 1} of {totalChapters}
                   </span>
-                  <span className="text-stone-300 dark:text-stone-700" aria-hidden="true">•</span>
+                  <span
+                    className="text-stone-300 dark:text-stone-700"
+                    aria-hidden="true"
+                  >
+                    •
+                  </span>
                   <span className="text-xs font-mono font-tnum text-stone-500 dark:text-stone-400">
-                    {activeChapter ? activeChapter.formattedTime : '0:00'} → {activeChapterEndTimeFormatted}
+                    {activeChapter ? activeChapter.formattedTime : "0:00"} →{" "}
+                    {activeChapterEndTimeFormatted}
                   </span>
                 </div>
                 <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100 leading-snug break-words">
-                  {activeChapter ? activeChapter.title : 'Playing Course'}
+                  {activeChapter ? activeChapter.title : "Playing Course"}
                 </h2>
               </div>
 
@@ -592,26 +681,40 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   role="checkbox"
                   aria-checked={isCurrentCompleted}
                   onClick={(e) => handleToggleComplete(activeChapter.id, e)}
-                  title={isCurrentCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
-                  aria-label={isCurrentCompleted ? `Mark chapter ${currentChapterIndex + 1} as incomplete` : `Mark chapter ${currentChapterIndex + 1} as completed`}
+                  title={
+                    isCurrentCompleted
+                      ? "Mark chapter as incomplete"
+                      : "Mark chapter as completed"
+                  }
+                  aria-label={
+                    isCurrentCompleted
+                      ? `Mark chapter ${currentChapterIndex + 1} as incomplete`
+                      : `Mark chapter ${currentChapterIndex + 1} as completed`
+                  }
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
                     isCurrentCompleted
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800'
+                      ? "bg-primary text-white border-primary"
+                      : "bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800"
                   }`}
                 >
                   <div
                     className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center ${
                       isCurrentCompleted
-                        ? 'bg-white border-white text-primary'
-                        : 'border-stone-400 dark:border-stone-600'
+                        ? "bg-white border-white text-primary"
+                        : "border-stone-400 dark:border-stone-600"
                     }`}
                   >
                     {isCurrentCompleted && (
-                      <Check className="w-2.5 h-2.5" strokeWidth={3} aria-hidden="true" />
+                      <Check
+                        className="w-2.5 h-2.5"
+                        strokeWidth={3}
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
-                  <span>{isCurrentCompleted ? 'Completed' : 'Mark Complete'}</span>
+                  <span>
+                    {isCurrentCompleted ? "Completed" : "Mark Complete"}
+                  </span>
                 </button>
               )}
             </div>
@@ -638,11 +741,13 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               {/* Status & Live Timestamp Display */}
               <div className="flex items-center gap-2 order-1 shrink-0">
                 <span
-                  className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-stone-600'}`}
+                  className={`w-2 h-2 rounded-full ${isPlaying ? "bg-emerald-500 animate-pulse" : "bg-stone-400 dark:bg-stone-600"}`}
                   aria-hidden="true"
                 />
                 <div className="font-mono font-tnum text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1">
-                  <span className="font-semibold text-stone-900 dark:text-stone-100">{secondsToTimestamp(Math.floor(currentTime))}</span>
+                  <span className="font-semibold text-stone-900 dark:text-stone-100">
+                    {secondsToTimestamp(Math.floor(currentTime))}
+                  </span>
                   <span className="text-stone-400 dark:text-stone-600">/</span>
                   <span>{secondsToTimestamp(Math.floor(duration))}</span>
                 </div>
@@ -662,9 +767,15 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     aria-controls="speed-menu-dropdown"
                     className="h-9 px-2.5 inline-flex items-center gap-1 rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 text-xs font-semibold font-mono font-tnum transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <Zap className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+                    <Zap
+                      className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400"
+                      aria-hidden="true"
+                    />
                     <span>{playbackRate}x</span>
-                    <ChevronDown className="w-3 h-3 text-stone-500 dark:text-stone-400" aria-hidden="true" />
+                    <ChevronDown
+                      className="w-3 h-3 text-stone-500 dark:text-stone-400"
+                      aria-hidden="true"
+                    />
                   </button>
 
                   {isSpeedMenuOpen && (
@@ -685,11 +796,18 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                             setIsSpeedMenuOpen(false);
                           }}
                           className={`w-full text-left px-3 py-1.5 text-xs font-mono font-tnum flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer ${
-                            playbackRate === rate ? 'text-primary dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50' : 'text-stone-900 dark:text-stone-100'
+                            playbackRate === rate
+                              ? "text-primary dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50"
+                              : "text-stone-900 dark:text-stone-100"
                           }`}
                         >
                           <span>{rate}x</span>
-                          {playbackRate === rate && <Check className="w-3.5 h-3.5 text-primary dark:text-emerald-400" aria-hidden="true" />}
+                          {playbackRate === rate && (
+                            <Check
+                              className="w-3.5 h-3.5 text-primary dark:text-emerald-400"
+                              aria-hidden="true"
+                            />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -700,30 +818,49 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 <button
                   type="button"
                   onClick={toggleCaptions}
-                  title={isCaptionsEnabled ? 'Turn off captions (C)' : 'Turn on captions (C)'}
-                  aria-label={isCaptionsEnabled ? 'Turn off captions' : 'Turn on captions'}
+                  title={
+                    isCaptionsEnabled
+                      ? "Turn off captions (C)"
+                      : "Turn on captions (C)"
+                  }
+                  aria-label={
+                    isCaptionsEnabled ? "Turn off captions" : "Turn on captions"
+                  }
                   aria-pressed={isCaptionsEnabled}
                   className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${
                     isCaptionsEnabled
-                      ? 'bg-primary text-white border-primary shadow-xs'
-                      : 'bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100'
+                      ? "bg-primary text-white border-primary shadow-xs"
+                      : "bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100"
                   }`}
                 >
-                  <Subtitles className={`w-4 h-4 ${isCaptionsEnabled ? 'text-white' : 'text-stone-600 dark:text-stone-400'}`} aria-hidden="true" />
+                  <Subtitles
+                    className={`w-4 h-4 ${isCaptionsEnabled ? "text-white" : "text-stone-600 dark:text-stone-400"}`}
+                    aria-hidden="true"
+                  />
                 </button>
 
                 {/* Fullscreen Toggle */}
                 <button
                   type="button"
                   onClick={handleToggleFullscreen}
-                  title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (Auto-rotates Landscape)'}
-                  aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                  title={
+                    isFullscreen
+                      ? "Exit Fullscreen"
+                      : "Fullscreen (Auto-rotates Landscape)"
+                  }
+                  aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                   className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isFullscreen ? (
-                    <Minimize2 className="w-4 h-4 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+                    <Minimize2
+                      className="w-4 h-4 text-stone-600 dark:text-stone-400"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Maximize2 className="w-4 h-4 text-stone-600 dark:text-stone-400" aria-hidden="true" />
+                    <Maximize2
+                      className="w-4 h-4 text-stone-600 dark:text-stone-400"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </div>
@@ -739,7 +876,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   aria-label="Previous Chapter"
                   className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <SkipBack className="w-4 h-4 fill-current" aria-hidden="true" />
+                  <SkipBack
+                    className="w-4 h-4 fill-current"
+                    aria-hidden="true"
+                  />
                 </button>
 
                 {/* Rewind 10s */}
@@ -762,31 +902,42 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   title={
                     isPlayLoading
                       ? isPlaying
-                        ? 'Pausing video...'
-                        : 'Playing video...'
+                        ? "Pausing video..."
+                        : "Playing video..."
                       : isPlaying
-                      ? 'Pause video'
-                      : 'Play video'
+                        ? "Pause video"
+                        : "Play video"
                   }
                   aria-label={
                     isPlayLoading
                       ? isPlaying
-                        ? 'Pausing video'
-                        : 'Playing video'
+                        ? "Pausing video"
+                        : "Playing video"
                       : isPlaying
-                      ? 'Pause video'
-                      : 'Play video'
+                        ? "Pause video"
+                        : "Play video"
                   }
                   className="h-9 w-20 sm:w-22 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-98 select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {isPlayLoading ? (
-                    <Loader2 className="animate-spin w-3.5 h-3.5 shrink-0 text-white" aria-hidden="true" />
+                    <Loader2
+                      className="animate-spin w-3.5 h-3.5 shrink-0 text-white"
+                      aria-hidden="true"
+                    />
                   ) : isPlaying ? (
-                    <Pause className="w-3.5 h-3.5 shrink-0 fill-current" aria-hidden="true" />
+                    <Pause
+                      className="w-3.5 h-3.5 shrink-0 fill-current"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Play className="w-3.5 h-3.5 shrink-0 ml-0.5 fill-current" aria-hidden="true" />
+                    <Play
+                      className="w-3.5 h-3.5 shrink-0 ml-0.5 fill-current"
+                      aria-hidden="true"
+                    />
                   )}
-                  <span className="whitespace-nowrap">{isPlaying ? 'Pause' : 'Play'}</span>
+                  <span className="whitespace-nowrap">
+                    {isPlaying ? "Pause" : "Play"}
+                  </span>
                 </button>
 
                 {/* Forward 10s */}
@@ -809,27 +960,42 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   aria-label="Next Chapter"
                   className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <SkipForward className="w-4 h-4 fill-current" aria-hidden="true" />
+                  <SkipForward
+                    className="w-4 h-4 fill-current"
+                    aria-hidden="true"
+                  />
                 </button>
 
                 {/* Vertical Divider */}
-                <div className="h-5 w-px bg-stone-200 dark:bg-stone-800 mx-0.5 sm:mx-1 hidden xs:block" aria-hidden="true" />
+                <div
+                  className="h-5 w-px bg-stone-200 dark:bg-stone-800 mx-0.5 sm:mx-1 hidden xs:block"
+                  aria-hidden="true"
+                />
 
                 {/* Volume Control */}
                 <div className="flex items-center gap-1 group/volume">
                   <button
                     type="button"
                     onClick={toggleMute}
-                    title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
-                    aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                    title={isMuted || volume === 0 ? "Unmute (M)" : "Mute (M)"}
+                    aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
                     className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {isMuted || volume === 0 ? (
-                      <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
+                      <VolumeX
+                        className="w-4 h-4 text-stone-400"
+                        aria-hidden="true"
+                      />
                     ) : volume < 50 ? (
-                      <Volume1 className="w-4 h-4 text-stone-700 dark:text-stone-300" aria-hidden="true" />
+                      <Volume1
+                        className="w-4 h-4 text-stone-700 dark:text-stone-300"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <Volume2 className="w-4 h-4 text-stone-700 dark:text-stone-300" aria-hidden="true" />
+                      <Volume2
+                        className="w-4 h-4 text-stone-700 dark:text-stone-300"
+                        aria-hidden="true"
+                      />
                     )}
                   </button>
                   <div className="hidden xs:flex items-center w-20 sm:w-28 md:w-32 lg:w-36 px-1.5">
@@ -860,7 +1026,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           <div className="p-3 sm:p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100">Course Chapters</h2>
+                <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100">
+                  Course Chapters
+                </h2>
                 <p className="text-xs text-stone-600 dark:text-stone-400">
                   {completedCount} of {totalChapters} completed
                 </p>
@@ -899,34 +1067,43 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               return (
                 <li
                   key={chap.id}
-                  ref={isActive ? (node) => { activeItemRef.current = node; } : undefined}
+                  ref={
+                    isActive
+                      ? (node) => {
+                          activeItemRef.current = node;
+                        }
+                      : undefined
+                  }
                   className={`w-full p-2 sm:p-2.5 rounded-lg transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-13 ${
                     isActive
-                      ? 'bg-stone-100 dark:bg-stone-800/80 border border-primary dark:border-emerald-500 shadow-xs'
-                      : 'hover:bg-stone-50 dark:hover:bg-stone-800/50 border border-transparent'
+                      ? "bg-stone-100 dark:bg-stone-800/80 border border-primary dark:border-emerald-500 shadow-xs"
+                      : "hover:bg-stone-50 dark:hover:bg-stone-800/50 border border-transparent"
                   }`}
                 >
                   {/* Primary Chapter Select Button */}
                   <button
                     type="button"
                     onClick={() => handleSelectChapter(idx)}
-                    aria-current={isActive ? 'true' : undefined}
-                    aria-label={`Play chapter ${chap.index}: ${chap.title}, timestamp ${chap.formattedTime}${isCompleted ? ', completed' : ''}`}
+                    aria-current={isActive ? "true" : undefined}
+                    aria-label={`Play chapter ${chap.index}: ${chap.title}, timestamp ${chap.formattedTime}${isCompleted ? ", completed" : ""}`}
                     className="flex-1 min-w-0 text-left flex items-center gap-2.5 sm:gap-3 cursor-pointer touch-manipulation active:scale-98 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md p-1 -m-1"
                   >
                     {/* Index Badge */}
                     <div
                       className={`shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-md text-xs font-semibold flex items-center justify-center transition-colors ${
                         isActive
-                          ? 'bg-primary text-white'
+                          ? "bg-primary text-white"
                           : isCompleted
-                          ? 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
-                          : 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
+                            ? "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400"
+                            : "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400"
                       }`}
                       aria-hidden="true"
                     >
                       {isActive ? (
-                        <Play className="w-3 h-3 fill-current ml-0.5 animate-pulse text-white" aria-hidden="true" />
+                        <Play
+                          className="w-3 h-3 fill-current ml-0.5 animate-pulse text-white"
+                          aria-hidden="true"
+                        />
                       ) : (
                         <span>{chap.index}</span>
                       )}
@@ -936,8 +1113,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     <div className="min-w-0 flex-1">
                       <p
                         className={`text-xs sm:text-sm leading-snug break-words transition-opacity line-clamp-2 ${
-                          isCompleted ? 'text-stone-500 line-through decoration-stone-400 dark:text-stone-500 dark:decoration-stone-600' : 'text-stone-900 dark:text-stone-100'
-                        } ${isActive ? 'font-semibold' : 'font-normal'}`}
+                          isCompleted
+                            ? "text-stone-500 line-through decoration-stone-400 dark:text-stone-500 dark:decoration-stone-600"
+                            : "text-stone-900 dark:text-stone-100"
+                        } ${isActive ? "font-semibold" : "font-normal"}`}
                       >
                         {chap.title}
                       </p>
@@ -945,8 +1124,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                         <span
                           className={`text-xs font-mono font-tnum px-1.5 py-0.5 rounded-sm border ${
                             isActive
-                              ? 'bg-white border-primary/30 text-primary font-medium dark:bg-stone-900 dark:border-emerald-500/30 dark:text-emerald-400'
-                              : 'bg-white border-stone-200 text-stone-600 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-400'
+                              ? "bg-white border-primary/30 text-primary font-medium dark:bg-stone-900 dark:border-emerald-500/30 dark:text-emerald-400"
+                              : "bg-white border-stone-200 text-stone-600 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-400"
                           }`}
                         >
                           {chap.formattedTime}
@@ -971,19 +1150,31 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     role="checkbox"
                     aria-checked={isCompleted}
                     onClick={(e) => handleToggleComplete(chap.id, e)}
-                    title={isCompleted ? 'Mark chapter as incomplete' : 'Mark chapter as completed'}
-                    aria-label={isCompleted ? `Mark chapter ${chap.index}: ${chap.title} as incomplete` : `Mark chapter ${chap.index}: ${chap.title} as completed`}
+                    title={
+                      isCompleted
+                        ? "Mark chapter as incomplete"
+                        : "Mark chapter as completed"
+                    }
+                    aria-label={
+                      isCompleted
+                        ? `Mark chapter ${chap.index}: ${chap.title} as incomplete`
+                        : `Mark chapter ${chap.index}: ${chap.title} as completed`
+                    }
                     className="shrink-0 w-10 h-10 flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
                   >
                     <div
                       className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
                         isCompleted
-                          ? 'bg-primary border-primary text-white'
-                          : 'bg-white dark:bg-stone-900 border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600'
+                          ? "bg-primary border-primary text-white"
+                          : "bg-white dark:bg-stone-900 border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600"
                       }`}
                     >
                       {isCompleted && (
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
+                        <Check
+                          className="w-3.5 h-3.5"
+                          strokeWidth={3}
+                          aria-hidden="true"
+                        />
                       )}
                     </div>
                   </button>
@@ -995,11 +1186,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       </div>
 
       {/* Course Resources & Timestamps Section */}
-      <section aria-label="Course resources and timestamps" className="mt-6 sm:mt-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-4 sm:p-5 shadow-xs">
+      <section
+        aria-label="Course resources and timestamps"
+        className="mt-6 sm:mt-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-4 sm:p-5 shadow-xs"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200 dark:border-stone-800">
           <div>
-            <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100">Course Timestamps & Source</h2>
-            <p className="text-xs text-stone-600 dark:text-stone-400">Review structured timestamps or open the original video on YouTube.</p>
+            <h2 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100">
+              Course Timestamps & Source
+            </h2>
+            <p className="text-xs text-stone-600 dark:text-stone-400">
+              Review structured timestamps or open the original video on
+              YouTube.
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <a
@@ -1010,18 +1209,30 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-9 touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <span>Watch on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-500" aria-hidden="true" />
+              <ExternalLink
+                className="w-3.5 h-3.5 text-stone-500"
+                aria-hidden="true"
+              />
             </a>
             <button
               type="button"
               onClick={handleCopyTimestamps}
-              aria-label={copiedTimestamps ? 'Course timestamps copied to clipboard' : 'Copy course timestamps to clipboard'}
+              aria-label={
+                copiedTimestamps
+                  ? "Course timestamps copied to clipboard"
+                  : "Copy course timestamps to clipboard"
+              }
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors min-h-9 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {copiedTimestamps ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-primary dark:text-emerald-400" aria-hidden="true" />
-                  <span className="text-primary dark:text-emerald-400 font-semibold">Copied</span>
+                  <Check
+                    className="w-3.5 h-3.5 text-primary dark:text-emerald-400"
+                    aria-hidden="true"
+                  />
+                  <span className="text-primary dark:text-emerald-400 font-semibold">
+                    Copied
+                  </span>
                 </>
               ) : (
                 <span>Copy Timestamps</span>
@@ -1034,7 +1245,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
               aria-controls="raw-timestamps-pre"
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 rounded-lg transition-colors min-h-9 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <span>{showRawTimestamps ? 'Hide' : 'View Raw'}</span>
+              <span>{showRawTimestamps ? "Hide" : "View Raw"}</span>
             </button>
           </div>
         </div>
@@ -1046,7 +1257,10 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
             aria-label="Course raw timestamps"
             className="mt-3 p-3.5 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg text-xs font-mono font-tnum text-stone-600 dark:text-stone-300 overflow-x-auto max-h-56 whitespace-pre-wrap leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            {playlist.rawTimestampsText || playlist.chapters.map(c => `${c.formattedTime} ${c.title}`).join('\n')}
+            {playlist.rawTimestampsText ||
+              playlist.chapters
+                .map((c) => `${c.formattedTime} ${c.title}`)
+                .join("\n")}
           </pre>
         )}
       </section>

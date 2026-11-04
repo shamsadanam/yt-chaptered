@@ -11,6 +11,11 @@ function evictStale(now: number) {
   }
 }
 
+export const RATE_LIMIT_CONFIG = {
+  general: { windowMs: 60_000, max: 15 },
+  search: { windowMs: 60_000, max: 30 },
+} as const;
+
 // Per-instance on serverless — resets on cold start but catches request bursts.
 export function checkRateLimit(
   key: string,

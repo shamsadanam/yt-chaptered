@@ -53,7 +53,6 @@ export function SearchModal({
     turnstileTokenRef.current = token;
   }, []);
 
-  // Selected video for the Preview Drawer
   const [selectedVideo, setSelectedVideo] =
     useState<YouTubeSearchResultItem | null>(null);
   const [previewChapters, setPreviewChapters] = useState<Chapter[]>([]);
@@ -111,7 +110,6 @@ export function SearchModal({
 
   useScrollLock(isRendered);
 
-  // Focus trap and keyboard listeners
   useEffect(() => {
     if (!isRendered) return;
 
@@ -381,7 +379,7 @@ export function SearchModal({
       <div
         ref={modalRef}
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
-        className={`w-full sm:max-w-xl md:max-w-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-t-2xl sm:rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] transition-all duration-200 ease-out ${
+        className={`w-full sm:max-w-xl md:max-w-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-modal transition-all duration-200 ease-out ${
           isVisible
             ? 'opacity-100 translate-y-0 sm:scale-100'
             : 'opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95'
@@ -391,7 +389,6 @@ export function SearchModal({
           Search YouTube Videos
         </h2>
 
-        {/* Top Header / Search Input Bar */}
         {!selectedVideo ? (
           <div className="flex items-center px-4 sm:px-5 py-3.5 border-b border-stone-200 dark:border-stone-800 shrink-0 gap-3 bg-white dark:bg-stone-900">
             <div className="flex items-center gap-1.5 shrink-0 text-stone-400">
@@ -493,9 +490,7 @@ export function SearchModal({
                 : ''}
             </div>
 
-            {/* Results Scroll Area */}
             <div className="overflow-y-auto overscroll-contain flex-1 p-2 sm:p-3 divide-y divide-stone-100 dark:divide-stone-800/40">
-              {/* Error Banner */}
               {searchError && (
                 <div
                   role="alert"
@@ -623,13 +618,12 @@ export function SearchModal({
                           </div>
                         )}
                         {video.duration && (
-                          <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-xs px-1.5 py-0.5 rounded leading-none">
+                          <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-2xs px-2 py-0.5 rounded-full leading-none">
                             {video.duration}
                           </div>
                         )}
                       </div>
 
-                      {/* Video details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm sm:text-base font-medium text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
                           {video.title}
@@ -717,9 +711,7 @@ export function SearchModal({
             </div>
           </>
         ) : (
-          /* View Mode 2: Chapter Preview Drawer */
           <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col p-3 sm:p-4">
-            {/* Video Summary Header Bar */}
             <div className="p-3 bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-800 rounded-lg mb-3 flex items-center gap-3 shrink-0">
               <div className="relative aspect-video w-28 sm:w-36 rounded-md overflow-hidden bg-black shrink-0">
                 {selectedVideo.thumbnailUrl ? (
@@ -737,7 +729,7 @@ export function SearchModal({
                   </div>
                 )}
                 {selectedVideo.duration && (
-                  <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-xs px-1.5 py-0.5 rounded leading-none">
+                  <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-2xs px-2 py-0.5 rounded-full leading-none">
                     {selectedVideo.duration}
                   </div>
                 )}

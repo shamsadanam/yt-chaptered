@@ -4,10 +4,8 @@ export interface YouTubeSearchResultItem {
   videoId: string;
   title: string;
   author: string;
-  channelId?: string;
   thumbnailUrl: string;
   duration: string;
-  durationSeconds?: number;
   views?: string;
   publishedTime?: string;
   hasChapters: boolean;

@@ -5,11 +5,11 @@ import Script from "next/script";
 
 interface TurnstileWidgetProps {
   onTokenChange: (token: string | null) => void;
+  onError?: (error: string) => void;
   action?: string;
   className?: string;
 }
 
-const CLOUDFLARE_TEST_SITEKEY = "1x00000000000000000000AA";
 const TURNSTILE_SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -36,6 +36,7 @@ declare global {
 
 export function TurnstileWidget({
   onTokenChange,
+  onError,
   action,
   className,
 }: TurnstileWidgetProps) {
@@ -47,8 +48,11 @@ export function TurnstileWidget({
       return;
     }
 
-    const sitekey =
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || CLOUDFLARE_TEST_SITEKEY;
+    const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    if (!sitekey) {
+      onError?.("NEXT_PUBLIC_TURNSTILE_SITE_KEY is not configured");
+      return;
+    }
 
     try {
       const id = window.turnstile.render(containerRef.current, {
@@ -62,15 +66,17 @@ export function TurnstileWidget({
         "expired-callback": () => {
           onTokenChange(null);
         },
-        "error-callback": () => {
+        "error-callback": (errorCode: string) => {
           onTokenChange(null);
+          onError?.(`Turnstile error: ${errorCode}`);
         },
       });
       widgetIdRef.current = id;
     } catch (err) {
       console.warn("Failed to render Turnstile widget:", err);
+      onError?.(err instanceof Error ? err.message : "Failed to render Turnstile widget");
     }
-  }, [action, onTokenChange]);
+  }, [action, onError, onTokenChange]);
 
   useEffect(() => {
     if (window.turnstile) {

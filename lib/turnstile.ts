@@ -1,4 +1,5 @@
-const CLOUDFLARE_TEST_SECRET = '1x0000000000000000000000000000000AA';
+import { MemoryCache } from './cache';
+
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 interface TurnstileVerifyResponse {
@@ -10,40 +11,14 @@ interface TurnstileVerifyResponse {
   cdata?: string;
 }
 
-const MAX_CLEARANCE_ENTRIES = 5000;
-const clearanceStore = new Map<string, number>();
-let lastClearanceCleanup = Date.now();
-
-function evictStaleClearances(now: number) {
-  if (now - lastClearanceCleanup < 60_000) return;
-  lastClearanceCleanup = now;
-  for (const [key, expiresAt] of clearanceStore) {
-    if (now > expiresAt) clearanceStore.delete(key);
-  }
-}
+const clearanceCache = new MemoryCache<boolean>(5000);
 
 export function isClientCleared(key: string): boolean {
-  const now = Date.now();
-  evictStaleClearances(now);
-  const expiresAt = clearanceStore.get(key);
-  if (!expiresAt) return false;
-  if (now > expiresAt) {
-    clearanceStore.delete(key);
-    return false;
-  }
-  return true;
+  return clearanceCache.has(key);
 }
 
 export function grantClientClearance(key: string, durationMs = 15 * 60 * 1000): void {
-  const now = Date.now();
-  evictStaleClearances(now);
-
-  if (clearanceStore.size >= MAX_CLEARANCE_ENTRIES) {
-    const oldestKey = clearanceStore.keys().next().value;
-    if (oldestKey) clearanceStore.delete(oldestKey);
-  }
-
-  clearanceStore.set(key, now + durationMs);
+  clearanceCache.set(key, true, durationMs);
 }
 
 export async function verifyTurnstileToken(
@@ -54,7 +29,13 @@ export async function verifyTurnstileToken(
     return { success: false, error: 'Turnstile token is missing or empty' };
   }
 
-  const secret = process.env.TURNSTILE_SECRET_KEY || CLOUDFLARE_TEST_SECRET;
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    return {
+      success: false,
+      error: 'TURNSTILE_SECRET_KEY environment variable is not configured',
+    };
+  }
 
   try {
     const res = await fetch(SITEVERIFY_URL, {

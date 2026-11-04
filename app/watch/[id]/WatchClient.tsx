@@ -9,6 +9,7 @@ import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
 import { CopyrightYear } from '../../../components/CopyrightYear';
 import { TurnstileWidget } from '../../../components/TurnstileWidget';
+import { useSearchShortcut } from '../../../hooks/useSearchShortcut';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
 import {
   subscribeCourses,
@@ -140,25 +141,10 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     };
   }, [videoId, savedCourse]);
 
-  // Global search keyboard shortcuts on watch page
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchModalOpen((prev) => !prev);
-        return;
-      }
-      if (
-        e.key === '/' &&
-        !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
-      ) {
-        e.preventDefault();
-        setIsSearchModalOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  useSearchShortcut(
+    () => setIsSearchModalOpen(true),
+    () => setIsSearchModalOpen((prev) => !prev)
+  );
 
   // Execute protected fetch once Turnstile token is available
   useEffect(() => {
@@ -283,6 +269,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
             </p>
             <TurnstileWidget
               onTokenChange={setTurnstileToken}
+              onError={setFetchError}
               action="watch_auto_fetch"
               className="flex justify-center empty:hidden mt-4"
             />
@@ -345,7 +332,8 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         hasActivePlaylist={true}
         activePlaylistTitle={playlist.video.title}
         onTabChange={(tab) => {
-          if (tab === 'create') router.push('/?tab=create');
+          if (tab === 'search') setIsSearchModalOpen(true);
+          else if (tab === 'create') router.push('/?tab=create');
           else if (tab === 'history') router.push('/?tab=history');
         }}
         onOpenAbout={() => setIsAboutOpen(true)}

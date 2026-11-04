@@ -9,6 +9,7 @@ import { InputView } from '../components/InputView';
 import { CourseHistoryShelf } from '../components/CourseHistoryShelf';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { CopyrightYear } from '../components/CopyrightYear';
+import { useSearchShortcut } from '../hooks/useSearchShortcut';
 import { ParsedPlaylist, SavedCourse } from '../types/playlist';
 import {
   subscribeCourses,
@@ -64,28 +65,12 @@ export default function Home() {
         }
       });
     }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // ⌘K or Ctrl+K shortcut
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchModalOpen((prev) => !prev);
-        return;
-      }
-
-      // "/" shortcut when active element is not an input or textarea
-      if (
-        e.key === '/' &&
-        !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
-      ) {
-        e.preventDefault();
-        setIsSearchModalOpen(true);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  useSearchShortcut(
+    () => setIsSearchModalOpen(true),
+    () => setIsSearchModalOpen((prev) => !prev)
+  );
 
   const handleRefreshCourses = () => {};
 
@@ -116,7 +101,11 @@ export default function Home() {
     handleRefreshCourses();
   };
 
-  const handleTabChange = (tab: 'create' | 'player' | 'history') => {
+  const handleTabChange = (tab: 'create' | 'player' | 'history' | 'search') => {
+    if (tab === 'search') {
+      setIsSearchModalOpen(true);
+      return;
+    }
     if (tab === 'create') {
       setIsAddModalOpen(true);
       return;
