@@ -68,11 +68,15 @@ interface InnertubeVideoRenderer {
   }>;
 }
 
-function getExpandableMetadataRuns(
+function getExpandableMetadataTitle(
   vr: InnertubeVideoRenderer
-): Array<{ text?: string }> | undefined {
-  return vr.expandableMetadata?.expandableMetadataRenderer?.header?.collapsedTitle
-    ?.runs;
+): string | undefined {
+  const runs =
+    vr.expandableMetadata?.expandableMetadataRenderer?.header?.collapsedTitle
+      ?.runs;
+  if (!runs || runs.length === 0) return undefined;
+  const text = runs.map((r) => r.text || '').join('').trim();
+  return text || undefined;
 }
 
 // Traverse YouTube Innertube JSON response to find all videoRenderer objects
@@ -292,9 +296,8 @@ export async function GET(request: NextRequest) {
       let hasChapters = false;
       let chapterTitles: string[] | undefined;
 
-      const expRuns = getExpandableMetadataRuns(vr);
-      if (expRuns && expRuns.length > 0) {
-        const expText = expRuns.map((r) => r.text || '').join('');
+      const expText = getExpandableMetadataTitle(vr);
+      if (expText) {
         if (expText.includes('|')) {
           const splitParts = expText
             .split('|')

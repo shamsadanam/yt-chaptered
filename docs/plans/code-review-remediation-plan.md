@@ -1,3 +1,7 @@
+---
+skip-verification: true
+---
+
 # Code Review Remediation Plan
 
 This plan addresses findings from the two-axis code review between commit `01e2527` and `HEAD`. Phases are ranked from **Highest Recommendation** to **Low**, with **Decisions Needed** resolved based on user alignment.

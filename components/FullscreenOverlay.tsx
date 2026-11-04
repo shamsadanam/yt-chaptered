@@ -30,25 +30,13 @@ export function FullscreenOverlay({
   onToggleComplete,
   onExitFullscreen,
 }: FullscreenOverlayProps) {
-  const {
-    isPlaying,
-    isPlayLoading,
-    isReady,
-    currentTime,
-    duration,
-    playbackRate,
-    volume,
-    isMuted,
-    isCaptionsEnabled,
-  } = playerState;
+  const { isPlaying, volume, isMuted } = playerState;
 
   const {
     play,
     pause,
     seekToChapter,
-    seekToTime,
     seekBy,
-    setPlaybackRate,
     setVolume,
     toggleMute,
     toggleCaptions,
@@ -344,29 +332,13 @@ export function FullscreenOverlay({
         currentChapterIndex={currentChapterIndex}
         totalChapters={totalChapters}
         completedIdsSet={completedIdsSet}
-        currentTime={currentTime}
-        duration={duration}
-        isPlaying={isPlaying}
-        isPlayLoading={isPlayLoading}
-        isReady={isReady}
-        playbackRate={playbackRate}
-        volume={volume}
-        isMuted={isMuted}
-        isCaptionsEnabled={isCaptionsEnabled}
+        playerState={playerState}
+        playerActions={playerActions}
         isDrawerOpen={isDrawerOpen}
         isSpeedMenuOpen={isSpeedMenuOpen}
         speedMenuRef={speedMenuRef}
         setIsSpeedMenuOpen={setIsSpeedMenuOpen}
         onToggleDrawer={() => setIsDrawerOpen((prev) => !prev)}
-        onPlay={play}
-        onPause={pause}
-        onSeekBy={seekBy}
-        onSeekToTime={seekToTime}
-        onSeekToChapter={seekToChapter}
-        onSetPlaybackRate={setPlaybackRate}
-        onSetVolume={setVolume}
-        onToggleMute={toggleMute}
-        onToggleCaptions={toggleCaptions}
         onToggleComplete={onToggleComplete}
         onExitFullscreen={onExitFullscreen}
         onUserActivity={resetHideTimer}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   List,
   Play,
@@ -20,6 +20,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { Chapter } from '../../types/playlist';
+import { PlayerPlaybackState, PlayerPlaybackActions } from '../../types/player';
 import { secondsToTimestamp } from '../../lib/youtubeParser';
 
 interface FullscreenBottomBarProps {
@@ -29,29 +30,13 @@ interface FullscreenBottomBarProps {
   currentChapterIndex: number;
   totalChapters: number;
   completedIdsSet: Set<string>;
-  currentTime: number;
-  duration: number;
-  isPlaying: boolean;
-  isPlayLoading: boolean;
-  isReady: boolean;
-  playbackRate: number;
-  volume: number;
-  isMuted: boolean;
-  isCaptionsEnabled?: boolean;
+  playerState: PlayerPlaybackState;
+  playerActions: PlayerPlaybackActions;
   isDrawerOpen: boolean;
   isSpeedMenuOpen: boolean;
   speedMenuRef: React.RefObject<HTMLDivElement | null>;
   setIsSpeedMenuOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   onToggleDrawer: () => void;
-  onPlay: () => void;
-  onPause: () => void;
-  onSeekBy: (delta: number) => void;
-  onSeekToTime: (time: number) => void;
-  onSeekToChapter: (index: number) => void;
-  onSetPlaybackRate: (rate: number) => void;
-  onSetVolume: (volume: number) => void;
-  onToggleMute: () => void;
-  onToggleCaptions?: () => void;
   onToggleComplete: (chapterId: string, e?: React.MouseEvent) => void;
   onExitFullscreen: () => void;
   onUserActivity: () => void;
@@ -65,38 +50,72 @@ export function FullscreenBottomBar({
   currentChapterIndex,
   totalChapters,
   completedIdsSet,
-  currentTime,
-  duration,
-  isPlaying,
-  isPlayLoading,
-  isReady,
-  playbackRate,
-  volume,
-  isMuted,
-  isCaptionsEnabled = false,
+  playerState,
+  playerActions,
   isDrawerOpen,
   isSpeedMenuOpen,
   speedMenuRef,
   setIsSpeedMenuOpen,
   onToggleDrawer,
-  onPlay,
-  onPause,
-  onSeekBy,
-  onSeekToTime,
-  onSeekToChapter,
-  onSetPlaybackRate,
-  onSetVolume,
-  onToggleMute,
-  onToggleCaptions,
   onToggleComplete,
   onExitFullscreen,
   onUserActivity,
   onHoverControls,
 }: FullscreenBottomBarProps) {
+  const {
+    currentTime,
+    duration,
+    isPlaying,
+    isPlayLoading,
+    isReady,
+    playbackRate,
+    volume,
+    isMuted,
+    isCaptionsEnabled = false,
+    isCaptionsSupported,
+  } = playerState;
+
+  const {
+    play: onPlay,
+    pause: onPause,
+    seekBy: onSeekBy,
+    seekToTime: onSeekToTime,
+    seekToChapter: onSeekToChapter,
+    setPlaybackRate: onSetPlaybackRate,
+    setVolume: onSetVolume,
+    toggleMute: onToggleMute,
+    toggleCaptions: onToggleCaptions,
+  } = playerActions;
+
   const progressBarRef = useRef<HTMLDivElement>(null);
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
   const [hoveredChapterTitle, setHoveredChapterTitle] = useState<string | null>(null);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [showCaptionsNotice, setShowCaptionsNotice] = useState(false);
+  const captionsNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (captionsNoticeTimeoutRef.current) {
+        clearTimeout(captionsNoticeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCaptionsClick = useCallback(() => {
+    onUserActivity();
+    if (isCaptionsSupported === false) {
+      setShowCaptionsNotice(true);
+      if (captionsNoticeTimeoutRef.current) {
+        clearTimeout(captionsNoticeTimeoutRef.current);
+      }
+      captionsNoticeTimeoutRef.current = setTimeout(() => {
+        setShowCaptionsNotice(false);
+      }, 3500);
+      return;
+    }
+    onToggleCaptions?.();
+  }, [isCaptionsSupported, onToggleCaptions, onUserActivity]);
 
   const splitNotches = useMemo(() => {
     if (duration <= 0) return null;
@@ -155,14 +174,14 @@ export function FullscreenBottomBar({
   const handlePointerUpProgress = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       setIsScrubbing(false);
-      onHoverControls(false);
       try {
         e.currentTarget.releasePointerCapture(e.pointerId);
       } catch {
         // Ignored if pointer capture was already released
       }
+      onUserActivity();
     },
-    [onHoverControls]
+    [onUserActivity]
   );
 
   const isCurrentCompleted = activeChapter ? completedIdsSet.has(activeChapter.id) : false;
@@ -459,26 +478,47 @@ export function FullscreenBottomBar({
           </div>
 
           {onToggleCaptions && (
-            <button
-              type="button"
-              onClick={() => {
-                onToggleCaptions();
-                onUserActivity();
-              }}
-              title={isCaptionsEnabled ? 'Turn off captions (C)' : 'Toggle captions (C)'}
-              aria-label={isCaptionsEnabled ? 'Turn off captions' : 'Toggle captions'}
-              aria-pressed={isCaptionsEnabled}
-              className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg border transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
-                isCaptionsEnabled
-                  ? 'bg-primary text-white border-primary shadow-sm'
-                  : 'bg-stone-900/80 hover:bg-stone-800 text-stone-100 border-white/15'
-              }`}
-            >
-              <Subtitles
-                className={`w-4 h-4 ${isCaptionsEnabled ? 'text-white' : 'text-stone-300'}`}
-                aria-hidden="true"
-              />
-            </button>
+            <div className="relative inline-flex items-center">
+              {showCaptionsNotice && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 rounded-lg bg-stone-900/95 border border-white/20 shadow-xl text-2xs text-stone-200 whitespace-nowrap pointer-events-none"
+                >
+                  Captions are controlled via YouTube player native CC icon
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-stone-900" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleCaptionsClick}
+                title={
+                  isCaptionsSupported === false
+                    ? 'Captions controlled via native YouTube player CC icon'
+                    : isCaptionsEnabled
+                    ? 'Turn off captions (C)'
+                    : 'Toggle captions (C)'
+                }
+                aria-label={
+                  isCaptionsSupported === false
+                    ? 'Captions controlled via native YouTube player CC icon'
+                    : isCaptionsEnabled
+                    ? 'Turn off captions'
+                    : 'Toggle captions'
+                }
+                aria-pressed={isCaptionsEnabled}
+                className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg border transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+                  isCaptionsEnabled
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-stone-900/80 hover:bg-stone-800 text-stone-100 border-white/15'
+                }`}
+              >
+                <Subtitles
+                  className={`w-4 h-4 ${isCaptionsEnabled ? 'text-white' : 'text-stone-300'}`}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           )}
 
           <button

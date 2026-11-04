@@ -185,6 +185,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     currentChapterIndex,
     playerError,
     isCaptionsEnabled,
+    isCaptionsSupported,
     volume,
     isMuted,
     seekToChapter,
@@ -626,6 +627,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       volume,
                       isMuted,
                       isCaptionsEnabled,
+                      isCaptionsSupported,
                     }}
                     playerActions={{
                       play,

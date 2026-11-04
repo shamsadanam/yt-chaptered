@@ -194,6 +194,7 @@ export default function Home() {
         hasActivePlaylist={playlist !== null}
         activePlaylistTitle={playlist?.video.title}
         onTabChange={handleTabChange}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 

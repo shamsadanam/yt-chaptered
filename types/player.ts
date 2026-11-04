@@ -8,6 +8,7 @@ export interface PlayerPlaybackState {
   volume: number;
   isMuted: boolean;
   isCaptionsEnabled?: boolean;
+  isCaptionsSupported?: boolean;
 }
 
 export interface PlayerPlaybackActions {

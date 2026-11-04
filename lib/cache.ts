@@ -58,16 +58,4 @@ export class MemoryCache<T> {
       expiresAt: now + ttlMs,
     });
   }
-
-  delete(key: string): void {
-    this.store.delete(key);
-  }
-
-  clear(): void {
-    this.store.clear();
-  }
-
-  get size(): number {
-    return this.store.size;
-  }
 }

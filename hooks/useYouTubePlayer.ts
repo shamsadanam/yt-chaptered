@@ -110,6 +110,7 @@ export function useYouTubePlayer({
   useEffect(() => {
     isCaptionsEnabledRef.current = isCaptionsEnabled;
   }, [isCaptionsEnabled]);
+  const [isCaptionsSupported, setIsCaptionsSupported] = useState<boolean | undefined>(undefined);
   const [volume, setVolumeState] = useState(100);
   const [isMuted, setIsMutedState] = useState(false);
 
@@ -285,9 +286,17 @@ export function useYouTubePlayer({
             if (isCancelled || !playerRef.current) return;
             const p = playerRef.current;
             if (typeof p.getOption === 'function') {
-              const track = p.getOption('captions', 'track');
-              const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
-              setIsCaptionsEnabled(isCurrentlyOn);
+              try {
+                const trackList = p.getOption('captions', 'tracklist') as Array<{ languageCode?: string }> | undefined;
+                if (Array.isArray(trackList)) {
+                  setIsCaptionsSupported(trackList.length > 0);
+                }
+                const track = p.getOption('captions', 'track');
+                const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
+                setIsCaptionsEnabled(isCurrentlyOn);
+              } catch {
+                setIsCaptionsSupported(false);
+              }
             }
             if (typeof p.isMuted === 'function') {
               setIsMutedState(Boolean(p.isMuted()));
@@ -599,6 +608,9 @@ export function useYouTubePlayer({
                 (t) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
               );
               trackToSet = enTrack || trackList[0];
+              setIsCaptionsSupported(true);
+            } else if (trackList !== undefined && trackList.length === 0) {
+              setIsCaptionsSupported(false);
             }
           }
           if (typeof p.setOption === 'function') {
@@ -616,6 +628,7 @@ export function useYouTubePlayer({
       }
     } catch (err) {
       console.warn('Failed to toggle captions:', err);
+      setIsCaptionsSupported(false);
     }
   }, []);
 
@@ -660,6 +673,7 @@ export function useYouTubePlayer({
     currentChapterIndex,
     playerError,
     isCaptionsEnabled,
+    isCaptionsSupported,
     volume,
     isMuted,
     seekToChapter,

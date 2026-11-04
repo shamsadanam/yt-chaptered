@@ -7,6 +7,7 @@ interface MobileTabBarProps {
   hasActivePlaylist: boolean;
   activePlaylistTitle?: string;
   onTabChange: (tab: 'create' | 'player' | 'history' | 'search') => void;
+  onOpenSearch?: () => void;
   onOpenAbout?: () => void;
 }
 
@@ -15,6 +16,7 @@ export function MobileTabBar({
   hasActivePlaylist,
   activePlaylistTitle,
   onTabChange,
+  onOpenSearch,
 }: MobileTabBarProps) {
   return (
     <nav
@@ -39,7 +41,13 @@ export function MobileTabBar({
 
         <button
           type="button"
-          onClick={() => onTabChange('search')}
+          onClick={() => {
+            if (onOpenSearch) {
+              onOpenSearch();
+            } else {
+              onTabChange('search');
+            }
+          }}
           aria-haspopup="dialog"
           className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1.5 rounded-lg min-h-12 touch-manipulation transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
             activeTab === 'search'

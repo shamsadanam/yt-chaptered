@@ -30,6 +30,7 @@ export function FullscreenChapterDrawer({
   onHoverControls,
 }: FullscreenChapterDrawerProps) {
   const [filterQuery, setFilterQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'remaining' | 'completed'>('all');
   const drawerListRef = useRef<HTMLOListElement>(null);
   const activeChapterRef = useRef<HTMLLIElement | null>(null);
   const drawerSearchInputRef = useRef<HTMLInputElement>(null);
@@ -41,14 +42,21 @@ export function FullscreenChapterDrawer({
   }, [isOpen, currentChapterIndex]);
 
   const filteredChapters = useMemo(() => {
-    if (!filterQuery.trim()) return chapters;
+    let result = chapters;
+    if (filterStatus === 'remaining') {
+      result = result.filter((chap) => !completedIdsSet.has(chap.id));
+    } else if (filterStatus === 'completed') {
+      result = result.filter((chap) => completedIdsSet.has(chap.id));
+    }
+
+    if (!filterQuery.trim()) return result;
     const query = filterQuery.toLowerCase();
-    return chapters.filter(
+    return result.filter(
       (chap) =>
         chap.title.toLowerCase().includes(query) ||
         chap.formattedTime.toLowerCase().includes(query)
     );
-  }, [chapters, filterQuery]);
+  }, [chapters, completedIdsSet, filterStatus, filterQuery]);
 
   const chapterIndexMap = useMemo(() => {
     return new Map(chapters.map((chap, i) => [chap.id, i]));
@@ -86,7 +94,7 @@ export function FullscreenChapterDrawer({
               type="button"
               onClick={onClose}
               aria-label="Close chapter list"
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              className="min-h-10 min-w-10 rounded-lg flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             >
               <X className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -119,18 +127,46 @@ export function FullscreenChapterDrawer({
             onChange={(e) => setFilterQuery(e.target.value)}
             placeholder="Filter chapters..."
             aria-label="Filter chapters"
-            className="w-full h-9 pl-8 pr-7 text-xs bg-stone-900 border border-stone-700/80 rounded-lg text-stone-100 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full h-9 pl-8 pr-10 text-xs bg-stone-900 border border-stone-700/80 rounded-lg text-stone-100 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-400"
           />
           {filterQuery && (
             <button
               type="button"
               onClick={() => setFilterQuery('')}
               aria-label="Clear filter"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200 cursor-pointer p-0.5"
+              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-10 min-w-10 flex items-center justify-center text-stone-400 hover:text-stone-200 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           )}
+        </div>
+
+        <div className="flex items-center gap-1.5 mt-2.5" role="group" aria-label="Filter chapters by completion">
+          {(
+            [
+              { id: 'all', label: 'All', count: chapters.length },
+              { id: 'remaining', label: 'Remaining', count: chapters.length - completedCount },
+              { id: 'completed', label: 'Done', count: completedCount },
+            ] as const
+          ).map((chip) => {
+            const isActive = filterStatus === chip.id;
+            return (
+              <button
+                key={chip.id}
+                type="button"
+                onClick={() => setFilterStatus(chip.id)}
+                aria-pressed={isActive}
+                className={`text-2xs font-medium px-2.5 py-1 rounded-full transition-colors cursor-pointer min-h-7 select-none flex items-center gap-1 ${
+                  isActive
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 border border-stone-800 hover:border-stone-700'
+                }`}
+              >
+                <span>{chip.label}</span>
+                <span className="font-mono font-tnum opacity-75">({chip.count})</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -142,7 +178,11 @@ export function FullscreenChapterDrawer({
       >
         {filteredChapters.length === 0 ? (
           <li className="p-4 text-center text-xs text-stone-400">
-            No chapters matching &quot;{filterQuery}&quot;
+            {filterQuery
+              ? `No chapters matching "${filterQuery}"`
+              : filterStatus === 'remaining'
+              ? 'All chapters completed!'
+              : 'No completed chapters yet.'}
           </li>
         ) : (
           filteredChapters.map((chap) => {
