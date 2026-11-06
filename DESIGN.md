@@ -489,6 +489,12 @@ Follow these guidelines for visual consistency:
 - Configure Lucide icon properties through native component props (`<Check className="w-3.5 h-3.5" strokeWidth={2.5} />`).
 - Pair primary pine green buttons with high-contrast white text (`text-white`).
 
+### Theater mode layout tokens
+
+- **Container expansion**: Full 12-column grid span (`lg:col-span-12`) with `transition-all duration-200`.
+- **Course chapter stack**: Flows beneath the video container at `lg:col-span-12 max-h-120` to maintain readable line length while enabling cinematic viewing.
+- **Toggle indicator**: Toggle button paired with `RectangleHorizontal` icon and active state highlighting using `bg-primary text-white border-primary`.
+
 ### Prohibited patterns
 
 Avoid these anti-patterns in application styles:

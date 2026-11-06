@@ -6,6 +6,7 @@ import { extractYouTubeId, parseTimestamps } from '../lib/youtubeParser';
 import { ParsedPlaylist } from '../types/playlist';
 import { TurnstileWidget } from './TurnstileWidget';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { SAMPLE_DATA } from '../lib/sampleData';
 
 interface AddCourseModalProps {
   isOpen: boolean;
@@ -15,41 +16,6 @@ interface AddCourseModalProps {
 }
 
 export type AddVideoModalProps = AddCourseModalProps;
-
-const SAMPLE_DATA = {
-  url: 'https://www.youtube.com/watch?v=soTfFFIQQ8U&t=1s',
-  videoId: 'soTfFFIQQ8U',
-  title: 'Design Software Systems Like a Senior Engineer – Complete Course',
-  author: 'freeCodeCamp.org',
-  description: `0:00:00 Why System Design Matters
-0:02:16 Interview Formats Overview
-0:09:14 The 5 Step Framework
-0:18:24 Tradeoffs and Extensions
-0:23:55 Requirements and Capacity Planning
-0:29:24 Architecture and Data Flows
-0:35:23 API Design
-0:40:04 Storage and Schema Design
-0:44:37 Scaling to Millions
-0:50:52 Non-Functional Targets
-0:58:22 Capacity Math and Architecture
-1:11:02 API Design and Idempotency
-1:22:34 Data Modeling and Inventory Logic
-1:33:05 Concurrency and Race Conditions
-1:34:44 Sharding, Caching and Scaling
-1:40:41 Search at Scale (Elasticsearch)
-1:45:19 Replication and Global Routing
-1:50:45 Scale Estimation
-1:56:38 Architecture and Real Time Communication
-2:07:04 Data Modeling and API Flows
-2:13:10 Multi Device Sync and Offline Delivery
-2:22:37 Fanout, Media Storage and CDN Delivery
-2:31:44 Event Driven Architecture and Batch Processing
-2:39:18 Encryption and Rate Limiting
-2:49:45 Sharding and Cleanup Jobs
-2:57:53 Failure Handling and Global Scaling
-3:09:08 Feature Flags and Rollouts
-3:11:14 How to Actually Get Better`,
-};
 
 export function AddCourseModal({ isOpen, onClose, onGenerate, onSwitchToSearch }: AddCourseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -232,7 +198,7 @@ export function AddCourseModal({ isOpen, onClose, onGenerate, onSwitchToSearch }
     setTimestampsText(SAMPLE_DATA.description);
     setIsExpandTimestamps(true);
     setErrorMessage(null);
-    setAutoFetchStatus('Sample course loaded with 28 chapters');
+    setAutoFetchStatus(`Sample course loaded with ${SAMPLE_DATA.chapterCount} chapters`);
     setCachedVideoInfo({
       videoId: SAMPLE_DATA.videoId,
       title: SAMPLE_DATA.title,
@@ -472,7 +438,7 @@ export function AddCourseModal({ isOpen, onClose, onGenerate, onSwitchToSearch }
                 <button
                   type="button"
                   onClick={loadSample}
-                  aria-label="Load sample System Design course with 28 chapters"
+                  aria-label={`Load sample ${SAMPLE_DATA.courseName} course with ${SAMPLE_DATA.chapterCount} chapters`}
                   className="text-xs text-stone-500 hover:text-primary dark:hover:text-emerald-400 underline cursor-pointer"
                 >
                   Load Sample
