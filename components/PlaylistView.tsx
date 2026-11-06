@@ -207,6 +207,15 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const resetControlsTimer = useCallback(() => {
     setIsControlsVisible(true);
@@ -671,16 +680,27 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       className="absolute inset-0 pointer-events-auto z-0"
                       onClick={(e) => {
                         if (e.target === e.currentTarget) {
-                          if (isPlaying) {
-                            pause();
-                          } else {
-                            play();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
                           }
-                          resetControlsTimer();
+                          // 220ms debounce prevents double clicks from causing play/pause flicker
+                          clickTimeoutRef.current = setTimeout(() => {
+                            clickTimeoutRef.current = null;
+                            if (isPlaying) {
+                              pause();
+                            } else {
+                              play();
+                            }
+                            resetControlsTimer();
+                          }, 220);
                         }
                       }}
                       onDoubleClick={(e) => {
                         if (e.target === e.currentTarget) {
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
                           handleToggleFullscreen();
                           resetControlsTimer();
                         }

@@ -54,6 +54,7 @@ export function FullscreenOverlay({
   const [showLockUnlockPill, setShowLockUnlockPill] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lockPillTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const resetHideTimer = useCallback(() => {
@@ -90,6 +91,9 @@ export function FullscreenOverlay({
     return () => {
       if (lockPillTimeoutRef.current) {
         clearTimeout(lockPillTimeoutRef.current);
+      }
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
       }
     };
   }, []);
@@ -271,6 +275,10 @@ export function FullscreenOverlay({
         onPointerMove={resetHideTimer}
         onDoubleClick={(e) => {
           if (e.target === e.currentTarget) {
+            if (clickTimeoutRef.current) {
+              clearTimeout(clickTimeoutRef.current);
+              clickTimeoutRef.current = null;
+            }
             if (isLocked) {
               return;
             }
@@ -279,32 +287,40 @@ export function FullscreenOverlay({
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            if (isLocked) {
-              setShowLockUnlockPill(true);
-              if (lockPillTimeoutRef.current) {
-                clearTimeout(lockPillTimeoutRef.current);
-              }
-              lockPillTimeoutRef.current = setTimeout(() => {
-                setShowLockUnlockPill(false);
-              }, 2500);
-              return;
+            if (clickTimeoutRef.current) {
+              clearTimeout(clickTimeoutRef.current);
             }
+            // 220ms debounce prevents double clicks from flickering controls overlay before exit
+            clickTimeoutRef.current = setTimeout(() => {
+              clickTimeoutRef.current = null;
 
-            if (isDrawerOpen) {
-              setIsDrawerOpen(false);
-              resetHideTimer();
-              return;
-            }
-
-            if (controlsVisible) {
-              if (hideTimerRef.current) {
-                clearTimeout(hideTimerRef.current);
+              if (isLocked) {
+                setShowLockUnlockPill(true);
+                if (lockPillTimeoutRef.current) {
+                  clearTimeout(lockPillTimeoutRef.current);
+                }
+                lockPillTimeoutRef.current = setTimeout(() => {
+                  setShowLockUnlockPill(false);
+                }, 2500);
+                return;
               }
-              setControlsVisible(false);
-            } else {
-              setControlsVisible(true);
-              resetHideTimer();
-            }
+
+              if (isDrawerOpen) {
+                setIsDrawerOpen(false);
+                resetHideTimer();
+                return;
+              }
+
+              if (controlsVisible) {
+                if (hideTimerRef.current) {
+                  clearTimeout(hideTimerRef.current);
+                }
+                setControlsVisible(false);
+              } else {
+                setControlsVisible(true);
+                resetHideTimer();
+              }
+            }, 220);
           }
         }}
       />
