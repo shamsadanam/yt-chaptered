@@ -232,7 +232,7 @@ export function PlayerControlsBar({
       className={`absolute ${
         isFullscreenMode
           ? 'bottom-3 sm:bottom-6 left-3 sm:left-6 right-3 sm:right-6 max-w-4xl p-2.5 sm:p-3.5'
-          : 'bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 max-w-3xl lg:max-w-4xl p-2 sm:p-3'
+          : 'bottom-3 sm:bottom-4 left-4 sm:left-6 right-4 sm:right-6 max-w-3xl lg:max-w-4xl p-2.5 sm:p-3'
       } z-20 mx-auto rounded-2xl bg-stone-950/85 backdrop-blur-md border border-white/10 shadow-2xl flex flex-col gap-1.5 sm:gap-2 pointer-events-auto transition-all duration-200 ${
         visible && !isLocked
           ? 'opacity-100 translate-y-0'

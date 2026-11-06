@@ -665,45 +665,62 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   />
                 )}
 
-                {!isFullscreen && (
-                  <PlayerControlsBar
-                    mode="windowed"
-                    visible={isControlsVisible}
-                    chapters={playlist.chapters}
-                    currentChapterIndex={currentChapterIndex}
-                    totalChapters={totalChapters}
-                    playerState={{
-                      isPlaying,
-                      isPlayLoading,
-                      isReady,
-                      currentTime,
-                      duration,
-                      playbackRate,
-                      volume,
-                      isMuted,
-                      isCaptionsEnabled,
-                      isCaptionsSupported,
-                    }}
-                    playerActions={{
-                      play,
-                      pause,
-                      seekToChapter: handleSelectChapter,
-                      seekBy: handleSeekBy,
-                      seekToTime: handleSeekToTime,
-                      setPlaybackRate,
-                      setVolume,
-                      toggleMute,
-                      toggleCaptions,
-                    }}
-                    isSpeedMenuOpen={isSpeedMenuOpen}
-                    speedMenuRef={speedMenuRef}
-                    setIsSpeedMenuOpen={setIsSpeedMenuOpen}
-                    isTheaterMode={isTheaterMode}
-                    onToggleTheater={() => setIsTheaterMode((prev) => !prev)}
-                    onToggleFullscreen={handleToggleFullscreen}
-                    onUserActivity={resetControlsTimer}
-                    onHoverControls={setIsHoveringControls}
-                  />
+                {!isFullscreen && isReady && !playerError && (
+                  <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                    <div
+                      className="absolute inset-0 pointer-events-auto z-0"
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                          if (isPlaying) {
+                            pause();
+                          } else {
+                            play();
+                          }
+                          resetControlsTimer();
+                        }
+                      }}
+                      onPointerMove={resetControlsTimer}
+                    />
+
+                    <PlayerControlsBar
+                      mode="windowed"
+                      visible={isControlsVisible}
+                      chapters={playlist.chapters}
+                      currentChapterIndex={currentChapterIndex}
+                      totalChapters={totalChapters}
+                      playerState={{
+                        isPlaying,
+                        isPlayLoading,
+                        isReady,
+                        currentTime,
+                        duration,
+                        playbackRate,
+                        volume,
+                        isMuted,
+                        isCaptionsEnabled,
+                        isCaptionsSupported,
+                      }}
+                      playerActions={{
+                        play,
+                        pause,
+                        seekToChapter: handleSelectChapter,
+                        seekBy: handleSeekBy,
+                        seekToTime: handleSeekToTime,
+                        setPlaybackRate,
+                        setVolume,
+                        toggleMute,
+                        toggleCaptions,
+                      }}
+                      isSpeedMenuOpen={isSpeedMenuOpen}
+                      speedMenuRef={speedMenuRef}
+                      setIsSpeedMenuOpen={setIsSpeedMenuOpen}
+                      isTheaterMode={isTheaterMode}
+                      onToggleTheater={() => setIsTheaterMode((prev) => !prev)}
+                      onToggleFullscreen={handleToggleFullscreen}
+                      onUserActivity={resetControlsTimer}
+                      onHoverControls={setIsHoveringControls}
+                    />
+                  </div>
                 )}
               </div>
             </div>
