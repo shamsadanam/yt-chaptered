@@ -770,7 +770,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       ? `Mark chapter ${currentChapterIndex + 1} as incomplete`
                       : `Mark chapter ${currentChapterIndex + 1} as completed`
                   }
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer min-h-11 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
                     isCurrentCompleted
                       ? "bg-primary text-white border-primary"
                       : "bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800"

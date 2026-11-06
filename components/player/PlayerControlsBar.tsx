@@ -133,13 +133,14 @@ export function PlayerControlsBar({
     };
   }, [isVolumeOpen]);
 
-  const [prevVisible, setPrevVisible] = useState(visible);
-  if (prevVisible !== visible) {
-    setPrevVisible(visible);
+  useEffect(() => {
     if (!visible && isVolumeOpen) {
-      setIsVolumeOpen(false);
+      const handle = requestAnimationFrame(() => {
+        setIsVolumeOpen(false);
+      });
+      return () => cancelAnimationFrame(handle);
     }
-  }
+  }, [visible, isVolumeOpen]);
 
   const handleCaptionsClick = useCallback(() => {
     onUserActivity();
@@ -332,7 +333,7 @@ export function PlayerControlsBar({
 
             {isVolumeOpen && (
               <div
-                className="absolute bottom-full mb-2 left-0 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5 animate-in fade-in zoom-in-95"
+                className="absolute bottom-full mb-2 left-0 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5"
               >
                 <button
                   type="button"
@@ -342,7 +343,7 @@ export function PlayerControlsBar({
                   }}
                   title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
                   aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
-                  className="w-7 h-7 inline-flex items-center justify-center rounded-lg hover:bg-stone-800 text-stone-200 hover:text-white transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                  className="min-h-10 min-w-10 inline-flex items-center justify-center rounded-xl hover:bg-stone-800 text-stone-200 hover:text-white transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 >
                   {isMuted || volume === 0 ? (
                     <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
