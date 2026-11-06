@@ -302,7 +302,13 @@ export function PlayerControlsBar({
             <button
               type="button"
               onClick={() => {
-                setIsVolumeOpen((prev) => !prev);
+                setIsVolumeOpen((prev) => {
+                  const next = !prev;
+                  if (next) {
+                    setIsSpeedMenuOpen(false);
+                  }
+                  return next;
+                });
                 onUserActivity();
               }}
               title={isMuted || volume === 0 ? 'Volume (Muted, M)' : `Volume (${volume}%, M)`}
@@ -326,7 +332,7 @@ export function PlayerControlsBar({
 
             {isVolumeOpen && (
               <div
-                className="absolute bottom-full mb-2 left-0 sm:left-1/2 sm:-translate-x-1/2 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5 animate-in fade-in zoom-in-95"
+                className="absolute bottom-full mb-2 left-0 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5 animate-in fade-in zoom-in-95"
               >
                 <button
                   type="button"
@@ -372,7 +378,13 @@ export function PlayerControlsBar({
             <button
               type="button"
               onClick={() => {
-                setIsSpeedMenuOpen((prev) => !prev);
+                setIsSpeedMenuOpen((prev) => {
+                  const next = !prev;
+                  if (next) {
+                    setIsVolumeOpen(false);
+                  }
+                  return next;
+                });
                 onUserActivity();
               }}
               title="Playback Speed"
