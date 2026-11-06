@@ -333,6 +333,8 @@ export function PlayerControlsBar({
 
             <div
               aria-hidden={!isVolumeOpen}
+              inert={!isVolumeOpen || undefined}
+              tabIndex={isVolumeOpen ? 0 : -1}
               className={`absolute bottom-full mb-2 left-0 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2.5 origin-bottom-left transition-all motion-reduce:transition-none ${
                 isVolumeOpen
                   ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto duration-200 ease-out'

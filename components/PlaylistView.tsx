@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Chapter, ParsedPlaylist, SavedCourse } from "../types/playlist";
 import { useYouTubePlayer } from "../hooks/useYouTubePlayer";
+import { useDoubleClickHandler } from "../hooks/useDoubleClickHandler";
 import { secondsToTimestamp } from "../lib/youtubeParser";
 import { PlayerControlsBar } from "./player/PlayerControlsBar";
 const FullscreenOverlay = dynamic(
@@ -207,15 +208,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const resetControlsTimer = useCallback(() => {
     setIsControlsVisible(true);
@@ -433,6 +425,28 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       }
     }
   }, []);
+
+  const handleTogglePlayPause = useCallback(() => {
+    if (isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+    resetControlsTimer();
+  }, [isPlaying, pause, play, resetControlsTimer]);
+
+  const handleDoubleTapFullscreen = useCallback(() => {
+    handleToggleFullscreen();
+    resetControlsTimer();
+  }, [handleToggleFullscreen, resetControlsTimer]);
+
+  const {
+    handleClick: handleCanvasClick,
+    handleDoubleClick: handleCanvasDoubleClick,
+  } = useDoubleClickHandler({
+    onSingleClick: handleTogglePlayPause,
+    onDoubleClick: handleDoubleTapFullscreen,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -678,33 +692,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
                     <div
                       className="absolute inset-0 pointer-events-auto z-0"
-                      onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                          }
-                          // 220ms debounce prevents double clicks from causing play/pause flicker
-                          clickTimeoutRef.current = setTimeout(() => {
-                            clickTimeoutRef.current = null;
-                            if (isPlaying) {
-                              pause();
-                            } else {
-                              play();
-                            }
-                            resetControlsTimer();
-                          }, 220);
-                        }
-                      }}
-                      onDoubleClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                          handleToggleFullscreen();
-                          resetControlsTimer();
-                        }
-                      }}
+                      onClick={handleCanvasClick}
+                      onDoubleClick={handleCanvasDoubleClick}
                       onPointerMove={resetControlsTimer}
                     />
 

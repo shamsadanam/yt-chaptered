@@ -5,6 +5,7 @@ import { List, Lock, Check } from "lucide-react";
 import { Chapter, ParsedPlaylist } from "../types/playlist";
 import { PlayerPlaybackState, PlayerPlaybackActions } from "../types/player";
 import { secondsToTimestamp } from "../lib/youtubeParser";
+import { useDoubleClickHandler } from "../hooks/useDoubleClickHandler";
 import { FullscreenChapterDrawer } from "./fullscreen/FullscreenChapterDrawer";
 import { FullscreenBottomBar } from "./fullscreen/FullscreenBottomBar";
 
@@ -54,8 +55,17 @@ export function FullscreenOverlay({
   const [showLockUnlockPill, setShowLockUnlockPill] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lockPillTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
+
+  const triggerLockPill = useCallback(() => {
+    setShowLockUnlockPill(true);
+    if (lockPillTimeoutRef.current) {
+      clearTimeout(lockPillTimeoutRef.current);
+    }
+    lockPillTimeoutRef.current = setTimeout(() => {
+      setShowLockUnlockPill(false);
+    }, 2500);
+  }, []);
 
   const resetHideTimer = useCallback(() => {
     if (isLocked) return;
@@ -91,9 +101,6 @@ export function FullscreenOverlay({
     return () => {
       if (lockPillTimeoutRef.current) {
         clearTimeout(lockPillTimeoutRef.current);
-      }
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
       }
     };
   }, []);
@@ -260,6 +267,45 @@ export function FullscreenOverlay({
     };
   }, [isSpeedMenuOpen]);
 
+  const handleSingleClickBackdrop = useCallback(() => {
+    if (isLocked) {
+      triggerLockPill();
+      return;
+    }
+
+    if (isDrawerOpen) {
+      setIsDrawerOpen(false);
+      resetHideTimer();
+      return;
+    }
+
+    if (controlsVisible) {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+      setControlsVisible(false);
+    } else {
+      setControlsVisible(true);
+      resetHideTimer();
+    }
+  }, [isLocked, triggerLockPill, isDrawerOpen, resetHideTimer, controlsVisible]);
+
+  const handleDoubleClickBackdrop = useCallback(() => {
+    if (isLocked) {
+      triggerLockPill();
+      return;
+    }
+    onExitFullscreen();
+  }, [isLocked, triggerLockPill, onExitFullscreen]);
+
+  const {
+    handleClick: handleBackdropClick,
+    handleDoubleClick: handleBackdropDoubleClick,
+  } = useDoubleClickHandler({
+    onSingleClick: handleSingleClickBackdrop,
+    onDoubleClick: handleDoubleClickBackdrop,
+  });
+
   return (
     <div
       onPointerMove={resetHideTimer}
@@ -273,56 +319,8 @@ export function FullscreenOverlay({
       <div
         className="absolute inset-0 z-0"
         onPointerMove={resetHideTimer}
-        onDoubleClick={(e) => {
-          if (e.target === e.currentTarget) {
-            if (clickTimeoutRef.current) {
-              clearTimeout(clickTimeoutRef.current);
-              clickTimeoutRef.current = null;
-            }
-            if (isLocked) {
-              return;
-            }
-            onExitFullscreen();
-          }
-        }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            if (clickTimeoutRef.current) {
-              clearTimeout(clickTimeoutRef.current);
-            }
-            // 220ms debounce prevents double clicks from flickering controls overlay before exit
-            clickTimeoutRef.current = setTimeout(() => {
-              clickTimeoutRef.current = null;
-
-              if (isLocked) {
-                setShowLockUnlockPill(true);
-                if (lockPillTimeoutRef.current) {
-                  clearTimeout(lockPillTimeoutRef.current);
-                }
-                lockPillTimeoutRef.current = setTimeout(() => {
-                  setShowLockUnlockPill(false);
-                }, 2500);
-                return;
-              }
-
-              if (isDrawerOpen) {
-                setIsDrawerOpen(false);
-                resetHideTimer();
-                return;
-              }
-
-              if (controlsVisible) {
-                if (hideTimerRef.current) {
-                  clearTimeout(hideTimerRef.current);
-                }
-                setControlsVisible(false);
-              } else {
-                setControlsVisible(true);
-                resetHideTimer();
-              }
-            }, 220);
-          }
-        }}
+        onClick={handleBackdropClick}
+        onDoubleClick={handleBackdropDoubleClick}
       />
 
       <div role="status" aria-live="polite" className="sr-only">
