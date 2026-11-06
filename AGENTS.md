@@ -8,35 +8,36 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Testing Rules
+## Testing
 
-- You don't need to test with Playwright for everything. Use it when I ask you to.
-- When you test using Playwright MCP, start the headless server with volume muted, unless you're specifically testing for sound.
+- Run Playwright tests only when explicitly requested.
+- Launch Playwright MCP headless with volume muted (unless testing sound).
 
 ## Tailwind CSS Conventions
 
-- **Use Canonical Utility Classes**: Always use standard, canonical Tailwind CSS utility classes (e.g., `bg-stone-50`, `text-stone-900`, `border-stone-200`, `rounded-lg`, `rounded-xl`, `min-h-11`, `min-h-10`, `text-xs`, `w-21`) instead of arbitrary square-bracket syntax (`bg-[#fafaf9]`, `rounded-[8px]`, `min-h-[44px]`, `text-[11px]`, `w-[84px]`).
-- **Use Theme Tokens**: Use the design tokens configured in `@theme` in `app/globals.css` (e.g., `bg-primary`, `hover:bg-primary-hover`, `text-primary`, `text-2xs`) for brand-specific styles.
-- **No Unnecessary Arbitrary Values**: Avoid arbitrary classes (`-[...]`) for colors, dimensions, radii, tracking, or typography. If a custom utility or measurement is genuinely needed, declare it semantically in `app/globals.css` using `@theme` or `@utility`.
-- **Icon Props Over Arbitrary Classes**: Configure Lucide icon properties through native component props (such as `<Check className="w-3.5 h-3.5" strokeWidth={3} />`) rather than arbitrary classes like `stroke-[3]`.
+- **Canonical Classes & Tokens**: Use standard Tailwind utilities and design tokens declared in `@theme` (`app/globals.css`) over arbitrary bracket syntax (`[...]`).
+- **Custom Utilities**: Declare reusable measurements semantically in `app/globals.css` via `@theme` or `@utility`.
+- **Lucide Icons**: Configure icon properties through component props (e.g., `strokeWidth={3}`) rather than Tailwind classes.
 
 ## Skills Guidelines
 
-- **Prompt if Missing (Common Rule)**: Before implementing, designing, or verifying, check that any required skill(s) are installed in `.agents/skills/`. If any required skills are not installed, pause and ask the user to install them (listing specifically which skills are needed) before proceeding.
+- **Missing Skills Gate**: Before implementing, designing, or verifying, verify required skills exist in `.agents/skills/`. If any are missing, pause and list them for the user to install before proceeding.
 
 ### Design Workflow
 
-- **Design Creation & Updates**: When creating and/or updating design, use the `ui-ux-pro-max` skill.
+- **UI Design**: Use the `ui-ux-pro-max` skill for interface creation and updates.
 
 ### Code Verification Workflow
 
-- **Skill Verification Order**: When creating a new feature or changing code, verify the code using skills in this strict sequence:
-  1. Relevant Vercel skills (e.g. `vercel-react-best-practices`, `vercel-react-view-transitions`).
-  2. The `code-review` skill.
-- **Plan Tagging**: When creating implementation or remediation plans using these verification skills, always add the flag `skip-verification: true` (or `[skip-verification]`) in the plan header/metadata.
-- **Loop Prevention (MUST)**: Before running verification, check:
-  1. Does the active plan contain `skip-verification: true` (or `[skip-verification]`)?
-  2. Are the current changes direct remediations or fixes for findings from a review skill in this session?
-  If yes to either, do not run these verification skills, ensuring no circular or recursive verification looping occurs.
+Verify code after implementing a new feature or code change:
+
+1. **Loop Prevention Gate**: Check if:
+   - The active plan contains `skip-verification: true` (or `[skip-verification]`).
+   - The changes are direct remediations for findings from a review skill in this session.
+   If either condition is true, skip verification.
+2. **Verification Sequence**: Run verification in strict order:
+   1. Relevant Vercel skills (e.g. `vercel-react-best-practices`, `vercel-react-view-transitions`).
+   2. The `code-review` skill.
+3. **Plan Tagging**: Tag any remediation or implementation plan produced by verification with `skip-verification: true`.
 
 
