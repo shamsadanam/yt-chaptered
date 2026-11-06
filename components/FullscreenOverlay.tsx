@@ -269,6 +269,14 @@ export function FullscreenOverlay({
       <div
         className="absolute inset-0 z-0"
         onPointerMove={resetHideTimer}
+        onDoubleClick={(e) => {
+          if (e.target === e.currentTarget) {
+            if (isLocked) {
+              return;
+            }
+            onExitFullscreen();
+          }
+        }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             if (isLocked) {
@@ -297,11 +305,6 @@ export function FullscreenOverlay({
               setControlsVisible(true);
               resetHideTimer();
             }
-          }
-        }}
-        onDoubleClick={() => {
-          if (!isLocked) {
-            onExitFullscreen();
           }
         }}
       />

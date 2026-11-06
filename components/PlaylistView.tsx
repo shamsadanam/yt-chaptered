@@ -679,6 +679,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                           resetControlsTimer();
                         }
                       }}
+                      onDoubleClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                          handleToggleFullscreen();
+                          resetControlsTimer();
+                        }
+                      }}
                       onPointerMove={resetControlsTimer}
                     />
 
