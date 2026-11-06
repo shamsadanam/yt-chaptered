@@ -9,6 +9,11 @@
   - [x] do a code review using this - `npx skills@latest add mattpocock/skills --skill=setup-matt-pocock-skills`
 - [ ] Google Drive sync or free DB sync for account progress.
 - [ ] Do not autoplay on reload. Don't autoplay on first time video generation. in fact, don't auto play in details page, users will play there manually.
+- [x] minify player fullscreen overlay controls
+- [ ] when video is fullscreened, the chapter info at top header center area - the text size is too small, increase it to 14px
+- [x] Fullscreen shortcut key (F) removed along with help text; double-click fullscreen inside iframe evaluated & rejected due to cross-origin security boundaries.
+- [x] When a player speed is selected (e.g. 1.25x or 1.5x), the speed control has a fixed width to eliminate layout shift.
+- [x] When the volume change button is clicked, an absolutely positioned floating popover displays the slider without causing layout shift.
 
 ## Priority 2: PWA Experience & Storage Reliability
 

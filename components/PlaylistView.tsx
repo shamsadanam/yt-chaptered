@@ -14,26 +14,14 @@ import {
   Loader2,
   AlertTriangle,
   ExternalLink,
-  Zap,
-  Subtitles,
-  Volume1,
-  Volume2,
-  VolumeX,
-  ChevronDown,
   Check,
-  Maximize2,
-  Minimize2,
-  SkipBack,
-  SkipForward,
-  RotateCcw,
-  RotateCw,
   Play,
-  Pause,
   ArrowLeft,
 } from "lucide-react";
 import { Chapter, ParsedPlaylist, SavedCourse } from "../types/playlist";
 import { useYouTubePlayer } from "../hooks/useYouTubePlayer";
 import { secondsToTimestamp } from "../lib/youtubeParser";
+import { PlayerControlsBar } from "./player/PlayerControlsBar";
 const FullscreenOverlay = dynamic(
   () => import("./FullscreenOverlay").then((mod) => mod.FullscreenOverlay),
   { ssr: false },
@@ -215,6 +203,64 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [isControlsVisible, setIsControlsVisible] = useState(true);
+  const [isHoveringControls, setIsHoveringControls] = useState(false);
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetControlsTimer = useCallback(() => {
+    setIsControlsVisible(true);
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+    }
+    if (isPlaying && !isSpeedMenuOpen && !isHoveringControls) {
+      controlsTimerRef.current = setTimeout(() => {
+        setIsControlsVisible(false);
+      }, 3500);
+    }
+  }, [isPlaying, isSpeedMenuOpen, isHoveringControls]);
+
+  useEffect(() => {
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+    }
+    if (isPlaying && !isSpeedMenuOpen && !isHoveringControls) {
+      controlsTimerRef.current = setTimeout(() => {
+        setIsControlsVisible(false);
+      }, 3500);
+    }
+    return () => {
+      if (controlsTimerRef.current) {
+        clearTimeout(controlsTimerRef.current);
+      }
+    };
+  }, [isPlaying, isSpeedMenuOpen, isHoveringControls]);
+
+  // Exit fullscreen when tab/device is hidden to prevent mobile viewport snapshot glitches
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        const doc = document as unknown as {
+          fullscreenElement?: Element;
+          webkitFullscreenElement?: Element;
+          exitFullscreen?: () => Promise<void>;
+          webkitExitFullscreen?: () => Promise<void>;
+        };
+        if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+          if (doc.exitFullscreen) {
+            doc.exitFullscreen().catch(() => {});
+          } else if (doc.webkitExitFullscreen) {
+            doc.webkitExitFullscreen().catch(() => {});
+          }
+        }
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // Sync fullscreen state across vendor implementations
   useEffect(() => {
@@ -304,24 +350,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     toggleChapterCompletion(playlist.video.id, chapterId);
   };
 
-  const handlePreviousChapter = () => {
-    if (currentChapterIndex > 0) {
-      const targetIdx = currentChapterIndex - 1;
-      seekToChapter(targetIdx);
-      const chap = playlist.chapters[targetIdx];
-      if (chap) updateUrlTimestamp(chap.startTime);
-    }
-  };
-
-  const handleNextChapter = () => {
-    if (currentChapterIndex < playlist.chapters.length - 1) {
-      const targetIdx = currentChapterIndex + 1;
-      seekToChapter(targetIdx);
-      const chap = playlist.chapters[targetIdx];
-      if (chap) updateUrlTimestamp(chap.startTime);
-    }
-  };
-
   const handleSelectChapter = (idx: number) => {
     seekToChapter(idx);
     const chap = playlist.chapters[idx];
@@ -397,7 +425,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     }
   }, []);
 
-  // Keyboard shortcut 'F' to toggle fullscreen with chapters
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -408,9 +435,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       ) {
         return;
       }
-      if (e.key === "f" || e.key === "F") {
+      if (e.key === "t" || e.key === "T") {
         e.preventDefault();
-        handleToggleFullscreen();
+        setIsTheaterMode((prev) => !prev);
       } else if (e.key === "c" || e.key === "C") {
         e.preventDefault();
         toggleCaptions();
@@ -421,7 +448,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleToggleFullscreen, toggleCaptions, toggleMute]);
+  }, [toggleCaptions, toggleMute]);
 
   const handleCopyTimestamps = async () => {
     const text =
@@ -533,30 +560,23 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       {/* Responsive Layout: Sticky video on mobile, 2-column on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
         {/* Left Column: Video Player, Dedicated Controls & Current Chapter */}
-        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3 sm:gap-4">
+        <div
+          className={`${
+            isTheaterMode ? "lg:col-span-12" : "lg:col-span-7 xl:col-span-8"
+          } flex flex-col gap-3 sm:gap-4 transition-all duration-200`}
+        >
           {/* 16:9 Video Embed Container (Sticky below navbar on mobile) */}
           <div className="sticky top-14 sm:static z-20 bg-stone-50 dark:bg-stone-950 sm:bg-transparent py-0 -mx-3 sm:mx-0">
             <div
               ref={playerWrapperRef}
+              onPointerMove={resetControlsTimer}
+              onPointerDown={resetControlsTimer}
               className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
                   ? "fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center"
                   : "rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800"
               }`}
             >
-              {/* Floating Fullscreen button on video hover in normal mode */}
-              {!isFullscreen && (
-                <button
-                  type="button"
-                  onClick={handleToggleFullscreen}
-                  className="absolute bottom-3 right-3 z-20 w-9 h-9 inline-flex items-center justify-center bg-black/75 hover:bg-black active:bg-black text-white rounded-lg border border-white/20 shadow-md backdrop-blur-xs opacity-0 hover:opacity-100 focus-visible:opacity-100 group-hover/player:opacity-100 transition-opacity cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-                  title="Fullscreen with Chapters (F)"
-                  aria-label="Enter Fullscreen with Chapters"
-                >
-                  <Maximize2 className="w-4 h-4" aria-hidden="true" />
-                </button>
-              )}
-
               {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
               <div
                 className="w-full h-full relative"
@@ -644,20 +664,60 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                     onExitFullscreen={handleToggleFullscreen}
                   />
                 )}
+
+                {!isFullscreen && (
+                  <PlayerControlsBar
+                    mode="windowed"
+                    visible={isControlsVisible}
+                    chapters={playlist.chapters}
+                    currentChapterIndex={currentChapterIndex}
+                    totalChapters={totalChapters}
+                    playerState={{
+                      isPlaying,
+                      isPlayLoading,
+                      isReady,
+                      currentTime,
+                      duration,
+                      playbackRate,
+                      volume,
+                      isMuted,
+                      isCaptionsEnabled,
+                      isCaptionsSupported,
+                    }}
+                    playerActions={{
+                      play,
+                      pause,
+                      seekToChapter: handleSelectChapter,
+                      seekBy: handleSeekBy,
+                      seekToTime: handleSeekToTime,
+                      setPlaybackRate,
+                      setVolume,
+                      toggleMute,
+                      toggleCaptions,
+                    }}
+                    isSpeedMenuOpen={isSpeedMenuOpen}
+                    speedMenuRef={speedMenuRef}
+                    setIsSpeedMenuOpen={setIsSpeedMenuOpen}
+                    isTheaterMode={isTheaterMode}
+                    onToggleTheater={() => setIsTheaterMode((prev) => !prev)}
+                    onToggleFullscreen={handleToggleFullscreen}
+                    onUserActivity={resetControlsTimer}
+                    onHoverControls={setIsHoveringControls}
+                  />
+                )}
               </div>
             </div>
           </div>
 
-          {/* Unified Current Chapter & Playback Controls Panel */}
           <section
-            aria-label="Playback controls and active chapter info"
-            className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-xl p-3.5 sm:p-4 flex flex-col gap-3 shadow-xs"
+            aria-label="Active chapter info and progress"
+            className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-xl p-3.5 sm:p-4 flex flex-col gap-2.5 shadow-xs"
           >
             {/* Top row: Chapter metadata + Mark Complete toggle */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-primary">
                     Chapter {currentChapterIndex + 1} of {totalChapters}
                   </span>
                   <span
@@ -693,7 +753,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       ? `Mark chapter ${currentChapterIndex + 1} as incomplete`
                       : `Mark chapter ${currentChapterIndex + 1} as completed`
                   }
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-9 touch-manipulation border shrink-0 focus:outline-none focus:ring-2 focus:ring-primary ${
                     isCurrentCompleted
                       ? "bg-primary text-white border-primary"
                       : "bg-stone-50 text-stone-600 hover:text-stone-900 hover:bg-stone-100 dark:bg-stone-950 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 border-stone-200 dark:border-stone-800"
@@ -737,293 +797,17 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                 />
               </div>
             </div>
-
-            {/* Bottom Controls Row: Live Time | Center Transport Cluster | Speed & Fullscreen */}
-            <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2.5">
-              {/* Status & Live Timestamp Display */}
-              <div className="flex items-center gap-2 order-1 shrink-0">
-                <span
-                  className={`w-2 h-2 rounded-full ${isPlaying ? "bg-emerald-500 animate-pulse" : "bg-stone-400 dark:bg-stone-600"}`}
-                  aria-hidden="true"
-                />
-                <div className="font-mono font-tnum text-xs text-stone-600 dark:text-stone-400 flex items-center gap-1">
-                  <span className="font-semibold text-stone-900 dark:text-stone-100">
-                    {secondsToTimestamp(Math.floor(currentTime))}
-                  </span>
-                  <span className="text-stone-400 dark:text-stone-600">/</span>
-                  <span>{secondsToTimestamp(Math.floor(duration))}</span>
-                </div>
-              </div>
-
-              {/* Utility Actions: Playback Speed & Fullscreen */}
-              <div className="flex items-center gap-1.5 order-2 sm:order-3 shrink-0">
-                {/* Playback Speed Popover */}
-                <div className="relative" ref={speedMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}
-                    title="Playback Speed"
-                    aria-label={`Playback speed: ${playbackRate}x`}
-                    aria-haspopup="true"
-                    aria-expanded={isSpeedMenuOpen}
-                    aria-controls="speed-menu-dropdown"
-                    className="h-9 px-2.5 inline-flex items-center gap-1 rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 text-xs font-semibold font-mono font-tnum transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <Zap
-                      className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400"
-                      aria-hidden="true"
-                    />
-                    <span>{playbackRate}x</span>
-                    <ChevronDown
-                      className="w-3 h-3 text-stone-500 dark:text-stone-400"
-                      aria-hidden="true"
-                    />
-                  </button>
-
-                  {isSpeedMenuOpen && (
-                    <div
-                      id="speed-menu-dropdown"
-                      role="menu"
-                      aria-label="Playback speed options"
-                      className="absolute right-0 bottom-full mb-1.5 w-28 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg shadow-lg py-1 z-30"
-                    >
-                      {[0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
-                        <button
-                          key={rate}
-                          type="button"
-                          role="menuitemradio"
-                          aria-checked={playbackRate === rate}
-                          onClick={() => {
-                            setPlaybackRate(rate);
-                            setIsSpeedMenuOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-1.5 text-xs font-mono font-tnum flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer ${
-                            playbackRate === rate
-                              ? "text-primary dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50"
-                              : "text-stone-900 dark:text-stone-100"
-                          }`}
-                        >
-                          <span>{rate}x</span>
-                          {playbackRate === rate && (
-                            <Check
-                              className="w-3.5 h-3.5 text-primary dark:text-emerald-400"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Closed Captions / Subtitles Toggle (C) */}
-                <button
-                  type="button"
-                  onClick={toggleCaptions}
-                  title={
-                    isCaptionsEnabled
-                      ? "Turn off captions (C)"
-                      : "Turn on captions (C)"
-                  }
-                  aria-label={
-                    isCaptionsEnabled ? "Turn off captions" : "Turn on captions"
-                  }
-                  aria-pressed={isCaptionsEnabled}
-                  className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${
-                    isCaptionsEnabled
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100"
-                  }`}
-                >
-                  <Subtitles
-                    className={`w-4 h-4 ${isCaptionsEnabled ? "text-white" : "text-stone-600 dark:text-stone-400"}`}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {/* Fullscreen Toggle */}
-                <button
-                  type="button"
-                  onClick={handleToggleFullscreen}
-                  title={
-                    isFullscreen
-                      ? "Exit Fullscreen"
-                      : "Fullscreen (Auto-rotates Landscape)"
-                  }
-                  aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-950 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {isFullscreen ? (
-                    <Minimize2
-                      className="w-4 h-4 text-stone-600 dark:text-stone-400"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <Maximize2
-                      className="w-4 h-4 text-stone-600 dark:text-stone-400"
-                      aria-hidden="true"
-                    />
-                  )}
-                </button>
-              </div>
-
-              {/* Centered Primary Media Cluster */}
-              <div className="flex items-center justify-center gap-1.5 sm:gap-2 order-3 sm:order-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-stone-800">
-                {/* Previous Chapter */}
-                <button
-                  type="button"
-                  onClick={handlePreviousChapter}
-                  disabled={currentChapterIndex <= 0}
-                  title="Previous Chapter"
-                  aria-label="Previous Chapter"
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <SkipBack
-                    className="w-4 h-4 fill-current"
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {/* Rewind 10s */}
-                <button
-                  type="button"
-                  onClick={() => handleSeekBy(-10)}
-                  title="Rewind 10 seconds"
-                  aria-label="Rewind 10 seconds"
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                </button>
-
-                {/* Play / Pause Hero Button */}
-                <button
-                  type="button"
-                  onClick={isPlaying ? pause : play}
-                  disabled={isPlayLoading || !isReady}
-                  aria-busy={isPlayLoading}
-                  title={
-                    isPlayLoading
-                      ? isPlaying
-                        ? "Pausing video..."
-                        : "Playing video..."
-                      : isPlaying
-                        ? "Pause video"
-                        : "Play video"
-                  }
-                  aria-label={
-                    isPlayLoading
-                      ? isPlaying
-                        ? "Pausing video"
-                        : "Playing video"
-                      : isPlaying
-                        ? "Pause video"
-                        : "Play video"
-                  }
-                  className="h-9 w-20 sm:w-22 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary active:bg-primary-hover hover:bg-primary-hover text-white font-medium text-xs sm:text-sm transition-all shadow-xs touch-manipulation cursor-pointer active:scale-98 select-none disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {isPlayLoading ? (
-                    <Loader2
-                      className="animate-spin w-3.5 h-3.5 shrink-0 text-white"
-                      aria-hidden="true"
-                    />
-                  ) : isPlaying ? (
-                    <Pause
-                      className="w-3.5 h-3.5 shrink-0 fill-current"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <Play
-                      className="w-3.5 h-3.5 shrink-0 ml-0.5 fill-current"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className="whitespace-nowrap">
-                    {isPlaying ? "Pause" : "Play"}
-                  </span>
-                </button>
-
-                {/* Forward 10s */}
-                <button
-                  type="button"
-                  onClick={() => handleSeekBy(10)}
-                  title="Forward 10 seconds"
-                  aria-label="Forward 10 seconds"
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <RotateCw className="w-4 h-4" aria-hidden="true" />
-                </button>
-
-                {/* Next Chapter */}
-                <button
-                  type="button"
-                  onClick={handleNextChapter}
-                  disabled={currentChapterIndex >= playlist.chapters.length - 1}
-                  title="Next Chapter"
-                  aria-label="Next Chapter"
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <SkipForward
-                    className="w-4 h-4 fill-current"
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {/* Vertical Divider */}
-                <div
-                  className="h-5 w-px bg-stone-200 dark:bg-stone-800 mx-0.5 sm:mx-1 hidden xs:block"
-                  aria-hidden="true"
-                />
-
-                {/* Volume Control */}
-                <div className="flex items-center gap-1 group/volume">
-                  <button
-                    type="button"
-                    onClick={toggleMute}
-                    title={isMuted || volume === 0 ? "Unmute (M)" : "Mute (M)"}
-                    aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
-                    className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-stone-50 active:bg-stone-100 hover:bg-stone-100 dark:bg-stone-950 dark:active:bg-stone-800 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100 transition-colors touch-manipulation cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX
-                        className="w-4 h-4 text-stone-400"
-                        aria-hidden="true"
-                      />
-                    ) : volume < 50 ? (
-                      <Volume1
-                        className="w-4 h-4 text-stone-700 dark:text-stone-300"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Volume2
-                        className="w-4 h-4 text-stone-700 dark:text-stone-300"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </button>
-                  <div className="hidden xs:flex items-center w-20 sm:w-28 md:w-32 lg:w-36 px-1.5">
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => setVolume(Number(e.target.value))}
-                      aria-label="Volume slider"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={isMuted ? 0 : volume}
-                      aria-valuetext={`${isMuted ? 0 : volume}%`}
-                      className="w-full h-1.5 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
           </section>
         </div>
 
         {/* Right Column: Interactive Playlist Sidebar */}
-        <div className="lg:col-span-5 xl:col-span-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden flex flex-col shadow-xs lg:max-h-187.5">
+        <div
+          className={`${
+            isTheaterMode
+              ? "lg:col-span-12 max-h-120"
+              : "lg:col-span-5 xl:col-span-4 lg:max-h-187.5"
+          } bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden flex flex-col shadow-xs transition-all duration-200`}
+        >
           {/* Sidebar Header */}
           <div className="p-3 sm:p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950">
             <div className="flex items-center justify-between mb-2">
