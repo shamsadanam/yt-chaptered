@@ -107,6 +107,8 @@ export function PlayerControlsBar({
   }, []);
 
   useEffect(() => {
+    if (!isVolumeOpen) return;
+
     const handlePointerOutside = (e: MouseEvent) => {
       if (
         volumeMenuRef.current &&
@@ -115,13 +117,29 @@ export function PlayerControlsBar({
         setIsVolumeOpen(false);
       }
     };
-    if (isVolumeOpen) {
-      document.addEventListener('mousedown', handlePointerOutside);
-    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsVolumeOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerOutside);
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       document.removeEventListener('mousedown', handlePointerOutside);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isVolumeOpen]);
+
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (prevVisible !== visible) {
+    setPrevVisible(visible);
+    if (!visible && isVolumeOpen) {
+      setIsVolumeOpen(false);
+    }
+  }
 
   const handleCaptionsClick = useCallback(() => {
     onUserActivity();
@@ -280,7 +298,7 @@ export function PlayerControlsBar({
 
       <div className="relative flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2 w-full min-h-11 sm:min-h-12">
         <div className="order-2 sm:order-1 sm:flex-1 flex items-center justify-start gap-1.5 sm:gap-2">
-          <div className="relative group/volume" ref={volumeMenuRef}>
+          <div className="relative" ref={volumeMenuRef}>
             <button
               type="button"
               onClick={() => {
@@ -291,7 +309,11 @@ export function PlayerControlsBar({
               aria-label={isMuted || volume === 0 ? 'Volume muted, adjust volume' : `Volume ${volume} percent, adjust volume`}
               aria-haspopup="true"
               aria-expanded={isVolumeOpen}
-              className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl bg-stone-900/80 hover:bg-stone-800 text-stone-200 hover:text-white border border-white/15 transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                isVolumeOpen
+                  ? 'bg-stone-800 text-white border border-white/30 shadow-xs'
+                  : 'bg-stone-900/80 hover:bg-stone-800 text-stone-200 hover:text-white border border-white/15'
+              }`}
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
@@ -302,50 +324,48 @@ export function PlayerControlsBar({
               )}
             </button>
 
-            <div
-              className={`absolute bottom-full mb-2 left-0 sm:left-1/2 sm:-translate-x-1/2 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5 ${
-                isVolumeOpen
-                  ? 'opacity-100 scale-100 pointer-events-auto'
-                  : 'opacity-0 scale-95 pointer-events-none group-hover/volume:opacity-100 group-hover/volume:scale-100 group-hover/volume:pointer-events-auto group-focus-within/volume:opacity-100 group-focus-within/volume:scale-100 group-focus-within/volume:pointer-events-auto'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  onToggleMute();
-                  onUserActivity();
-                }}
-                title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
-                aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
-                className="w-7 h-7 inline-flex items-center justify-center rounded-lg hover:bg-stone-800 text-stone-200 hover:text-white transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+            {isVolumeOpen && (
+              <div
+                className="absolute bottom-full mb-2 left-0 sm:left-1/2 sm:-translate-x-1/2 z-30 px-3 py-2 bg-stone-900/95 border border-white/15 rounded-xl shadow-xl backdrop-blur-md transition-all duration-150 flex items-center gap-2.5 animate-in fade-in zoom-in-95"
               >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
-                ) : (
-                  <Volume2 className="w-4 h-4 text-stone-200" aria-hidden="true" />
-                )}
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={isMuted ? 0 : volume}
-                onChange={(e) => {
-                  onSetVolume(Number(e.target.value));
-                  onUserActivity();
-                }}
-                aria-label="Volume slider"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={isMuted ? 0 : volume}
-                aria-valuetext={`${isMuted ? 0 : volume}%`}
-                className="w-22 sm:w-24 h-1.5 bg-stone-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              />
-              <span className="text-2xs font-mono font-tnum text-stone-300 w-7 text-right">
-                {isMuted ? '0%' : `${volume}%`}
-              </span>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleMute();
+                    onUserActivity();
+                  }}
+                  title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
+                  aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                  className="w-7 h-7 inline-flex items-center justify-center rounded-lg hover:bg-stone-800 text-stone-200 hover:text-white transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="w-4 h-4 text-stone-400" aria-hidden="true" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-stone-200" aria-hidden="true" />
+                  )}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => {
+                    onSetVolume(Number(e.target.value));
+                    onUserActivity();
+                  }}
+                  aria-label="Volume slider"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={isMuted ? 0 : volume}
+                  aria-valuetext={`${isMuted ? 0 : volume}%`}
+                  className="w-22 sm:w-24 h-1.5 bg-stone-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
+                <span className="text-2xs font-mono font-tnum text-stone-300 w-7 text-right">
+                  {isMuted ? '0%' : `${volume}%`}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="relative" ref={speedMenuRef}>
