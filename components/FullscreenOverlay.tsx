@@ -111,8 +111,10 @@ export function FullscreenOverlay({
   });
 
   useEffect(() => {
-    const handleWindowPointer = () => {
+    const handleWindowPointer = (e: PointerEvent) => {
       if (isLocked) return;
+      // Mouse movement wakes up controls; touch taps are handled by backdrop click
+      if (e.pointerType === "touch") return;
       resetHideTimerRef.current();
     };
     window.addEventListener("pointermove", handleWindowPointer, {
@@ -308,8 +310,9 @@ export function FullscreenOverlay({
 
   return (
     <div
-      onPointerMove={resetHideTimer}
-      onTouchStart={resetHideTimer}
+      onPointerMove={(e) => {
+        if (e.pointerType !== "touch") resetHideTimer();
+      }}
       className={`absolute inset-0 z-30 select-none overflow-hidden flex flex-col justify-between ${
         ((controlsVisible || isDrawerOpen) && !isLocked) || showLockUnlockPill
           ? "cursor-default"
@@ -318,7 +321,9 @@ export function FullscreenOverlay({
     >
       <div
         className="absolute inset-0 z-0"
-        onPointerMove={resetHideTimer}
+        onPointerMove={(e) => {
+          if (e.pointerType !== "touch") resetHideTimer();
+        }}
         onClick={handleBackdropClick}
         onDoubleClick={handleBackdropDoubleClick}
       />

@@ -217,7 +217,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     if (isPlaying && !isSpeedMenuOpen && !isHoveringControls) {
       controlsTimerRef.current = setTimeout(() => {
         setIsControlsVisible(false);
-      }, 3500);
+      }, 3000);
     }
   }, [isPlaying, isSpeedMenuOpen, isHoveringControls]);
 
@@ -228,7 +228,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     if (isPlaying && !isSpeedMenuOpen && !isHoveringControls) {
       controlsTimerRef.current = setTimeout(() => {
         setIsControlsVisible(false);
-      }, 3500);
+      }, 3000);
     }
     return () => {
       if (controlsTimerRef.current) {
@@ -440,11 +440,19 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     resetControlsTimer();
   }, [handleToggleFullscreen, resetControlsTimer]);
 
+  const handleCanvasSingleClick = useCallback(() => {
+    if (!isControlsVisible) {
+      resetControlsTimer();
+    } else {
+      handleTogglePlayPause();
+    }
+  }, [isControlsVisible, resetControlsTimer, handleTogglePlayPause]);
+
   const {
     handleClick: handleCanvasClick,
     handleDoubleClick: handleCanvasDoubleClick,
   } = useDoubleClickHandler({
-    onSingleClick: handleTogglePlayPause,
+    onSingleClick: handleCanvasSingleClick,
     onDoubleClick: handleDoubleTapFullscreen,
   });
 
@@ -592,8 +600,12 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
           <div className="sticky top-14 sm:static z-20 bg-stone-50 dark:bg-stone-950 sm:bg-transparent py-0 -mx-3 sm:mx-0">
             <div
               ref={playerWrapperRef}
-              onPointerMove={resetControlsTimer}
-              onPointerDown={resetControlsTimer}
+              onPointerMove={(e) => {
+                if (e.pointerType !== "touch") resetControlsTimer();
+              }}
+              onPointerDown={(e) => {
+                if (e.pointerType !== "touch") resetControlsTimer();
+              }}
               className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
                 isFullscreen
                   ? "fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center"
@@ -694,7 +706,9 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                       className="absolute inset-0 pointer-events-auto z-0"
                       onClick={handleCanvasClick}
                       onDoubleClick={handleCanvasDoubleClick}
-                      onPointerMove={resetControlsTimer}
+                      onPointerMove={(e) => {
+                        if (e.pointerType !== "touch") resetControlsTimer();
+                      }}
                     />
 
                     <PlayerControlsBar

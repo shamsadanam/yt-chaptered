@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Chapter } from '../types/playlist';
+import {
+  getStoredPlaybackRate,
+  setStoredPlaybackRate,
+  getStoredVolumePreference,
+  setStoredVolumePreference,
+} from '../lib/storage';
 
 export interface YTPlayerInstance {
   playVideo: () => void;
@@ -102,7 +108,8 @@ export function useYouTubePlayer({
   const [isPlayLoading, setIsPlayLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(initialStartTime);
   const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRateState] = useState(1);
+  const [playbackRate, setPlaybackRateState] = useState(() => getStoredPlaybackRate());
+  const desiredPlaybackRateRef = useRef(playbackRate);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(initialChapterIndex);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [isCaptionsEnabled, setIsCaptionsEnabled] = useState(false);
@@ -111,8 +118,25 @@ export function useYouTubePlayer({
     isCaptionsEnabledRef.current = isCaptionsEnabled;
   }, [isCaptionsEnabled]);
   const [isCaptionsSupported, setIsCaptionsSupported] = useState<boolean | undefined>(undefined);
-  const [volume, setVolumeState] = useState(100);
-  const [isMuted, setIsMutedState] = useState(false);
+
+  const [volume, setVolumeState] = useState(() => {
+    const pref = getStoredVolumePreference();
+    return pref ? pref.volume : 100;
+  });
+  const [isMuted, setIsMutedState] = useState(() => {
+    const pref = getStoredVolumePreference();
+    return pref ? pref.isMuted : false;
+  });
+  const customVolumeRef = useRef<number | null>(null);
+  const customMutedRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const pref = getStoredVolumePreference();
+    if (pref) {
+      customVolumeRef.current = pref.volume;
+      customMutedRef.current = pref.isMuted;
+    }
+  }, []);
 
   const initialStartTimeRef = useRef(initialStartTime);
   useEffect(() => {
@@ -254,17 +278,34 @@ export function useYouTubePlayer({
             const dur = event.target.getDuration();
             setDuration(dur || 0);
 
+            const targetRate = desiredPlaybackRateRef.current;
+            if (typeof event.target.setPlaybackRate === 'function' && targetRate !== 1) {
+              event.target.setPlaybackRate(targetRate);
+            }
             if (typeof event.target.getPlaybackRate === 'function') {
-              const initialRate = event.target.getPlaybackRate();
-              if (initialRate) setPlaybackRateState(initialRate);
+              const currentRate = event.target.getPlaybackRate();
+              setPlaybackRateState(currentRate || targetRate);
+            } else {
+              setPlaybackRateState(targetRate);
             }
 
-            if (typeof event.target.getVolume === 'function') {
+            if (customVolumeRef.current !== null && typeof event.target.setVolume === 'function') {
+              event.target.setVolume(customVolumeRef.current);
+              setVolumeState(customVolumeRef.current);
+            } else if (typeof event.target.getVolume === 'function') {
               const initialVol = event.target.getVolume();
               if (typeof initialVol === 'number') setVolumeState(initialVol);
             }
 
-            if (typeof event.target.isMuted === 'function') {
+            if (customMutedRef.current !== null) {
+              if (customMutedRef.current && typeof event.target.mute === 'function') {
+                event.target.mute();
+                setIsMutedState(true);
+              } else if (!customMutedRef.current && typeof event.target.unMute === 'function') {
+                event.target.unMute();
+                setIsMutedState(false);
+              }
+            } else if (typeof event.target.isMuted === 'function') {
               setIsMutedState(Boolean(event.target.isMuted()));
             }
 
@@ -309,11 +350,11 @@ export function useYouTubePlayer({
           onStateChange: (event: YTPlayerEvent) => {
             if (isCancelled) return;
 
-            // Sync volume and mute on state changes
-            if (typeof event.target.isMuted === 'function') {
+            // Sync volume and mute on state changes if user has not set a custom preference
+            if (customMutedRef.current === null && typeof event.target.isMuted === 'function') {
               setIsMutedState(Boolean(event.target.isMuted()));
             }
-            if (typeof event.target.getVolume === 'function') {
+            if (customVolumeRef.current === null && typeof event.target.getVolume === 'function') {
               const v = event.target.getVolume();
               if (typeof v === 'number' && !isNaN(v)) setVolumeState(v);
             }
@@ -323,6 +364,19 @@ export function useYouTubePlayer({
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
               setIsPlaying(true);
               setIsPlayLoading(false);
+
+              // Proactively re-assert playback rate when video resumes or starts playing
+              const targetRate = desiredPlaybackRateRef.current;
+              if (typeof event.target.setPlaybackRate === 'function') {
+                const currentRate =
+                  typeof event.target.getPlaybackRate === 'function'
+                    ? event.target.getPlaybackRate()
+                    : null;
+                if (currentRate !== targetRate) {
+                  event.target.setPlaybackRate(targetRate);
+                }
+              }
+
               // Ensure captions module is active when playback begins
               if (typeof event.target.loadModule === 'function') {
                 event.target.loadModule('captions');
@@ -334,6 +388,12 @@ export function useYouTubePlayer({
             } else if (playerState === 3) {
               // 3 = Buffering; video is actively loading chunks
               setIsPlayLoading(true);
+
+              // Connection drop / chunk buffering can cause YouTube to revert rate: re-assert
+              const targetRate = desiredPlaybackRateRef.current;
+              if (typeof event.target.setPlaybackRate === 'function') {
+                event.target.setPlaybackRate(targetRate);
+              }
             } else {
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
               setIsPlaying(false);
@@ -403,11 +463,11 @@ export function useYouTubePlayer({
 
         // Sync volume, mute & captions if adjusted inside YouTube iframe
         if (playerRef.current) {
-          if (typeof playerRef.current.isMuted === 'function') {
+          if (customMutedRef.current === null && typeof playerRef.current.isMuted === 'function') {
             const m = Boolean(playerRef.current.isMuted());
             setIsMutedState((prev) => (prev !== m ? m : prev));
           }
-          if (typeof playerRef.current.getVolume === 'function') {
+          if (customVolumeRef.current === null && typeof playerRef.current.getVolume === 'function') {
             const v = playerRef.current.getVolume();
             if (typeof v === 'number' && !isNaN(v)) {
               setVolumeState((prev) => (prev !== v ? v : prev));
@@ -546,10 +606,12 @@ export function useYouTubePlayer({
   );
 
   const setPlaybackRate = useCallback((rate: number) => {
+    desiredPlaybackRateRef.current = rate;
+    setStoredPlaybackRate(rate);
     if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
       playerRef.current.setPlaybackRate(rate);
-      setPlaybackRateState(rate);
     }
+    setPlaybackRateState(rate);
   }, []);
 
   const play = useCallback(() => {
@@ -619,7 +681,6 @@ export function useYouTubePlayer({
         };
 
         activateCaptions();
-        // Module might still be loading asynchronously: retry activating
         setTimeout(activateCaptions, 150);
         setTimeout(activateCaptions, 400);
         setTimeout(activateCaptions, 800);
@@ -634,6 +695,9 @@ export function useYouTubePlayer({
 
   const setVolume = useCallback((newVolume: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(newVolume)));
+    customVolumeRef.current = clamped;
+    customMutedRef.current = false;
+    setStoredVolumePreference(clamped, false);
     if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
       playerRef.current.setVolume(clamped);
       if (clamped > 0 && typeof playerRef.current.unMute === 'function') {
@@ -649,16 +713,21 @@ export function useYouTubePlayer({
     const player = playerRef.current;
     if (typeof player.isMuted === 'function' && typeof player.mute === 'function' && typeof player.unMute === 'function') {
       const currentlyMuted = player.isMuted();
-      if (currentlyMuted) {
+      const nextMuted = !currentlyMuted;
+      customMutedRef.current = nextMuted;
+      setStoredVolumePreference(volume, nextMuted);
+      if (nextMuted) {
+        player.mute();
+        setIsMutedState(true);
+      } else {
         player.unMute();
         setIsMutedState(false);
         if (volume === 0 && typeof player.setVolume === 'function') {
           player.setVolume(50);
           setVolumeState(50);
+          customVolumeRef.current = 50;
+          setStoredVolumePreference(50, false);
         }
-      } else {
-        player.mute();
-        setIsMutedState(true);
       }
     }
   }, [volume]);

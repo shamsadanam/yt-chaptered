@@ -417,3 +417,59 @@ export function importCoursesJson(jsonStr: string): { success: boolean; count: n
     return { success: false, count: 0, error: err instanceof Error ? err.message : 'Invalid JSON format' };
   }
 }
+
+const PLAYBACK_RATE_STORAGE_KEY = 'yt_playback_rate';
+const CUSTOM_VOLUME_STORAGE_KEY = 'yt_custom_volume';
+const CUSTOM_MUTED_STORAGE_KEY = 'yt_custom_muted';
+
+export function getStoredPlaybackRate(): number {
+  if (typeof window === 'undefined') return 1;
+  try {
+    const raw = localStorage.getItem(PLAYBACK_RATE_STORAGE_KEY);
+    if (!raw) return 1;
+    const parsed = parseFloat(raw);
+    return !isNaN(parsed) && parsed >= 0.25 && parsed <= 2 ? parsed : 1;
+  } catch {
+    return 1;
+  }
+}
+
+export function setStoredPlaybackRate(rate: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PLAYBACK_RATE_STORAGE_KEY, rate.toString());
+  } catch {
+    // ignore storage quota / private browsing errors
+  }
+}
+
+export interface StoredVolumePreference {
+  volume: number;
+  isMuted: boolean;
+}
+
+export function getStoredVolumePreference(): StoredVolumePreference | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const volRaw = localStorage.getItem(CUSTOM_VOLUME_STORAGE_KEY);
+    const mutedRaw = localStorage.getItem(CUSTOM_MUTED_STORAGE_KEY);
+    if (volRaw === null) return null;
+    const volParsed = parseInt(volRaw, 10);
+    const volume = !isNaN(volParsed) ? Math.max(0, Math.min(100, volParsed)) : 100;
+    const isMuted = mutedRaw === 'true';
+    return { volume, isMuted };
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredVolumePreference(volume: number, isMuted: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CUSTOM_VOLUME_STORAGE_KEY, Math.round(volume).toString());
+    localStorage.setItem(CUSTOM_MUTED_STORAGE_KEY, isMuted ? 'true' : 'false');
+  } catch {
+    // ignore storage quota / private browsing errors
+  }
+}
+
