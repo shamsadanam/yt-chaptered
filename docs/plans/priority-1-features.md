@@ -2,7 +2,7 @@
 
 ## Overview
 
-Three features from the [todo.md](file:///Users/anam/Projects/yt-chaptered/todo.md) Priority 1 roadmap:
+Three features from the [todo.md](../../todo.md) Priority 1 roadmap:
 
 1. **Fullscreen Overlay** — Show chapter list + player controls inside fullscreen mode
 2. **In-App YouTube Search** — Search YouTube from within the app, detect "chapterable" videos
@@ -26,7 +26,7 @@ All three are **feasible** with the current architecture. Below is a detailed bu
 
 ### Current State
 
-The app already has a **custom fullscreen implementation** in [`PlaylistView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/PlaylistView.tsx#L291-L344). It calls `requestFullscreen()` on a `playerWrapperRef` div — **not** on the YouTube iframe directly. This means the wrapper div goes fullscreen and the app retains full control over what's rendered inside it.
+The app already has a **custom fullscreen implementation** in [`PlaylistView.tsx`](../../components/PlaylistView.tsx#L291-L344). It calls `requestFullscreen()` on a `playerWrapperRef` div — **not** on the YouTube iframe directly. This means the wrapper div goes fullscreen and the app retains full control over what's rendered inside it.
 
 Currently, only the YouTube iframe and an "Exit" button are shown in fullscreen. The chapter sidebar and playback controls are hidden because they're outside the fullscreen wrapper.
 
@@ -135,7 +135,7 @@ Move the chapter list and controls **inside** the fullscreen wrapper, displayed 
 
 ### Current State
 
-Videos are added by pasting a URL. The app fetches metadata via YouTube's **Innertube API** (no API key needed) in [`route.ts`](file:///Users/anam/Projects/yt-chaptered/app/api/protected/youtube-info/route.ts#L171-L238). Chapter detection uses `macroMarkersListItemRenderer` from Innertube's `/next` endpoint, with fallbacks to HTML scraping and description timestamp parsing.
+Videos are added by pasting a URL. The app fetches metadata via YouTube's **Innertube API** (no API key needed) in [`route.ts`](../../app/api/protected/youtube-info/route.ts#L171-L238). Chapter detection uses `macroMarkersListItemRenderer` from Innertube's `/next` endpoint, with fallbacks to HTML scraping and description timestamp parsing.
 
 ### Approach: Innertube Search (No API Key Needed)
 
@@ -162,7 +162,7 @@ The response contains `videoRenderer` objects with `videoId`, `title`, `thumbnai
 
 ### "Chapterable" Detection
 
-A video is "chapterable" if its description contains timestamp patterns (e.g., `0:00 Intro`, `3:42 Setup`). The existing [`parseTimestamps()`](file:///Users/anam/Projects/yt-chaptered/lib/youtubeParser.ts) function already does this. For search results, we can check the `descriptionSnippet` for timestamp-like patterns and additionally call the `/next` endpoint to check for `macroMarkersListItemRenderer`.
+A video is "chapterable" if its description contains timestamp patterns (e.g., `0:00 Intro`, `3:42 Setup`). The existing [`parseTimestamps()`](../../lib/youtubeParser.ts) function already does this. For search results, we can check the `descriptionSnippet` for timestamp-like patterns and additionally call the `/next` endpoint to check for `macroMarkersListItemRenderer`.
 
 **Two-tier detection:**
 1. **Quick scan (in search results):** Check if `descriptionSnippet` contains timestamp patterns → show a tentative "Likely has chapters" badge
@@ -270,7 +270,7 @@ Wire up search modal state.
 
 ### Current State
 
-All data lives in **IndexedDB** via [`lib/storage.ts`](file:///Users/anam/Projects/yt-chaptered/lib/storage.ts). The data model is simple:
+All data lives in **IndexedDB** via [`lib/storage.ts`](../../lib/storage.ts). The data model is simple:
 - `SavedCourse[]` — each ~1-5KB
 - Total data for a typical user: **under 50KB**
 

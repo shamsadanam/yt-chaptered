@@ -7,6 +7,7 @@
   - [x] make the cc button work, if not then find alternative
   - [x] redesign the mobile header and bottom navbar (integrated 4-tab mobile navigation with search)
   - [x] do a code review using this - `npx skills@latest add mattpocock/skills --skill=setup-matt-pocock-skills`
+- [ ] Direct & shared URL UX analysis (`/watch/[id]?t=...`): Analyze and design first-time visitor onboarding when accessing shared course URLs (server-side oEmbed preview to replace blank spinner, active chapter highlight and auto-scroll for timestamp parameter, explicit "Add to My Courses" prompt vs. silent IndexedDB save, and handling videos without chapters).
 - [ ] Google Drive sync or free DB sync for account progress.
 - [ ] Do not autoplay on reload. Don't autoplay on first time video generation. in fact, don't auto play in details page, users will play there manually.
 - [x] minify player fullscreen overlay controls
@@ -26,7 +27,7 @@
 
 - [x] Update README and/or create a landing page explaining what problem ytChaptered solves.
 - [x] Add a small video demo showcasing key features and workflow.
-- [x] Add SEO stuff
+- [ ] Execute SEO Improvement & Indexation Plan ([`docs/plans/seo-improvement-and-indexation-plan.md`](docs/plans/seo-improvement-and-indexation-plan.md)): `noindex` `/watch/[id]`, disallow in `robots.txt`, enrich Schema.org graph, and add semantic H2s/FAQ to landing page.
 - [ ] Generate real Cloudflare Turnstile keys (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`) from Cloudflare Dashboard for production deployment (currently using dummy test keys).
 - [x] Create social media announcement posts:
   - [ ] LinkedIn
@@ -36,4 +37,5 @@
 
 ## Future
 
-2. Update readme and design, dot md files.
+- [ ] Git History Scrub (Option B): Use `git-filter-repo` or BFG Repo-Cleaner to rewrite historical commit SHAs, purging historical occurrences of local machine absolute paths (`/Users/anam/...`), and force-push clean history to origin.
+- [ ] Update readme and design, dot md files.

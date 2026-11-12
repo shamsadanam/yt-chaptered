@@ -15,29 +15,28 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Tailwind CSS Conventions
 
-- **Canonical Classes & Tokens**: Use standard Tailwind utilities and design tokens declared in `@theme` (`app/globals.css`) over arbitrary bracket syntax (`[...]`).
-- **Custom Utilities**: Declare reusable measurements semantically in `app/globals.css` via `@theme` or `@utility`.
-- **Lucide Icons**: Configure icon properties through component props (e.g., `strokeWidth={3}`) rather than Tailwind classes.
+- **Canonical Tokens**: Use Tailwind utilities and tokens from `@theme` (`app/globals.css`); avoid arbitrary brackets (`[...]`).
+- **Custom Utilities**: Declare reusable measurements in `app/globals.css` via `@theme` or `@utility`.
+- **Lucide Icons**: Style icons via component props (`strokeWidth={3}`) instead of Tailwind classes.
 
-## Skills Guidelines
+## Documentation & Paths
 
-- **Missing Skills Gate**: Before implementing, designing, or verifying, verify required skills exist in `.agents/skills/`. If any are missing, pause and list them for the user to install before proceeding.
+- **Portable Paths**: Always use repository-relative links (e.g. `app/layout.tsx`, `../../app/layout.tsx`). Never write machine-specific absolute paths (`file:///Users/...`, `C:\...`).
 
-### Design Workflow
+## Skills & Verification
 
-- **UI Design**: Use the `ui-ux-pro-max` skill for interface creation and updates.
+- **Missing Skills Gate**: Check `.agents/skills/` before starting work. If a skill is missing, pause and ask the user to install it.
+- **UI Design**: Use `ui-ux-pro-max` for interface creation and design tokens.
 
-### Code Verification Workflow
-
-Verify code after implementing a new feature or code change:
-
-1. **Loop Prevention Gate**: Check if:
-   - The active plan contains `skip-verification: true` (or `[skip-verification]`).
-   - The changes are direct remediations for findings from a review skill in this session.
-   If either condition is true, skip verification.
-2. **Verification Sequence**: Run verification in strict order:
-   1. Relevant Vercel skills (e.g. `vercel-react-best-practices`, `vercel-react-view-transitions`).
-   2. The `code-review` skill.
-3. **Plan Tagging**: Tag any remediation or implementation plan produced by verification with `skip-verification: true`.
+### Verification Sequence
+Run verification on code changes after completing a feature or architectural step:
+1. **Loop Prevention**: Skip verification if the plan has `skip-verification: true` or if changes are direct review remediations.
+2. **Pipeline Order**:
+   1. Relevant Vercel skills (`vercel-react-best-practices`, `vercel-react-view-transitions`).
+   2. `code-review` skill.
+3. **Plan Frontmatter**: Standardize plan metadata tags:
+   - `status`: `proposed` | `in-progress` | `completed`
+   - `type`: `feature` | `architecture` | `seo` | `remediation`
+   - `skip-verification`: `true` | `false` (`false` on feature, SEO, and architecture plans to enforce verification; set to `true` only on remediation plans to prevent recursive review loops).
 
 

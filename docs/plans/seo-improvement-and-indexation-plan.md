@@ -9,7 +9,7 @@ type: seo
 ## Context & Motivation
 Following the comprehensive SEO and codebase audit for **ytChaptered**, this plan addresses four primary search engine and generative engine optimization (GEO) opportunities:
 1. **Dynamic Route Crawl Bleed & Indexation Protection**: Prevent search engine crawl budget waste, soft-404 errors, and duplicate timestamp indexation on client-dependent playback routes (`/watch/[id]`).
-2. **Entity & Structured Data Enrichment**: Extend Schema.org markup in [`app/layout.tsx`](file:///Users/anam/Projects/yt-chaptered/app/layout.tsx) with linked `WebSite` and `SoftwareApplication` entities, including author E-E-A-T credentials and screenshot assets.
+2. **Entity & Structured Data Enrichment**: Extend Schema.org markup in [`app/layout.tsx`](../../app/layout.tsx) with linked `WebSite` and `SoftwareApplication` entities, including author E-E-A-T credentials and screenshot assets.
 3. **Primary Content Depth & Heading Hierarchy**: Introduce crawlable, semantic `<h2>` sections on the landing page (How it Works, Features, and FAQ) to avoid thin-content flags and capture non-branded search intent.
 4. **Agentic & Generative Engine Optimization (GEO)**: Structure concise question-answer passages for AI search engines (Perplexity, ChatGPT, Google AI Overviews) and stabilize sitemap change signaling.
 
@@ -20,20 +20,20 @@ Following the comprehensive SEO and codebase audit for **ytChaptered**, this pla
 ### Phase 1: Dynamic Route Crawl & Indexation Protection
 
 #### 1. Prevent Search Indexation on Dynamic Playback Routes
-- **Target File**: [`app/watch/[id]/page.tsx`](file:///Users/anam/Projects/yt-chaptered/app/watch/[id]/page.tsx)
+- **Target File**: [`app/watch/[id]/page.tsx`](../../app/watch/[id]/page.tsx)
 - **Changes**:
-  - Update [`generateMetadata`](file:///Users/anam/Projects/yt-chaptered/app/watch/[id]/page.tsx#L10) to set `robots: { index: false, follow: false }`.
+  - Update `generateMetadata` to set `robots: { index: false, follow: false }`.
   - Override root canonical inheritance by explicitly setting `alternates: { canonical: `/watch/${id}` }` (stripping query parameters like `?t=...`).
 - **Rationale**: The watch page requires client-side IndexedDB state and Cloudflare Turnstile verification. Crawlers cannot solve Turnstile and would otherwise encounter soft-404 errors or index arbitrary YouTube IDs.
 
 #### 2. Disallow Dynamic Watch Routes in Robots Directive
-- **Target File**: [`app/robots.ts`](file:///Users/anam/Projects/yt-chaptered/app/robots.ts)
+- **Target File**: [`app/robots.ts`](../../app/robots.ts)
 - **Changes**:
   - Update production crawl rules to include `disallow: ['/api/', '/watch/']`.
 - **Rationale**: Blocks automated crawlers from traversing user-generated video IDs and seeking timestamps, preserving crawl budget entirely for indexable marketing pages.
 
 #### 3. Stabilize Sitemap Change Signals
-- **Target File**: [`app/sitemap.ts`](file:///Users/anam/Projects/yt-chaptered/app/sitemap.ts)
+- **Target File**: [`app/sitemap.ts`](../../app/sitemap.ts)
 - **Changes**:
   - Replace dynamic `new Date()` with a static release/content date (or build timestamp).
 - **Rationale**: Search engines degrade trust in `lastModified` headers when static pages claim continuous modification on every HTTP request.
@@ -43,7 +43,7 @@ Following the comprehensive SEO and codebase audit for **ytChaptered**, this pla
 ### Phase 2: Schema.org & Knowledge Graph Enrichment
 
 #### 1. Multi-Entity JSON-LD Graph in Root Layout
-- **Target File**: [`app/layout.tsx`](file:///Users/anam/Projects/yt-chaptered/app/layout.tsx)
+- **Target File**: [`app/layout.tsx`](../../app/layout.tsx)
 - **Changes**:
   - Structure structured data as an `@graph` array containing:
     1. **`WebSite` Entity**: Canonical URL, site name, description.
@@ -60,7 +60,7 @@ Following the comprehensive SEO and codebase audit for **ytChaptered**, this pla
 ### Phase 3: Semantic Landing Page Content & Heading Hierarchy
 
 #### 1. Semantic Content Sections on the Landing Page
-- **Target File**: [`components/InputView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/InputView.tsx) (or SSR page component)
+- **Target File**: [`components/InputView.tsx`](../../components/InputView.tsx) (or SSR page component)
 - **Changes**:
   - Add crawlable, semantic sections beneath the primary course creation card:
     - `<section aria-labelledby="how-it-works-heading">`:
@@ -86,19 +86,19 @@ Following the comprehensive SEO and codebase audit for **ytChaptered**, this pla
 ### Phase 4: Agentic & Generative Engine Optimization (GEO)
 
 #### 1. Expand `public/llms.txt`
-- **Target File**: [`public/llms.txt`](file:///Users/anam/Projects/yt-chaptered/public/llms.txt)
+- **Target File**: [`public/llms.txt`](../../public/llms.txt)
 - **Changes**:
   - Append concise developer and architectural notes (browser storage boundaries, supported URL structures, PWA capabilities).
 
 ---
 
 ## Files to Modify
-- [`app/watch/[id]/page.tsx`](file:///Users/anam/Projects/yt-chaptered/app/watch/[id]/page.tsx)
-- [`app/robots.ts`](file:///Users/anam/Projects/yt-chaptered/app/robots.ts)
-- [`app/sitemap.ts`](file:///Users/anam/Projects/yt-chaptered/app/sitemap.ts)
-- [`app/layout.tsx`](file:///Users/anam/Projects/yt-chaptered/app/layout.tsx)
-- [`components/InputView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/InputView.tsx)
-- [`public/llms.txt`](file:///Users/anam/Projects/yt-chaptered/public/llms.txt)
+- [`app/watch/[id]/page.tsx`](../../app/watch/[id]/page.tsx)
+- [`app/robots.ts`](../../app/robots.ts)
+- [`app/sitemap.ts`](../../app/sitemap.ts)
+- [`app/layout.tsx`](../../app/layout.tsx)
+- [`components/InputView.tsx`](../../components/InputView.tsx)
+- [`public/llms.txt`](../../public/llms.txt)
 
 ---
 

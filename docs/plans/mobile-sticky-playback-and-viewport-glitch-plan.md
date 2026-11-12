@@ -15,7 +15,7 @@ skip-verification: true
 ## Architecture & Layout Changes
 
 ### 1. Sticky Mobile Playback Header
-In [`PlaylistView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/PlaylistView.tsx):
+In [`PlaylistView.tsx`](../../components/PlaylistView.tsx):
 - Bundle the 16:9 video container and a slim, compact playback bar into the sticky header (`sticky top-14 z-20` on `< sm` viewports).
 - **Sticky Bar Components**:
   - Full-width micro progress scrubber.
@@ -24,15 +24,15 @@ In [`PlaylistView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/Play
 
 ### 2. Viewport Anchor & Glitch Prevention
 - **Root Containment**: Add `overflow-x-clip` and `max-w-full` on `html`, `body`, and page containers to strictly forbid horizontal expansion.
-- **Background State Cleanup**: Add a `visibilitychange` listener in [`PlaylistView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/PlaylistView.tsx). When `document.visibilityState === 'hidden'` (device lock, app switcher, PWA minimize), immediately reset fullscreen orientation transforms to ensure the browser never snapshots an expanded dimension.
-- **Viewport Anchor**: In [`app/layout.tsx`](file:///Users/anam/Projects/yt-chaptered/app/layout.tsx), configure viewport with `interactiveWidget: 'resizes-visual'` to ensure stable mobile viewport scaling across lock cycles.
+- **Background State Cleanup**: Add a `visibilitychange` listener in [`PlaylistView.tsx`](../../components/PlaylistView.tsx). When `document.visibilityState === 'hidden'` (device lock, app switcher, PWA minimize), immediately reset fullscreen orientation transforms to ensure the browser never snapshots an expanded dimension.
+- **Viewport Anchor**: In [`app/layout.tsx`](../../app/layout.tsx), configure viewport with `interactiveWidget: 'resizes-visual'` to ensure stable mobile viewport scaling across lock cycles.
 
 ---
 
 ## Files to Modify
-- [`components/PlaylistView.tsx`](file:///Users/anam/Projects/yt-chaptered/components/PlaylistView.tsx)
-- [`app/layout.tsx`](file:///Users/anam/Projects/yt-chaptered/app/layout.tsx)
-- [`app/globals.css`](file:///Users/anam/Projects/yt-chaptered/app/globals.css)
+- [`components/PlaylistView.tsx`](../../components/PlaylistView.tsx)
+- [`app/layout.tsx`](../../app/layout.tsx)
+- [`app/globals.css`](../../app/globals.css)
 
 ## Verification
 - On mobile viewport: scroll down 20 chapters; verify video and compact playback bar stay cleanly pinned at top.

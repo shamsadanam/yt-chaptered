@@ -17,7 +17,7 @@ The fullscreen HUD layout has made significant progress, but three refinements a
 ## Architecture & Layout Changes
 
 ### 1. Top Header Reorganization
-Move Chapter Context and Completion Toggle from the bottom dock to [`FullscreenOverlay.tsx`](file:///Users/anam/Projects/yt-chaptered/components/FullscreenOverlay.tsx):
+Move Chapter Context and Completion Toggle from the bottom dock to [`FullscreenOverlay.tsx`](../../components/FullscreenOverlay.tsx):
 - **Left**: `[📑 Chapters 1/14]` interactive drawer toggle pill.
 - **Center**: Current chapter info: `Ch {index}/{total} • {currentTime} / {duration}` and truncated active chapter title.
 - **Right**: Sleek `[✓ Complete]` / `[Mark Complete]` status toggle pill.
@@ -29,7 +29,7 @@ Move Chapter Context and Completion Toggle from the bottom dock to [`FullscreenO
 ```
 
 ### 2. Single-Tier Ultra-Thin Floating Dock
-Transform [`FullscreenBottomBar.tsx`](file:///Users/anam/Projects/yt-chaptered/components/fullscreen/FullscreenBottomBar.tsx) into a single-tier dock:
+Transform [`FullscreenBottomBar.tsx`](../../components/fullscreen/FullscreenBottomBar.tsx) into a single-tier dock:
 - **Top Edge**: Full-width progress scrubber with chapter split notches and hover timestamp preview.
 - **Control Row**: Symmetrical 3-column CSS Grid (`grid grid-cols-[1fr_auto_1fr] items-center w-full`):
   - **Column 1 (Left)**: Volume icon button with hover/focus-expanding slider (`justify-self-start`).
@@ -42,15 +42,15 @@ Transform [`FullscreenBottomBar.tsx`](file:///Users/anam/Projects/yt-chaptered/c
     - Exit Fullscreen button (`Minimize2`).
 
 ### 3. Unlock Pill Placement
-Relocate the unlock trigger in [`FullscreenOverlay.tsx`](file:///Users/anam/Projects/yt-chaptered/components/FullscreenOverlay.tsx):
+Relocate the unlock trigger in [`FullscreenOverlay.tsx`](../../components/FullscreenOverlay.tsx):
 - Position: `bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2` (bottom-center area).
 - Clean fade animation and 2.5s auto-hide on tap.
 
 ---
 
 ## Files to Modify
-- [`components/FullscreenOverlay.tsx`](file:///Users/anam/Projects/yt-chaptered/components/FullscreenOverlay.tsx)
-- [`components/fullscreen/FullscreenBottomBar.tsx`](file:///Users/anam/Projects/yt-chaptered/components/fullscreen/FullscreenBottomBar.tsx)
+- [`components/FullscreenOverlay.tsx`](../../components/FullscreenOverlay.tsx)
+- [`components/fullscreen/FullscreenBottomBar.tsx`](../../components/fullscreen/FullscreenBottomBar.tsx)
 
 ## Verification
 - Enter fullscreen on desktop and mobile.
