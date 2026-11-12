@@ -25,8 +25,8 @@ const AboutModal = dynamic(
   () => import('../../../components/AboutModal').then((mod) => mod.AboutModal),
   { ssr: false }
 );
-const SearchModal = dynamic(
-  () => import('../../../components/SearchModal').then((mod) => mod.SearchModal),
+const AddVideoModal = dynamic(
+  () => import('../../../components/AddVideoModal').then((mod) => mod.AddVideoModal),
   { ssr: false }
 );
 
@@ -66,7 +66,7 @@ function getInitialPlaybackParams(
 export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   const router = useRouter();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAutoFetching, setIsAutoFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -142,9 +142,25 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   }, [videoId, savedCourse]);
 
   useSearchShortcut(
-    () => setIsSearchModalOpen(true),
-    () => setIsSearchModalOpen((prev) => !prev)
+    () => setIsAddModalOpen(true),
+    () => setIsAddModalOpen((prev) => !prev)
   );
+
+  const handleGenerate = (newPlaylist: ParsedPlaylist) => {
+    saveCourse({
+      video: newPlaylist.video,
+      chapters: newPlaylist.chapters,
+      rawTimestampsText: newPlaylist.rawTimestampsText || '',
+      completedChapterIds: [],
+      lastPlayedChapterIndex: newPlaylist.initialChapterIndex ?? 0,
+      lastPlayedSeconds: newPlaylist.initialStartTime ?? 0,
+      updatedAt: Date.now(),
+    });
+    const tParam = newPlaylist.initialStartTime && newPlaylist.initialStartTime > 0
+      ? `?t=${Math.floor(newPlaylist.initialStartTime)}`
+      : '';
+    router.push(`/watch/${newPlaylist.video.id}${tParam}`);
+  };
 
   // Execute protected fetch once Turnstile token is available
   useEffect(() => {
@@ -256,7 +272,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
           onReset={() => router.push('/')}
           showReset={true}
           onOpenAbout={() => setIsAboutOpen(true)}
-          onOpenSearch={() => setIsSearchModalOpen(true)}
+          onOpenAddVideo={() => setIsAddModalOpen(true)}
         />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
@@ -285,7 +301,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
         <Navbar
           onOpenAbout={() => setIsAboutOpen(true)}
-          onOpenSearch={() => setIsSearchModalOpen(true)}
+          onOpenAddVideo={() => setIsAddModalOpen(true)}
         />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div role="alert" className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
@@ -320,7 +336,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
         onOpenAbout={() => setIsAboutOpen(true)}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenAddVideo={() => setIsAddModalOpen(true)}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
@@ -332,20 +348,16 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         hasActivePlaylist={true}
         activePlaylistTitle={playlist.video.title}
         onTabChange={(tab) => {
-          if (tab === 'search') setIsSearchModalOpen(true);
-          else if (tab === 'create') router.push('/?tab=create');
+          if (tab === 'search' || tab === 'create') setIsAddModalOpen(true);
           else if (tab === 'history') router.push('/?tab=history');
         }}
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        onSwitchToAddModal={() => {
-          setIsSearchModalOpen(false);
-          router.push('/?tab=create');
-        }}
+      <AddVideoModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onGenerate={handleGenerate}
       />
 
       <AboutModal

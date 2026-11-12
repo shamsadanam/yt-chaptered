@@ -418,14 +418,14 @@ export function CourseHistoryShelf({
                 <X className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Clear search</span>
               </button>
-              {onOpenSearch && (
+              {(onAddNewCourse || onOpenSearch) && (
                 <button
                   type="button"
-                  onClick={onOpenSearch}
+                  onClick={onAddNewCourse || onOpenSearch}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary dark:text-emerald-400 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors cursor-pointer min-h-9"
                 >
-                  <Search className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>Search YouTube</span>
+                  <Search size={14} strokeWidth={2} aria-hidden="true" />
+                  <span>+ Add from YouTube</span>
                 </button>
               )}
             </div>

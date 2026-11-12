@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Info, Search } from 'lucide-react';
+import { Download, Info, Plus } from 'lucide-react';
 import { usePwa } from './PwaProvider';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -12,11 +12,13 @@ interface NavbarProps {
   showBackBreadcrumb?: boolean;
   videoTitle?: string;
   onOpenAbout?: () => void;
+  onOpenAddVideo?: () => void;
   onOpenSearch?: () => void;
 }
 
-export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
+export function Navbar({ onOpenAbout, onOpenAddVideo, onOpenSearch }: NavbarProps) {
   const { isInstallable, promptInstall } = usePwa();
+  const handleOpenAdd = onOpenAddVideo || onOpenSearch;
 
   return (
     <header className="w-full border-b border-stone-200 bg-stone-50/95 dark:border-stone-800 dark:bg-stone-950/95 backdrop-blur-md sticky top-0 z-30">
@@ -37,31 +39,22 @@ export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Search Trigger Button */}
-          {onOpenSearch && (
+          {handleOpenAdd && (
             <button
               type="button"
-              onClick={onOpenSearch}
-              title="Search YouTube videos (⌘K)"
-              aria-label="Search YouTube videos"
-              className="inline-flex items-center justify-center sm:justify-between gap-2 p-2 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 dark:text-stone-300 dark:hover:text-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9.5 sm:min-w-0 touch-manipulation cursor-pointer sm:w-60 md:w-68 lg:w-76"
+              onClick={handleOpenAdd}
+              title="Add Video or Search YouTube (⌘K)"
+              aria-label="Add Video or Search YouTube"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover border border-transparent rounded-lg sm:rounded-xl shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-9 touch-manipulation cursor-pointer"
             >
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                <svg className="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0 hidden sm:inline-block" aria-hidden="true" />
-                <span className="hidden sm:inline text-stone-500 dark:text-stone-400 truncate">
-                  Search YouTube videos...
-                </span>
-              </div>
-              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-2xs font-mono font-semibold text-stone-400 dark:text-stone-500 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded shadow-2xs shrink-0">
+              <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+              <span className="hidden xs:inline">Add Video</span>
+              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-2xs font-mono font-semibold text-white/80 bg-black/20 rounded">
                 ⌘K
               </kbd>
             </button>
           )}
 
-          {/* Native PWA Install Button */}
           {isInstallable && (
             <button
               type="button"
@@ -70,7 +63,7 @@ export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
               aria-label="Install ytChaptered app"
               className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover border border-transparent rounded-lg sm:rounded-xl shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-0 touch-manipulation cursor-pointer shrink-0"
             >
-              <Download className="w-4 h-4" aria-hidden="true" />
+              <Download size={16} strokeWidth={2} aria-hidden="true" />
               <span className="hidden sm:inline">Install</span>
             </button>
           )}
@@ -96,7 +89,6 @@ export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
           {/* Theme Toggle Button */}
           <ThemeToggle />
 
-          {/* Info / About Button */}
           {onOpenAbout && (
             <button
               type="button"
@@ -105,7 +97,7 @@ export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
               aria-label="About ytChaptered & Creator"
               className="inline-flex items-center justify-center p-2 text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 dark:text-stone-300 dark:hover:text-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-9 touch-manipulation cursor-pointer"
             >
-              <Info className="w-5 h-5" aria-hidden="true" />
+              <Info size={20} strokeWidth={2} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -113,4 +105,3 @@ export function Navbar({ onOpenAbout, onOpenSearch }: NavbarProps) {
     </header>
   );
 }
-

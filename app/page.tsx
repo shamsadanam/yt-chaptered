@@ -1,5 +1,5 @@
 'use client';
- 
+
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -23,12 +23,8 @@ const AboutModal = dynamic(
   () => import('../components/AboutModal').then((mod) => mod.AboutModal),
   { ssr: false }
 );
-const AddCourseModal = dynamic(
-  () => import('../components/AddCourseModal').then((mod) => mod.AddCourseModal),
-  { ssr: false }
-);
-const SearchModal = dynamic(
-  () => import('../components/SearchModal').then((mod) => mod.SearchModal),
+const AddVideoModal = dynamic(
+  () => import('../components/AddVideoModal').then((mod) => mod.AddVideoModal),
   { ssr: false }
 );
 const PlaylistView = dynamic(
@@ -42,7 +38,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'create' | 'player' | 'history'>('history');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const isStorageLoading = useIsStorageLoading();
   const savedCourses = useSyncExternalStore(
     subscribeCourses,
@@ -56,10 +51,8 @@ export default function Home() {
     const tab = params.get('tab');
     if (tab === 'history' || tab === 'create' || tab === 'search') {
       queueMicrotask(() => {
-        if (tab === 'create') {
+        if (tab === 'create' || tab === 'search') {
           setIsAddModalOpen(true);
-        } else if (tab === 'search') {
-          setIsSearchModalOpen(true);
         } else {
           setActiveTab('history');
         }
@@ -68,8 +61,8 @@ export default function Home() {
   }, []);
 
   useSearchShortcut(
-    () => setIsSearchModalOpen(true),
-    () => setIsSearchModalOpen((prev) => !prev)
+    () => setIsAddModalOpen(true),
+    () => setIsAddModalOpen((prev) => !prev)
   );
 
   const handleRefreshCourses = () => {};
@@ -102,11 +95,7 @@ export default function Home() {
   };
 
   const handleTabChange = (tab: 'create' | 'player' | 'history' | 'search') => {
-    if (tab === 'search') {
-      setIsSearchModalOpen(true);
-      return;
-    }
-    if (tab === 'create') {
+    if (tab === 'create' || tab === 'search') {
       setIsAddModalOpen(true);
       return;
     }
@@ -128,7 +117,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
         onOpenAbout={() => setIsAboutOpen(true)}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenAddVideo={savedCourses.length > 0 ? () => setIsAddModalOpen(true) : undefined}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
@@ -146,16 +135,12 @@ export default function Home() {
             isLoading={isStorageLoading}
             isStandaloneView={true}
             onAddNewCourse={() => setIsAddModalOpen(true)}
-            onOpenSearch={() => setIsSearchModalOpen(true)}
           />
         )}
 
         {/* View 3: First-time user experience and default SSR view */}
         {savedCourses.length === 0 && activeTab !== 'player' && (
-          <InputView
-            onGenerate={handleGenerate}
-            onOpenSearch={() => setIsSearchModalOpen(true)}
-          />
+          <InputView onGenerate={handleGenerate} />
         )}
       </main>
 
@@ -194,29 +179,14 @@ export default function Home() {
         hasActivePlaylist={playlist !== null}
         activePlaylistTitle={playlist?.video.title}
         onTabChange={handleTabChange}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
       />
 
-      {/* Add Course Modal Dialog */}
-      <AddCourseModal
+      {/* Unified Add Video Modal Dialog */}
+      <AddVideoModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onGenerate={handleGenerate}
-        onSwitchToSearch={() => {
-          setIsAddModalOpen(false);
-          setIsSearchModalOpen(true);
-        }}
-      />
-
-      {/* In-App YouTube Search Modal Dialog */}
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        onSwitchToAddModal={() => {
-          setIsSearchModalOpen(false);
-          setIsAddModalOpen(true);
-        }}
       />
 
       {/* About Me / App Modal */}
