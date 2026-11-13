@@ -13,15 +13,16 @@ import {
   CornerDownLeft,
   X,
   ChevronDown,
-  Sparkles,
+  GraduationCap,
   Play,
   AlertCircle,
   Check,
+  Lightbulb,
 } from 'lucide-react';
 import { extractYouTubeId, parseTimestamps } from '../lib/youtubeParser';
 import { YouTubeSearchResultItem, YouTubeSearchResponse } from '../types/search';
 import { Chapter, ParsedPlaylist } from '../types/playlist';
-import { TurnstileWidget } from './TurnstileWidget';
+import { TurnstileWidget, TurnstileWidgetHandle } from './TurnstileWidget';
 import { SAMPLE_DATA } from '../lib/sampleData';
 
 interface VideoDetails {
@@ -44,6 +45,8 @@ export interface OmniVideoInputProps {
   autoFocus?: boolean;
 }
 
+const clientSearchCache = new Map<string, YouTubeSearchResultItem[]>();
+
 export function OmniVideoInput({
   variant = 'inline',
   onGenerate,
@@ -57,10 +60,14 @@ export function OmniVideoInput({
   const directVideoId = extractYouTubeId(query);
   const isDirectUrl = Boolean(
     directVideoId ||
-      query.trim().includes('youtube.com') ||
-      query.trim().includes('youtu.be')
+      query.trim().startsWith('http://') ||
+      query.trim().startsWith('https://') ||
+      query.trim().startsWith('youtube.com') ||
+      query.trim().startsWith('youtu.be') ||
+      query.trim().startsWith('www.youtube.com')
   );
 
+  const turnstileRef = useRef<TurnstileWidgetHandle | null>(null);
   const turnstileTokenRef = useRef<string | null>(null);
   const handleTokenChange = useCallback((token: string | null) => {
     turnstileTokenRef.current = token;
@@ -140,12 +147,24 @@ export function OmniVideoInput({
 
       try {
         const token = await waitForToken(1000);
-        const headers: Record<string, string> = {};
+        let headers: Record<string, string> = {};
         if (token) {
           headers['x-turnstile-token'] = token;
+          turnstileTokenRef.current = null;
+          turnstileRef.current?.reset();
         }
 
-        const res = await fetch(`/api/protected/youtube-info?videoId=${directVideoId}`, { headers });
+        let res = await fetch(`/api/protected/youtube-info?videoId=${directVideoId}`, { headers });
+        if (res.status === 403 && !token) {
+          turnstileRef.current?.reset();
+          const retryToken = await waitForToken(1500);
+          if (retryToken) {
+            headers = { 'x-turnstile-token': retryToken };
+            turnstileTokenRef.current = null;
+            turnstileRef.current?.reset();
+            res = await fetch(`/api/protected/youtube-info?videoId=${directVideoId}`, { headers });
+          }
+        }
         const data = await res.json().catch(() => null);
 
         if (isCancelled) return;
@@ -220,20 +239,48 @@ export function OmniVideoInput({
     const controller = new AbortController();
 
     const performSearch = async () => {
+      const normalized = debouncedQuery.trim().toLowerCase();
+      if (clientSearchCache.has(normalized)) {
+        setResults(clientSearchCache.get(normalized)!);
+        setSelectedIndex(0);
+        setIsSearching(false);
+        return;
+      }
+
       setIsSearching(true);
       setSearchError(null);
 
       try {
-        const token = turnstileTokenRef.current;
-        const headers: Record<string, string> = {};
-        if (token) {
-          headers['x-turnstile-token'] = token;
+        let token = turnstileTokenRef.current;
+        if (!token) {
+          token = await waitForToken(1000);
         }
 
-        const res = await fetch(
+        let headers: Record<string, string> = {};
+        if (token) {
+          headers['x-turnstile-token'] = token;
+          turnstileTokenRef.current = null;
+          turnstileRef.current?.reset();
+        }
+
+        let res = await fetch(
           `/api/protected/youtube-search?q=${encodeURIComponent(debouncedQuery)}`,
           { headers, signal: controller.signal }
         );
+
+        if (res.status === 403 && !token) {
+          turnstileRef.current?.reset();
+          const retryToken = await waitForToken(1500);
+          if (retryToken) {
+            headers = { 'x-turnstile-token': retryToken };
+            turnstileTokenRef.current = null;
+            turnstileRef.current?.reset();
+            res = await fetch(
+              `/api/protected/youtube-search?q=${encodeURIComponent(debouncedQuery)}`,
+              { headers, signal: controller.signal }
+            );
+          }
+        }
 
         const data: YouTubeSearchResponse = await res.json().catch(() => ({
           success: false,
@@ -243,6 +290,7 @@ export function OmniVideoInput({
         if (isCancelled) return;
 
         if (res.ok && data.success && data.results) {
+          clientSearchCache.set(normalized, data.results);
           setResults(data.results);
           setSelectedIndex(0);
         } else {
@@ -268,8 +316,9 @@ export function OmniVideoInput({
     return () => {
       isCancelled = true;
       controller.abort();
+      setIsSearching(false);
     };
-  }, [debouncedQuery, isDirectUrl]);
+  }, [debouncedQuery, isDirectUrl, waitForToken]);
 
   const handleSelectResult = useCallback(
     async (video: YouTubeSearchResultItem) => {
@@ -281,12 +330,28 @@ export function OmniVideoInput({
       setIsCustomTimestampsExpanded(false);
 
       try {
-        const headers: Record<string, string> = {};
-        if (turnstileTokenRef.current) {
-          headers['x-turnstile-token'] = turnstileTokenRef.current;
+        let headers: Record<string, string> = {};
+        let token = turnstileTokenRef.current;
+        if (!token) {
+          token = await waitForToken(800);
+        }
+        if (token) {
+          headers['x-turnstile-token'] = token;
+          turnstileTokenRef.current = null;
+          turnstileRef.current?.reset();
         }
 
-        const res = await fetch(`/api/protected/youtube-info?videoId=${video.videoId}`, { headers });
+        let res = await fetch(`/api/protected/youtube-info?videoId=${video.videoId}`, { headers });
+        if (res.status === 403) {
+          turnstileRef.current?.reset();
+          const freshToken = await waitForToken(1500);
+          if (freshToken) {
+            headers = { 'x-turnstile-token': freshToken };
+            turnstileTokenRef.current = null;
+            turnstileRef.current?.reset();
+            res = await fetch(`/api/protected/youtube-info?videoId=${video.videoId}`, { headers });
+          }
+        }
         const data = await res.json().catch(() => null);
 
         if (res.ok && data && data.success && Array.isArray(data.chapters)) {
@@ -306,12 +371,14 @@ export function OmniVideoInput({
         setIsPreviewLoading(false);
       }
     },
-    []
+    [waitForToken]
   );
 
   const handleClear = useCallback(() => {
     setQuery('');
     setDebouncedQuery('');
+    setIsSearching(false);
+    setIsUrlLoading(false);
     setResults([]);
     setSelectedResult(null);
     setUrlVideoDetails(null);
@@ -453,6 +520,7 @@ export function OmniVideoInput({
         url: SAMPLE_DATA.url,
         title: SAMPLE_DATA.title,
         author: SAMPLE_DATA.author,
+        thumbnailUrl: SAMPLE_DATA.thumbnailUrl,
       },
       chapters: parseTimestamps(SAMPLE_DATA.description),
       rawTimestampsText: SAMPLE_DATA.description,
@@ -465,16 +533,18 @@ export function OmniVideoInput({
     <div className="w-full flex flex-col">
       <div className="relative w-full">
         <label htmlFor="omni-video-input" className="sr-only">
-          Search YouTube videos or paste a direct video link
+          Search topic or paste video link
         </label>
         <div className="relative flex items-center">
-          <div className="absolute left-3.5 sm:left-4 pointer-events-none text-stone-400 dark:text-stone-500">
+          <div className="absolute left-3.5 sm:left-4 pointer-events-none text-stone-500 dark:text-stone-400">
             {isSearching || isUrlLoading ? (
-              <Loader2 size={20} strokeWidth={2} className="animate-spin text-primary dark:text-emerald-400" aria-hidden="true" />
+              <span className="animate-spin inline-flex">
+                <Loader2 size={18} strokeWidth={2} className="text-primary dark:text-emerald-400" aria-hidden="true" />
+              </span>
             ) : isDirectUrl ? (
-              <LinkIcon size={20} strokeWidth={2} className="text-primary dark:text-emerald-400" aria-hidden="true" />
+              <LinkIcon size={18} strokeWidth={2} className="text-primary dark:text-emerald-400" aria-hidden="true" />
             ) : (
-              <Search size={20} strokeWidth={2} className="text-stone-400 dark:text-stone-500" aria-hidden="true" />
+              <Search size={18} strokeWidth={2} className="text-stone-500 dark:text-stone-400" aria-hidden="true" />
             )}
           </div>
 
@@ -486,15 +556,20 @@ export function OmniVideoInput({
             onChange={(e) => {
               const val = e.target.value;
               setQuery(val);
+              if (val.trim().length < 2) {
+                setIsSearching(false);
+                setIsUrlLoading(false);
+                setResults([]);
+              }
               setSelectedResult(null);
               setUrlError(null);
               setSearchError(null);
             }}
-            placeholder="Search YouTube or paste video link..."
-            aria-label="Search YouTube or paste direct video URL"
+            placeholder="Search topic or paste link..."
+            aria-label="Search topic or paste video URL"
             autoComplete="off"
             spellCheck={false}
-            className={`w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl pl-11 sm:pl-12 pr-12 text-sm sm:text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs ${
+            className={`w-full bg-stone-100/90 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600 rounded-xl pl-11 sm:pl-12 pr-12 text-sm sm:text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-500 dark:placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-emerald-500 focus:border-primary dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-stone-950 transition-all shadow-xs ${
               variant === 'inline' ? 'py-3.5 sm:py-4 text-base' : 'py-3 sm:py-3.5'
             }`}
           />
@@ -504,7 +579,7 @@ export function OmniVideoInput({
               type="button"
               onClick={handleClear}
               aria-label="Clear input query"
-              className="absolute right-3.5 p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 rounded-md transition-colors cursor-pointer"
+              className="absolute right-3.5 p-1 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 rounded-md transition-colors cursor-pointer"
             >
               <X size={16} strokeWidth={2} aria-hidden="true" />
             </button>
@@ -512,6 +587,7 @@ export function OmniVideoInput({
         </div>
 
         <TurnstileWidget
+          ref={turnstileRef}
           onTokenChange={handleTokenChange}
           action="omni_search"
           className="flex justify-start empty:hidden mt-2"
@@ -522,7 +598,9 @@ export function OmniVideoInput({
         <div className="mt-4 animate-in fade-in slide-in-from-bottom-3 duration-200">
           {isUrlLoading ? (
             <div className="p-6 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl flex items-center justify-center gap-3 text-stone-600 dark:text-stone-300">
-              <Loader2 size={20} strokeWidth={2} className="animate-spin text-primary dark:text-emerald-400" aria-hidden="true" />
+              <span className="animate-spin inline-flex">
+                <Loader2 size={20} strokeWidth={2} className="text-primary dark:text-emerald-400" aria-hidden="true" />
+              </span>
               <span className="text-sm font-medium">Detecting video chapters and details...</span>
             </div>
           ) : urlError ? (
@@ -551,19 +629,19 @@ export function OmniVideoInput({
                       <Play size={24} strokeWidth={2} className="text-stone-500" />
                     </div>
                   )}
-                  {urlVideoDetails.duration && (
+                  {typeof urlVideoDetails.duration === 'number' && urlVideoDetails.duration > 0 ? (
                     <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white font-mono font-tnum text-2xs px-2 py-0.5 rounded-full leading-none">
                       {Math.floor(urlVideoDetails.duration / 60)}:
                       {String(Math.floor(urlVideoDetails.duration % 60)).padStart(2, '0')}
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
                       <Check size={14} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
-                      <span>YouTube Link Verified</span>
+                      <span>Link Verified</span>
                     </span>
                     {(urlVideoDetails.chapters?.length || 0) > 0 ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 font-mono font-tnum">
@@ -602,7 +680,7 @@ export function OmniVideoInput({
                     }`}
                   />
                   <span>
-                    {isCustomTimestampsExpanded ? 'Hide custom timestamps' : 'Paste or edit custom timestamps (optional)'}
+                    {isCustomTimestampsExpanded ? 'Hide custom timestamps' : 'Custom timestamps (optional)'}
                   </span>
                 </button>
 
@@ -613,11 +691,10 @@ export function OmniVideoInput({
                       value={customTimestampsText}
                       onChange={(e) => setCustomTimestampsText(e.target.value)}
                       placeholder={`0:00 Introduction\n04:12 Key Concepts\n15:30 Demonstration\n45:00 Summary`}
-                      className="w-full p-3 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-md text-xs sm:text-sm font-mono font-tnum text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full p-3 bg-stone-100/90 dark:bg-stone-950 border border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600 rounded-lg text-xs sm:text-sm font-mono font-tnum text-stone-900 dark:text-stone-100 placeholder:text-stone-500 dark:placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-emerald-500 focus:bg-white dark:focus:bg-stone-950 transition-colors"
                     />
                     <p className="text-2xs sm:text-xs text-stone-500">
-                      Format each chapter as: <span className="font-mono">0:00 Title</span> or{' '}
-                      <span className="font-mono">01:23:45 Title</span>.
+                      Format: <span className="font-mono">0:00 Title</span>
                     </p>
                   </div>
                 )}
@@ -668,11 +745,11 @@ export function OmniVideoInput({
                       <Play size={20} strokeWidth={2} className="text-stone-500" />
                     </div>
                   )}
-                  {video.duration && (
+                  {Boolean(video.duration) ? (
                     <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-2xs px-1.5 py-0.5 rounded-full leading-none">
                       {video.duration}
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -776,11 +853,11 @@ export function OmniVideoInput({
                   <Play size={20} strokeWidth={2} className="text-stone-500" />
                 </div>
               )}
-              {selectedResult.duration && (
+              {Boolean(selectedResult.duration) ? (
                 <div className="absolute bottom-1 right-1 bg-black/85 text-white font-mono font-tnum text-2xs px-1.5 py-0.5 rounded-full leading-none">
                   {selectedResult.duration}
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div className="flex-1 min-w-0">
@@ -796,7 +873,9 @@ export function OmniVideoInput({
           <div className="max-h-60 overflow-y-auto border border-stone-200 dark:border-stone-800 rounded-lg divide-y divide-stone-100 dark:divide-stone-800/60 bg-stone-50/50 dark:bg-stone-950/40">
             {isPreviewLoading ? (
               <div className="p-8 flex flex-col items-center justify-center gap-2 text-stone-500">
-                <Loader2 size={20} strokeWidth={2} className="animate-spin text-primary dark:text-emerald-400" aria-hidden="true" />
+                <span className="animate-spin inline-flex">
+                  <Loader2 size={20} strokeWidth={2} className="text-primary dark:text-emerald-400" aria-hidden="true" />
+                </span>
                 <span className="text-xs font-medium">Inspecting chapter markers...</span>
               </div>
             ) : previewError ? (
@@ -804,7 +883,7 @@ export function OmniVideoInput({
             ) : previewChapters.length === 0 ? (
               <div className="p-6 text-center text-xs text-stone-500">
                 <p className="font-semibold text-stone-700 dark:text-stone-300 mb-1">No chapters found</p>
-                <p>You can paste custom timestamps below or proceed to start learning.</p>
+                <p>Paste timestamps below or continue directly.</p>
               </div>
             ) : (
               previewChapters.map((chapter) => (
@@ -859,15 +938,16 @@ export function OmniVideoInput({
 
       {variant === 'inline' && !query && (
         <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400 pt-2">
-          <p className="text-center sm:text-left">
-            💡 Type any topic to search YouTube, or paste any video link to import chapters directly.
+          <p className="text-center sm:text-left inline-flex items-center gap-1.5">
+            <Lightbulb size={14} strokeWidth={2} className="text-amber-500 dark:text-amber-400 shrink-0" aria-hidden="true" />
+            <span>Search topics or paste any video link to auto-detect chapters.</span>
           </p>
           <button
             type="button"
             onClick={handleLoadSample}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 font-semibold text-primary dark:text-emerald-400 bg-primary/5 hover:bg-primary/10 active:bg-primary/15 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-primary/20 dark:border-emerald-800/50 rounded-lg transition-colors cursor-pointer shrink-0 min-h-9"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white dark:text-stone-900 bg-stone-900 hover:bg-stone-800 active:bg-black dark:bg-white dark:hover:bg-stone-100 dark:active:bg-stone-200 border border-stone-800 dark:border-white rounded-lg sm:rounded-xl shadow-xs transition-all cursor-pointer shrink-0 min-h-9 active:scale-98 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-emerald-400"
           >
-            <Sparkles size={14} strokeWidth={2} className="text-primary dark:text-emerald-400" />
+            <GraduationCap size={15} strokeWidth={2.2} className="text-emerald-400 dark:text-emerald-600 shrink-0" aria-hidden="true" />
             <span>Try sample course</span>
           </button>
         </div>

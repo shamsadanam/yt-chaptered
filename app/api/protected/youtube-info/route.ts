@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseTimestamps } from '@/lib/youtubeParser';
 import { checkRateLimit } from '@/lib/rateLimit';
 import {
+  getClientClearanceKey,
   isClientCleared,
   grantClientClearance,
   verifyTurnstileToken,
@@ -143,8 +144,11 @@ export async function GET(request: NextRequest) {
   const turnstileToken = request.headers.get('x-turnstile-token');
   const isDev = process.env.NODE_ENV !== 'production';
 
-  // Check if client IP already has an active 15-minute verification clearance
-  if (!isClientCleared(clientIp)) {
+  const userAgent = request.headers.get('user-agent');
+  const clearanceKey = getClientClearanceKey(clientIp, userAgent);
+
+  // Check if client session already has an active 15-minute verification clearance
+  if (!isClientCleared(clearanceKey)) {
     if (!turnstileToken) {
       if (!isDev || process.env.TURNSTILE_SECRET_KEY) {
         return NextResponse.json(
@@ -161,8 +165,9 @@ export async function GET(request: NextRequest) {
             { status: 403 }
           );
         }
+      } else {
+        grantClientClearance(clearanceKey);
       }
-      grantClientClearance(clientIp);
     }
   }
 

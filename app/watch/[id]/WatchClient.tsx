@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { Navbar } from '../../../components/Navbar';
 import { PlaylistView } from '../../../components/PlaylistView';
 import { MobileTabBar } from '../../../components/MobileTabBar';
-import { CopyrightYear } from '../../../components/CopyrightYear';
+import { Footer } from '../../../components/Footer';
 import { TurnstileWidget } from '../../../components/TurnstileWidget';
 import { useSearchShortcut } from '../../../hooks/useSearchShortcut';
 import { ParsedPlaylist, SavedCourse } from '../../../types/playlist';
@@ -19,7 +19,7 @@ import {
   saveCourse,
   initStorage,
 } from '../../../lib/storage';
-import { parseTimestamps } from '../../../lib/youtubeParser';
+import { parseTimestamps, getYouTubeThumbnail } from '../../../lib/youtubeParser';
 
 const AboutModal = dynamic(
   () => import('../../../components/AboutModal').then((mod) => mod.AboutModal),
@@ -82,13 +82,10 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
 
   const savedCourse = getSavedCourse(videoId);
 
-  const [initialPlayback, setInitialPlayback] = useState(() =>
-    getInitialPlaybackParams(getSavedCourse(videoId), videoId, initialTimeParam)
+  const initialPlayback = useMemo(
+    () => getInitialPlaybackParams(savedCourse, videoId, initialTimeParam),
+    [savedCourse, videoId, initialTimeParam]
   );
-
-  if (savedCourse && (!initialPlayback || initialPlayback.videoId !== videoId)) {
-    setInitialPlayback(getInitialPlaybackParams(savedCourse, videoId, initialTimeParam));
-  }
 
   const playlistVideo = savedCourse?.video;
   const playlistChapters = savedCourse?.chapters;
@@ -159,28 +156,39 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     const tParam = newPlaylist.initialStartTime && newPlaylist.initialStartTime > 0
       ? `?t=${Math.floor(newPlaylist.initialStartTime)}`
       : '';
-    router.push(`/watch/${newPlaylist.video.id}${tParam}`);
+    router.push(`/watch/${newPlaylist.video.id}${tParam}`, { transitionTypes: ['nav-forward'] });
   };
 
-  // Execute protected fetch once Turnstile token is available
+  // Execute protected fetch once Turnstile token is available or client is cleared
   useEffect(() => {
     let isCancelled = false;
-    if (!needsFetch || !turnstileToken || hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    setIsAutoFetching(true);
-    setFetchError(null);
+    if (!needsFetch || hasFetchedRef.current) return;
 
-    fetch(`/api/protected/youtube-info?videoId=${videoId}`, {
-      headers: {
-        'x-turnstile-token': turnstileToken,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Video info request failed');
-        return res.json();
-      })
-      .then(async (data) => {
+    const executeFetch = async (token?: string | null) => {
+      if (hasFetchedRef.current || isCancelled) return;
+      hasFetchedRef.current = true;
+      setIsAutoFetching(true);
+      setFetchError(null);
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['x-turnstile-token'] = token;
+      }
+
+      try {
+        const res = await fetch(`/api/protected/youtube-info?videoId=${videoId}`, { headers });
+        if (!res.ok) {
+          if (res.status === 403 && !token) {
+            hasFetchedRef.current = false;
+            setIsAutoFetching(false);
+            return;
+          }
+          throw new Error('Video info request failed');
+        }
+
+        const data = await res.json();
         if (isCancelled) return;
+
         if (data && data.success) {
           let parsedChapters = data.chapters || [];
           if (parsedChapters.length === 0 && data.description) {
@@ -231,7 +239,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
               author: finalAuthor,
               channelId: finalChannelId,
               channelUrl: finalChannelUrl,
-              thumbnailUrl: finalThumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+              thumbnailUrl: getYouTubeThumbnail(videoId, finalThumbnail),
               duration: data.duration,
             },
             chapters: parsedChapters,
@@ -246,37 +254,55 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         } else {
           setFetchError(data?.error || 'Video could not be loaded or auto-detected.');
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!isCancelled) {
           console.warn('Auto-fetch course failed:', err);
           setFetchError('Could not load course. Please check the YouTube video URL or ID.');
         }
-      })
-      .finally(() => {
+      } finally {
         if (!isCancelled) {
           setIsAutoFetching(false);
         }
-      });
+      }
+    };
+
+    if (turnstileToken) {
+      executeFetch(turnstileToken);
+    } else {
+      const fallbackTimer = setTimeout(() => {
+        executeFetch(null);
+      }, 2500);
+      return () => {
+        isCancelled = true;
+        clearTimeout(fallbackTimer);
+      };
+    }
 
     return () => {
       isCancelled = true;
     };
   }, [videoId, needsFetch, turnstileToken]);
 
+  const handleTurnstileError = useCallback((err: string) => {
+    if (process.env.NODE_ENV === 'production') {
+      setFetchError(err);
+    } else {
+      console.warn('Turnstile dev notice:', err);
+    }
+  }, []);
+
   // Loading state while storage initializes or video info is auto-fetched
   if (!savedCourse && (isAutoFetching || needsFetch)) {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
         <Navbar
-          onReset={() => router.push('/')}
-          showReset={true}
-          onOpenAbout={() => setIsAboutOpen(true)}
           onOpenAddVideo={() => setIsAddModalOpen(true)}
         />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
-            <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto mb-4" aria-hidden="true" />
+            <div className="animate-spin inline-flex mx-auto mb-4">
+              <Loader2 size={32} className="text-primary" aria-hidden="true" />
+            </div>
             <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">
               Loading Course Details...
             </h2>
@@ -285,7 +311,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
             </p>
             <TurnstileWidget
               onTokenChange={setTurnstileToken}
-              onError={setFetchError}
+              onError={handleTurnstileError}
               action="watch_auto_fetch"
               className="flex justify-center empty:hidden mt-4"
             />
@@ -300,13 +326,12 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
         <Navbar
-          onOpenAbout={() => setIsAboutOpen(true)}
           onOpenAddVideo={() => setIsAddModalOpen(true)}
         />
         <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col items-center justify-center p-4 outline-none">
           <div role="alert" className="bg-white border border-stone-200 dark:bg-stone-900 dark:border-stone-800 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-xs">
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 flex items-center justify-center mx-auto mb-3" aria-hidden="true">
-              <AlertTriangle className="w-6 h-6" aria-hidden="true" />
+              <AlertTriangle size={24} aria-hidden="true" />
             </div>
             <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">
               Course Not Found
@@ -316,10 +341,10 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
             </p>
             <button
               type="button"
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/', { transitionTypes: ['nav-back'] })}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer w-full min-h-11"
             >
-              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+              <ArrowLeft size={14} aria-hidden="true" />
               <span>Return to Courses</span>
             </button>
           </div>
@@ -335,21 +360,19 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
   return (
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 md:pb-0">
       <Navbar
-        onOpenAbout={() => setIsAboutOpen(true)}
         onOpenAddVideo={() => setIsAddModalOpen(true)}
       />
 
       <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-start outline-none">
-        <PlaylistView playlist={playlist} onReset={() => router.push('/')} />
+        <PlaylistView playlist={playlist} onReset={() => router.push('/', { transitionTypes: ['nav-back'] })} />
       </main>
 
       <MobileTabBar
         activeTab="player"
-        hasActivePlaylist={true}
-        activePlaylistTitle={playlist.video.title}
         onTabChange={(tab) => {
           if (tab === 'search' || tab === 'create') setIsAddModalOpen(true);
-          else if (tab === 'history') router.push('/?tab=history');
+          else if (tab === 'history') router.push('/?tab=history', { transitionTypes: ['nav-back'] });
+          else if (tab === 'about') setIsAboutOpen(true);
         }}
         onOpenAbout={() => setIsAboutOpen(true)}
       />
@@ -365,21 +388,7 @@ export function WatchClient({ videoId, initialTimeParam }: WatchClientProps) {
         onClose={() => setIsAboutOpen(false)}
       />
 
-      <footer className="hidden md:block border-t border-stone-200 dark:border-stone-800 py-6 px-4 text-center text-xs text-stone-600 dark:text-stone-400">
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <p>
-            © <CopyrightYear /> ytChaptered • Local-first YouTube Chaptered Playlist Creator • Built by{' '}
-            <a
-              href="https://shamsad.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-900 dark:text-stone-100 font-semibold hover:text-primary dark:hover:text-emerald-400 transition-colors underline"
-            >
-              Shamsad Anam
-            </a>
-          </p>
-        </div>
-      </footer>
+      <Footer onOpenAbout={() => setIsAboutOpen(true)} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   useCallback,
   useMemo,
   useSyncExternalStore,
+  ViewTransition,
 } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -545,6 +546,8 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         >
           <Link
             href="/"
+            transitionTypes={['nav-back']}
+            prefetch={true}
             onClick={() => onReset?.()}
             className="inline-flex items-center gap-1.5 font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors py-1 px-1.5 -ml-1.5 rounded-md hover:bg-stone-200/60 dark:hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Back to Courses"
@@ -598,125 +601,83 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
         >
           {/* 16:9 Video Embed Container (Sticky below navbar on mobile) */}
           <div className="sticky top-14 sm:static z-20 bg-stone-50 dark:bg-stone-950 sm:bg-transparent py-0 -mx-3 sm:mx-0">
-            <div
-              ref={playerWrapperRef}
-              onPointerMove={(e) => {
-                if (e.pointerType !== "touch") resetControlsTimer();
-              }}
-              onPointerDown={(e) => {
-                if (e.pointerType !== "touch") resetControlsTimer();
-              }}
-              className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
-                isFullscreen
-                  ? "fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center"
-                  : "rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800"
-              }`}
-            >
-              {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
+            <ViewTransition name={`course-hero-${playlist.video.id}`} share="morph">
               <div
-                className="w-full h-full relative"
-                style={
-                  isFullscreen && isPortrait
-                    ? {
-                        position: "absolute",
-                        width: "100vh",
-                        height: "100vw",
-                        transform: "translate(-50%, -50%) rotate(90deg)",
-                        top: "50%",
-                        left: "50%",
-                      }
-                    : undefined
-                }
+                ref={playerWrapperRef}
+                onPointerMove={(e) => {
+                  if (e.pointerType !== "touch") resetControlsTimer();
+                }}
+                onPointerDown={(e) => {
+                  if (e.pointerType !== "touch") resetControlsTimer();
+                }}
+                className={`group/player relative w-full aspect-video bg-black overflow-hidden ${
+                  isFullscreen
+                    ? "fixed inset-0 z-50 rounded-none w-screen h-screen flex items-center justify-center"
+                    : "rounded-none sm:rounded-xl shadow-none sm:shadow-xs border-0 sm:border border-stone-200 dark:border-stone-800"
+                }`}
               >
-                <div id={containerId} className="w-full h-full" />
-                {!isReady && !playerError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900 text-white gap-3">
-                    <Loader2
-                      className="animate-spin h-7 w-7 sm:h-8 sm:w-8 text-emerald-500"
-                      aria-hidden="true"
-                    />
-                    <span className="text-xs sm:text-sm font-medium text-white/80">
-                      Loading YouTube Player...
-                    </span>
-                  </div>
-                )}
-                {playerError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/95 text-white p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
-                    <AlertTriangle
-                      className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500"
-                      aria-hidden="true"
-                    />
-                    <p className="text-xs sm:text-sm font-semibold max-w-md">
-                      {playerError}
-                    </p>
-                    <a
-                      href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-md transition-colors min-h-11 touch-manipulation"
-                    >
-                      <span>Open directly on YouTube</span>
-                      <ExternalLink
-                        className="w-3.5 h-3.5"
+                {/* Inner wrapper rotated 90deg when fullscreened on portrait viewports */}
+                <div
+                  className="w-full h-full relative"
+                  style={
+                    isFullscreen && isPortrait
+                      ? {
+                          position: "absolute",
+                          width: "100vh",
+                          height: "100vw",
+                          transform: "translate(-50%, -50%) rotate(90deg)",
+                          top: "50%",
+                          left: "50%",
+                        }
+                      : undefined
+                  }
+                >
+                  <div id={containerId} className="w-full h-full" />
+                  {!isReady && !playerError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900 text-white gap-3">
+                      <div className="animate-spin inline-flex">
+                        <Loader2
+                          className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-500"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium text-white/80">
+                        Loading YouTube Player...
+                      </span>
+                    </div>
+                  )}
+                  {playerError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/95 text-white p-4 sm:p-6 text-center gap-2 sm:gap-3 z-10">
+                      <AlertTriangle
+                        className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500"
                         aria-hidden="true"
                       />
-                    </a>
-                  </div>
-                )}
+                      <p className="text-xs sm:text-sm font-semibold max-w-md">
+                        {playerError}
+                      </p>
+                      <a
+                        href={`https://www.youtube.com/watch?v=${playlist.video.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 sm:mt-2 inline-flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-md transition-colors min-h-11 touch-manipulation"
+                      >
+                        <span>Open directly on YouTube</span>
+                        <ExternalLink
+                          className="w-3.5 h-3.5"
+                          aria-hidden="true"
+                        />
+                      </a>
+                    </div>
+                  )}
 
-                {/* Rich Fullscreen Overlay with transport bar & chapter drawer */}
-                {isFullscreen && (
-                  <FullscreenOverlay
-                    playlist={playlist}
-                    activeChapter={activeChapter}
-                    currentChapterIndex={currentChapterIndex}
-                    totalChapters={totalChapters}
-                    completedIdsSet={completedIdsSet}
-                    playerState={{
-                      isPlaying,
-                      isPlayLoading,
-                      isReady,
-                      currentTime,
-                      duration,
-                      playbackRate,
-                      volume,
-                      isMuted,
-                      isCaptionsEnabled,
-                      isCaptionsSupported,
-                    }}
-                    playerActions={{
-                      play,
-                      pause,
-                      seekToChapter: handleSelectChapter,
-                      seekBy: handleSeekBy,
-                      seekToTime: handleSeekToTime,
-                      setPlaybackRate,
-                      setVolume,
-                      toggleMute,
-                      toggleCaptions,
-                    }}
-                    onToggleComplete={handleToggleComplete}
-                    onExitFullscreen={handleToggleFullscreen}
-                  />
-                )}
-
-                {!isFullscreen && isReady && !playerError && (
-                  <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-                    <div
-                      className="absolute inset-0 pointer-events-auto z-0"
-                      onClick={handleCanvasClick}
-                      onDoubleClick={handleCanvasDoubleClick}
-                      onPointerMove={(e) => {
-                        if (e.pointerType !== "touch") resetControlsTimer();
-                      }}
-                    />
-
-                    <PlayerControlsBar
-                      mode="windowed"
-                      visible={isControlsVisible}
-                      chapters={playlist.chapters}
+                  {/* Rich Fullscreen Overlay with transport bar & chapter drawer */}
+                  {isFullscreen && (
+                    <FullscreenOverlay
+                      playlist={playlist}
+                      activeChapter={activeChapter}
                       currentChapterIndex={currentChapterIndex}
                       totalChapters={totalChapters}
+                      completedIdsSet={completedIdsSet}
                       playerState={{
                         isPlaying,
                         isPlayLoading,
@@ -740,19 +701,65 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                         toggleMute,
                         toggleCaptions,
                       }}
-                      isSpeedMenuOpen={isSpeedMenuOpen}
-                      speedMenuRef={speedMenuRef}
-                      setIsSpeedMenuOpen={setIsSpeedMenuOpen}
-                      isTheaterMode={isTheaterMode}
-                      onToggleTheater={() => setIsTheaterMode((prev) => !prev)}
-                      onToggleFullscreen={handleToggleFullscreen}
-                      onUserActivity={resetControlsTimer}
-                      onHoverControls={setIsHoveringControls}
+                      onToggleComplete={handleToggleComplete}
+                      onExitFullscreen={handleToggleFullscreen}
                     />
-                  </div>
-                )}
+                  )}
+
+                  {!isFullscreen && isReady && !playerError && (
+                    <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                      <div
+                        className="absolute inset-0 pointer-events-auto z-0"
+                        onClick={handleCanvasClick}
+                        onDoubleClick={handleCanvasDoubleClick}
+                        onPointerMove={(e) => {
+                          if (e.pointerType !== "touch") resetControlsTimer();
+                        }}
+                      />
+
+                      <PlayerControlsBar
+                        mode="windowed"
+                        visible={isControlsVisible}
+                        chapters={playlist.chapters}
+                        currentChapterIndex={currentChapterIndex}
+                        totalChapters={totalChapters}
+                        playerState={{
+                          isPlaying,
+                          isPlayLoading,
+                          isReady,
+                          currentTime,
+                          duration,
+                          playbackRate,
+                          volume,
+                          isMuted,
+                          isCaptionsEnabled,
+                          isCaptionsSupported,
+                        }}
+                        playerActions={{
+                          play,
+                          pause,
+                          seekToChapter: handleSelectChapter,
+                          seekBy: handleSeekBy,
+                          seekToTime: handleSeekToTime,
+                          setPlaybackRate,
+                          setVolume,
+                          toggleMute,
+                          toggleCaptions,
+                        }}
+                        isSpeedMenuOpen={isSpeedMenuOpen}
+                        speedMenuRef={speedMenuRef}
+                        setIsSpeedMenuOpen={setIsSpeedMenuOpen}
+                        isTheaterMode={isTheaterMode}
+                        onToggleTheater={() => setIsTheaterMode((prev) => !prev)}
+                        onToggleFullscreen={handleToggleFullscreen}
+                        onUserActivity={resetControlsTimer}
+                        onHoverControls={setIsHoveringControls}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </ViewTransition>
           </div>
 
           <section
@@ -906,7 +913,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                         }
                       : undefined
                   }
-                  className={`w-full p-2 sm:p-2.5 rounded-lg transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-13 ${
+                  className={`content-visibility-auto w-full p-2 sm:p-2.5 rounded-lg transition-all flex items-center gap-2 sm:gap-2.5 my-0.5 min-h-13 ${
                     isActive
                       ? "bg-stone-100 dark:bg-stone-800/80 border border-primary dark:border-emerald-500 shadow-xs"
                       : "hover:bg-stone-50 dark:hover:bg-stone-800/50 border border-transparent"

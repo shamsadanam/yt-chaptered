@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { SavedCourse } from '../types/playlist';
+import { getYouTubeThumbnail } from './youtubeParser';
 
 const DB_NAME = 'yt_chaptered_db';
 const DB_VERSION = 2;
@@ -133,6 +134,19 @@ export async function clearAllCourses(): Promise<void> {
   }
 }
 
+export function normalizeCourse(course: SavedCourse): SavedCourse {
+  const videoId = course.video?.id;
+  const thumbnailUrl = getYouTubeThumbnail(videoId, course.video?.thumbnailUrl);
+
+  return {
+    ...course,
+    video: {
+      ...course.video,
+      thumbnailUrl,
+    },
+  };
+}
+
 export function initStorage(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve();
   if (initPromise) return initPromise;
@@ -164,7 +178,7 @@ export function initStorage(): Promise<void> {
         console.warn('Legacy localStorage migration notice:', legacyErr);
       }
 
-      memoryCoursesCache = courses.sort((a, b) => b.updatedAt - a.updatedAt);
+      memoryCoursesCache = courses.map(normalizeCourse).sort((a, b) => b.updatedAt - a.updatedAt);
       isInitialized = true;
       notifyListeners();
 
@@ -251,10 +265,10 @@ export function getCompletedChapterIdsServerSnapshot(): string[] {
 
 export function saveCourse(course: SavedCourse): void {
   if (typeof window === 'undefined') return;
-  const updatedCourse: SavedCourse = {
+  const updatedCourse: SavedCourse = normalizeCourse({
     ...course,
     updatedAt: Date.now(),
-  };
+  });
 
   const nextCourses = [...memoryCoursesCache];
   const existingIndex = nextCourses.findIndex((c) => c.video.id === course.video.id);
@@ -390,7 +404,7 @@ export function importCoursesJson(jsonStr: string): { success: boolean; count: n
 
     for (const item of parsed) {
       if (item && item.video && item.video.id && Array.isArray(item.chapters)) {
-        const courseItem: SavedCourse = {
+        const courseItem: SavedCourse = normalizeCourse({
           video: item.video,
           chapters: item.chapters,
           rawTimestampsText: item.rawTimestampsText || '',
@@ -398,7 +412,7 @@ export function importCoursesJson(jsonStr: string): { success: boolean; count: n
           lastPlayedChapterIndex: typeof item.lastPlayedChapterIndex === 'number' ? item.lastPlayedChapterIndex : 0,
           lastPlayedSeconds: typeof item.lastPlayedSeconds === 'number' ? item.lastPlayedSeconds : 0,
           updatedAt: item.updatedAt || Date.now(),
-        };
+        });
         courseMap.set(item.video.id, courseItem);
         itemsToSave.push(courseItem);
         addedOrUpdated++;

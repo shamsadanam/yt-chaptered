@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { preconnect } from "react-dom";
 import "./globals.css";
 import { PwaProvider } from "../components/PwaProvider";
 import { ThemeProvider } from "../components/ThemeProvider";
@@ -104,6 +105,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  preconnect('https://www.youtube.com');
+  preconnect('https://i.ytimg.com');
+
   const cfBeaconToken =
     process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN ||
     process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;

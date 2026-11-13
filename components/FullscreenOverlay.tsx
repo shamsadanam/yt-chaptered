@@ -375,7 +375,7 @@ export function FullscreenOverlay({
         </div>
 
         <div className="flex flex-col items-center min-w-0 max-w-xs sm:max-w-md lg:max-w-xl text-center px-2">
-          <div className="flex items-center gap-1.5 text-2xs text-stone-300 font-mono font-tnum">
+          <div className="flex items-center gap-1.5 text-xs text-stone-300 font-mono font-tnum">
             <span className="text-primary font-semibold uppercase tracking-wider">
               Ch {currentChapterIndex + 1}/{totalChapters}
             </span>
@@ -385,7 +385,7 @@ export function FullscreenOverlay({
               {secondsToTimestamp(Math.floor(duration))}
             </span>
           </div>
-          <h1 className="text-xs sm:text-sm font-semibold text-stone-100 truncate w-full mt-0.5">
+          <h1 className="text-sm sm:text-base font-semibold text-stone-100 truncate w-full mt-0.5">
             {activeChapter ? activeChapter.title : playlist.video.title}
           </h1>
         </div>

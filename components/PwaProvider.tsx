@@ -1,7 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
-import { IosInstallModal } from './IosInstallModal';
+import dynamic from 'next/dynamic';
+
+const IosInstallModal = dynamic(
+  () => import('./IosInstallModal').then((mod) => mod.IosInstallModal),
+  { ssr: false }
+);
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;

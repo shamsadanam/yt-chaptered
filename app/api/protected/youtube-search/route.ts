@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, RATE_LIMIT_CONFIG } from '@/lib/rateLimit';
 import { MemoryCache } from '@/lib/cache';
 import {
+  getClientClearanceKey,
   isClientCleared,
   grantClientClearance,
   verifyTurnstileToken,
@@ -176,8 +177,11 @@ export async function GET(request: NextRequest) {
   const turnstileToken = request.headers.get('x-turnstile-token');
   const isDev = process.env.NODE_ENV !== 'production';
 
-  // Enforce Cloudflare Turnstile bot verification unless the client IP has an active session clearance
-  if (!isClientCleared(clientIp)) {
+  const userAgent = request.headers.get('user-agent');
+  const clearanceKey = getClientClearanceKey(clientIp, userAgent);
+
+  // Enforce Cloudflare Turnstile bot verification unless the client session has an active clearance
+  if (!isClientCleared(clearanceKey)) {
     if (!turnstileToken) {
       if (!isDev || process.env.TURNSTILE_SECRET_KEY) {
         return NextResponse.json(
@@ -194,9 +198,10 @@ export async function GET(request: NextRequest) {
             { status: 403 }
           );
         }
+      } else {
+        // Grant 15-minute search session clearance for verified human clients
+        grantClientClearance(clearanceKey);
       }
-      // Grant 15-minute search session clearance for verified human clients
-      grantClientClearance(clientIp);
     }
   }
 

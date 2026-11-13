@@ -2,28 +2,36 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Info, Plus } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Download, Search } from 'lucide-react';
 import { usePwa } from './PwaProvider';
 import { ThemeToggle } from './ThemeToggle';
+import { YouTubeIcon } from './icons/YouTubeIcon';
 
 interface NavbarProps {
-  onReset?: () => void;
-  showReset?: boolean;
-  showBackBreadcrumb?: boolean;
-  videoTitle?: string;
-  onOpenAbout?: () => void;
   onOpenAddVideo?: () => void;
   onOpenSearch?: () => void;
 }
 
-export function Navbar({ onOpenAbout, onOpenAddVideo, onOpenSearch }: NavbarProps) {
+export function Navbar({ onOpenAddVideo, onOpenSearch }: NavbarProps) {
+  const pathname = usePathname();
   const { isInstallable, promptInstall } = usePwa();
   const handleOpenAdd = onOpenAddVideo || onOpenSearch;
+  const isWatchPage = pathname?.startsWith('/watch');
 
   return (
-    <header className="w-full border-b border-stone-200 bg-stone-50/95 dark:border-stone-800 dark:bg-stone-950/95 backdrop-blur-md sticky top-0 z-30">
+    <header
+      style={{ viewTransitionName: 'site-header' }}
+      className="w-full border-b border-stone-200 bg-stone-50/95 dark:border-stone-800 dark:bg-stone-950/95 backdrop-blur-md sticky top-0 z-30"
+    >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-        <Link href="/" aria-label="ytChaptered home" className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity">
+        <Link
+          href="/"
+          transitionTypes={isWatchPage ? ['nav-back'] : undefined}
+          prefetch={true}
+          aria-label="ytChaptered home"
+          className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity"
+        >
           <div className="w-8 h-8 sm:w-9 sm:h-9 relative rounded-lg sm:rounded-xl overflow-hidden shrink-0 shadow-xs">
             <Image
               src="/logo.svg"
@@ -38,32 +46,42 @@ export function Navbar({ onOpenAbout, onOpenAddVideo, onOpenSearch }: NavbarProp
           </span>
         </Link>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {handleOpenAdd && (
-            <button
-              type="button"
-              onClick={handleOpenAdd}
-              title="Add Video or Search YouTube (⌘K)"
-              aria-label="Add Video or Search YouTube"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover border border-transparent rounded-lg sm:rounded-xl shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-9 touch-manipulation cursor-pointer"
-            >
-              <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-              <span className="hidden xs:inline">Add Video</span>
-              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-2xs font-mono font-semibold text-white/80 bg-black/20 rounded">
-                ⌘K
-              </kbd>
-            </button>
-          )}
+        {handleOpenAdd && (
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            title="Search YouTube or paste video link (⌘K)"
+            aria-label="Search YouTube or paste video link"
+            className="hidden md:inline-flex items-center gap-2.5 px-3 py-1.5 text-xs sm:text-sm text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 active:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600 rounded-lg sm:rounded-xl shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-9 cursor-pointer group"
+          >
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Search
+                size={15}
+                strokeWidth={2}
+                className="text-stone-500 group-hover:text-stone-700 dark:text-stone-400 dark:group-hover:text-stone-200 transition-colors"
+                aria-hidden="true"
+              />
+              <YouTubeIcon size={16} branded />
+            </div>
+            <span className="font-normal text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors">
+              Search YouTube or paste link...
+            </span>
+            <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-2xs font-mono font-semibold text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded ml-1">
+              ⌘K
+            </kbd>
+          </button>
+        )}
 
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isInstallable && (
             <button
               type="button"
               onClick={promptInstall}
               title="Install ytChaptered app"
               aria-label="Install ytChaptered app"
-              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover border border-transparent rounded-lg sm:rounded-xl shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-0 touch-manipulation cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-hover active:bg-primary-hover rounded-lg sm:rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 min-h-10 sm:min-h-9 touch-manipulation cursor-pointer shadow-xs active:scale-98"
             >
-              <Download size={16} strokeWidth={2} aria-hidden="true" />
+              <Download size={15} strokeWidth={2} aria-hidden="true" />
               <span className="hidden sm:inline">Install</span>
             </button>
           )}
@@ -74,9 +92,9 @@ export function Navbar({ onOpenAbout, onOpenAddVideo, onOpenSearch }: NavbarProp
             rel="noopener noreferrer"
             title="ytChaptered on GitHub"
             aria-label="ytChaptered on GitHub"
-            className="hidden xs:inline-flex items-center justify-center p-2 text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 dark:text-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-9 touch-manipulation cursor-pointer"
+            className="inline-flex items-center justify-center p-2 text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 dark:text-stone-300 dark:hover:text-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-9 touch-manipulation cursor-pointer"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -86,20 +104,7 @@ export function Navbar({ onOpenAbout, onOpenAddVideo, onOpenSearch }: NavbarProp
             <span className="sr-only">GitHub</span>
           </a>
 
-          {/* Theme Toggle Button */}
           <ThemeToggle />
-
-          {onOpenAbout && (
-            <button
-              type="button"
-              onClick={onOpenAbout}
-              title="About ytChaptered & Creator"
-              aria-label="About ytChaptered & Creator"
-              className="inline-flex items-center justify-center p-2 text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 active:bg-stone-100 dark:text-stone-300 dark:hover:text-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 dark:active:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-h-10 min-w-10 sm:min-h-9 sm:min-w-9 touch-manipulation cursor-pointer"
-            >
-              <Info size={20} strokeWidth={2} aria-hidden="true" />
-            </button>
-          )}
         </div>
       </div>
     </header>

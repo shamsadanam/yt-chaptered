@@ -194,7 +194,7 @@ export function FullscreenChapterDrawer({
               <li
                 key={chap.id}
                 ref={isActive ? (node) => { activeChapterRef.current = node; } : undefined}
-                className={`w-full p-2 rounded-lg flex items-center gap-2 my-0.5 transition-colors ${
+                className={`content-visibility-auto w-full p-2 rounded-lg flex items-center gap-2 my-0.5 transition-colors ${
                   isActive
                     ? 'bg-stone-800/90 border border-emerald-500/50 shadow-xs'
                     : 'hover:bg-stone-800/50 border border-transparent'

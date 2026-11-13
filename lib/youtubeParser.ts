@@ -217,6 +217,11 @@ export async function fetchYouTubeMetadataWithApiKey(
   }
 }
 
+export function getYouTubeThumbnail(videoId?: string, customUrl?: string): string {
+  if (customUrl) return customUrl;
+  return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+}
+
 /**
  * Creates default initial video metadata object.
  */
@@ -225,6 +230,6 @@ export function createDefaultVideoMetadata(videoId: string, title?: string): Vid
     id: videoId,
     url: `https://www.youtube.com/watch?v=${videoId}`,
     title: title || 'YouTube Video',
-    thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    thumbnailUrl: getYouTubeThumbnail(videoId),
   };
 }

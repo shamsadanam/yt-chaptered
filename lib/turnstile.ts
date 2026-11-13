@@ -13,6 +13,10 @@ interface TurnstileVerifyResponse {
 
 const clearanceCache = new MemoryCache<boolean>(5000);
 
+export function getClientClearanceKey(clientIp: string, userAgent?: string | null): string {
+  return `${clientIp}:${userAgent || 'unknown'}`;
+}
+
 export function isClientCleared(key: string): boolean {
   return clearanceCache.has(key);
 }
@@ -29,7 +33,12 @@ export async function verifyTurnstileToken(
     return { success: false, error: 'Turnstile token is missing or empty' };
   }
 
-  const secret = process.env.TURNSTILE_SECRET_KEY;
+  const secret =
+    process.env.TURNSTILE_SECRET_KEY ||
+    (process.env.NODE_ENV !== 'production'
+      ? '1x0000000000000000000000000000000AA'
+      : undefined);
+
   if (!secret) {
     return {
       success: false,

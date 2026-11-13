@@ -5,12 +5,12 @@ import { X } from 'lucide-react';
 import { ParsedPlaylist } from '../types/playlist';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { OmniVideoInput } from './OmniVideoInput';
+import { YouTubeIcon } from './icons/YouTubeIcon';
 
 export interface AddVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerate: (playlist: ParsedPlaylist) => void;
-  onSwitchToSearch?: () => void; // Maintained for backward compatibility
 }
 
 export type AddCourseModalProps = AddVideoModalProps;
@@ -89,20 +89,18 @@ export function AddVideoModal({ isOpen, onClose, onGenerate }: AddVideoModalProp
       >
         <div className="flex items-center justify-between p-4 sm:px-6 sm:py-5 border-b border-stone-200/80 dark:border-stone-800 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-600 dark:bg-red-950/40 dark:text-red-400 flex items-center justify-center shrink-0">
-              <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+              <YouTubeIcon size={18} branded />
             </div>
             <div>
               <h2
                 id="add-video-modal-title"
                 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 tracking-tight"
               >
-                Add Video
+                Add Course
               </h2>
               <p className="text-xs text-stone-500 dark:text-stone-400 hidden xs:block truncate">
-                Search YouTube or paste a direct video link
+                Search YouTube or paste any video link
               </p>
             </div>
           </div>

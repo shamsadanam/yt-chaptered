@@ -1,27 +1,31 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, ViewTransition } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Upload, Trash2, X, BookOpen, Plus, Play, ArrowRight, Search, Loader2 } from 'lucide-react';
+import { Download, Upload, Trash2, X, BookOpen, Play, ArrowRight, Search, Loader2 } from 'lucide-react';
 import { SavedCourse } from '../types/playlist';
+import { YouTubeIcon } from './icons/YouTubeIcon';
 import {
   deleteSavedCourse,
   exportCoursesJson,
   importCoursesJson,
 } from '../lib/storage';
-import { secondsToTimestamp } from '../lib/youtubeParser';
-import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { secondsToTimestamp, getYouTubeThumbnail } from '../lib/youtubeParser';
+import dynamic from 'next/dynamic';
 import { useDebounce } from '../hooks/useDebounce';
+
+const DeleteConfirmModal = dynamic(
+  () => import('./DeleteConfirmModal').then((mod) => mod.DeleteConfirmModal),
+  { ssr: false }
+);
 
 interface CourseHistoryShelfProps {
   courses: SavedCourse[];
   onResumeCourse: (course: SavedCourse) => void;
   onRefresh: () => void;
   isLoading?: boolean;
-  isStandaloneView?: boolean;
   onGoToCreate?: () => void;
-  isTopShelf?: boolean;
   onAddNewCourse?: () => void;
   onOpenSearch?: () => void;
 }
@@ -137,7 +141,7 @@ export function CourseHistoryShelf({
     return (
       <div className="w-full max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="w-14 h-14 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-500 dark:text-stone-400 mx-auto mb-4 shadow-xs">
-          <BookOpen className="w-6 h-6" aria-hidden="true" />
+          <BookOpen size={24} aria-hidden="true" />
         </div>
         <h2 className="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
           Your Library is Empty
@@ -145,14 +149,32 @@ export function CourseHistoryShelf({
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-6 leading-relaxed">
           Add any YouTube course with timestamps to track your progress and navigate chapters locally.
         </p>
-        <button
-          type="button"
-          onClick={handleTriggerAdd}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer min-h-11 active:scale-98"
-        >
-          <Plus className="w-4 h-4" aria-hidden="true" />
-          <span>Add Your First Course</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={handleTriggerAdd}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer min-h-11 active:scale-98"
+          >
+            <YouTubeIcon size={16} branded />
+            <span>Search YouTube or Add Course</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer min-h-11"
+          >
+            <Download size={16} strokeWidth={2} aria-hidden="true" />
+            <span>Restore from Backup</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportFile}
+            accept=".json,application/json"
+            aria-label="Upload JSON backup"
+            className="hidden"
+          />
+        </div>
       </div>
     );
   }
@@ -167,7 +189,7 @@ export function CourseHistoryShelf({
 
   return (
     <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
-      {/* Header & Actions */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <div className="flex items-center gap-2.5">
@@ -182,171 +204,139 @@ export function CourseHistoryShelf({
             Local-first course chapters and saved learning progress.
           </p>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Backup dropdown / buttons */}
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-9"
-            title="Download JSON backup"
-            aria-label="Export backup"
-          >
-            <Upload className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Export</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg transition-colors cursor-pointer min-h-9"
-            title="Import JSON backup"
-            aria-label="Import backup"
-          >
-            <Download className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Import</span>
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            accept=".json,application/json"
-            aria-label="Upload JSON backup"
-            className="hidden"
-          />
-
-          {/* Primary + Add Course Button */}
-          <button
-            type="button"
-            onClick={handleTriggerAdd}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors cursor-pointer min-h-9 touch-manipulation active:scale-98"
-          >
-            <Plus className="w-4 h-4" aria-hidden="true" />
-            <span>Add</span>
-          </button>
-        </div>
       </div>
 
       {importStatus && (
-        <div role="status" aria-live="polite" className="mb-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between shadow-xs">
-          <span>{importStatus}</span>
-          <button
-            type="button"
-            onClick={() => setImportStatus(null)}
-            aria-label="Dismiss import status"
-            className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5" aria-hidden="true" />
-          </button>
-        </div>
+        <ViewTransition enter="fade-in" exit="fade-out">
+          <div role="status" aria-live="polite" className="mb-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-xs text-stone-900 dark:text-stone-100 flex items-center justify-between shadow-xs">
+            <span>{importStatus}</span>
+            <button
+              type="button"
+              onClick={() => setImportStatus(null)}
+              aria-label="Dismiss import status"
+              className="text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 font-semibold text-xs ml-2 p-1 cursor-pointer"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+        </ViewTransition>
       )}
 
       {/* Hero Continue Watching Banner (hidden when actively searching) */}
       {!isSearching && (
-        <div style={{ viewTransitionName: 'continue-watching-hero' }} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 sm:p-5 shadow-xs mb-8 transition-all">
-          <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch">
-          {/* Thumbnail Container with Corner Delete Button */}
-          <div className="relative aspect-video w-full md:w-80 rounded-xl overflow-hidden bg-black shrink-0 group border border-stone-200/50 dark:border-stone-800">
-            <Link
-              href={recentUrl}
-              onClick={() => onResumeCourse(recentCourse)}
-              className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
-              aria-label={`Resume course: ${recentCourse.video.title}`}
-            >
-              {recentCourse.video.thumbnailUrl ? (
-                <Image
-                  src={recentCourse.video.thumbnailUrl}
-                  alt=""
-                  fill
-                  className="object-cover group-hover:scale-102 transition-transform duration-300"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-stone-900">
-                  <Play className="w-8 h-8 text-stone-500" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <div className="w-11 h-11 rounded-full bg-primary/95 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
-                </div>
-              </div>
-              {recentCourse.lastPlayedSeconds > 0 && (
-                <div className="absolute bottom-2 right-2 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
-                  {secondsToTimestamp(recentCourse.lastPlayedSeconds)}
-                </div>
-              )}
-            </Link>
-
-            {/* Corner Delete Button */}
-            <button
-              type="button"
-              onClick={(e) => handleOpenDelete(recentCourse.video.id, recentCourse.video.title, e)}
-              title="Remove course from saved list"
-              aria-label={`Remove ${recentCourse.video.title} from saved courses`}
-              className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
-            >
-              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* Details & Resume CTA */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between pt-1">
-            <div>
-              <div className="mb-1.5">
-                <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
-                  Continue Learning
-                </span>
-              </div>
-
-              <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+        <ViewTransition enter="fade-in" exit="fade-out">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 sm:p-5 shadow-xs mb-8 transition-all">
+            <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch">
+            {/* Thumbnail Container with Corner Delete Button */}
+            <ViewTransition name={`course-hero-${recentCourse.video.id}`} share="morph">
+              <div className="relative aspect-video w-full md:w-80 rounded-xl overflow-hidden bg-black shrink-0 group border border-stone-200/50 dark:border-stone-800">
                 <Link
                   href={recentUrl}
+                  transitionTypes={['nav-forward']}
+                  prefetch={true}
                   onClick={() => onResumeCourse(recentCourse)}
-                  className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                  className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
+                  aria-label={`Resume course: ${recentCourse.video.title}`}
                 >
-                  {recentCourse.video.title}
+                  {getYouTubeThumbnail(recentCourse.video.id, recentCourse.video.thumbnailUrl) ? (
+                    <Image
+                      src={getYouTubeThumbnail(recentCourse.video.id, recentCourse.video.thumbnailUrl)}
+                      alt=""
+                      fill
+                      className="object-cover group-hover:scale-102 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-stone-900">
+                      <Play size={32} strokeWidth={2} className="text-stone-500" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-full bg-primary/95 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                      <Play size={20} strokeWidth={2} className="fill-current ml-0.5" />
+                    </div>
+                  </div>
+                  {recentCourse.lastPlayedSeconds > 0 && (
+                    <div className="absolute bottom-2 right-2 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
+                      {secondsToTimestamp(recentCourse.lastPlayedSeconds)}
+                    </div>
+                  )}
                 </Link>
-              </h2>
 
-              {recentCourse.video.author && (
-                <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-1 truncate">
-                  {recentCourse.video.author}
+                {/* Corner Delete Button */}
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenDelete(recentCourse.video.id, recentCourse.video.title, e)}
+                  title="Remove course from saved list"
+                  aria-label={`Remove ${recentCourse.video.title} from saved courses`}
+                  className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
+                >
+                  <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
+                </button>
+              </div>
+            </ViewTransition>
+
+            {/* Details & Resume CTA */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between pt-1">
+              <div>
+                <div className="mb-1.5">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400">
+                    Continue Learning
+                  </span>
+                </div>
+
+                <h2 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+                  <Link
+                    href={recentUrl}
+                    transitionTypes={['nav-forward']}
+                    prefetch={true}
+                    onClick={() => onResumeCourse(recentCourse)}
+                    className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                  >
+                    {recentCourse.video.title}
+                  </Link>
+                </h2>
+
+                {recentCourse.video.author && (
+                  <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-1 truncate">
+                    {recentCourse.video.author}
+                  </p>
+                )}
+
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-1">
+                  Resuming at Ch. {recentCourse.lastPlayedChapterIndex + 1}: {recentLastChapter.title}
                 </p>
-              )}
-
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-1">
-                Resuming at Ch. {recentCourse.lastPlayedChapterIndex + 1}: {recentLastChapter.title}
-              </p>
-            </div>
-
-            {/* Bottom Progress & Button */}
-            <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 dark:text-stone-400 mb-1">
-                  <span>{recentCompleted}/{recentTotal} chapters</span>
-                  <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{recentPercentage}%</span>
-                </div>
-                <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${recentPercentage}%` }}
-                  />
-                </div>
               </div>
 
-              <Link
-                href={recentUrl}
-                onClick={() => onResumeCourse(recentCourse)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors shrink-0 active:scale-98"
-              >
-                <span>Resume</span>
-                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-              </Link>
+              {/* Bottom Progress & Button */}
+              <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-2xs sm:text-xs text-stone-600 dark:text-stone-400 mb-1">
+                    <span>{recentCompleted}/{recentTotal} chapters</span>
+                    <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{recentPercentage}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${recentPercentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                <Link
+                  href={recentUrl}
+                  transitionTypes={['nav-forward']}
+                  prefetch={true}
+                  onClick={() => onResumeCourse(recentCourse)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors shrink-0 active:scale-98"
+                >
+                  <span>Resume</span>
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ViewTransition>
       )}
 
       {/* All Saved Courses / Search Results */}
@@ -364,44 +354,85 @@ export function CourseHistoryShelf({
             </span>
           </div>
 
-          {/* Debounced Search Bar */}
-          <div className="relative w-full sm:w-64 md:w-72">
-            {isDebouncing ? (
-              <Loader2
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin pointer-events-none"
-                aria-hidden="true"
-              />
-            ) : (
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500 pointer-events-none"
-                aria-hidden="true"
-              />
-            )}
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search courses or chapters..."
-              aria-label="Search saved courses"
-              className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl text-xs sm:text-sm pl-9 pr-8 py-2 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-primary min-h-10 sm:min-h-9 transition-colors shadow-xs"
-            />
-            {searchQuery && (
+          {/* Right Toolbar: Export, Import & Search Bar */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search query"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded-md cursor-pointer"
+                onClick={handleExport}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors cursor-pointer min-h-10 sm:min-h-9"
+                title="Download JSON backup of courses"
+                aria-label="Export backup"
               >
-                <X className="w-3.5 h-3.5" aria-hidden="true" />
+                <Upload size={14} strokeWidth={2} aria-hidden="true" />
+                <span className="hidden xs:inline">Export</span>
               </button>
-            )}
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 bg-white hover:bg-stone-100 dark:bg-stone-900 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-lg sm:rounded-xl transition-colors cursor-pointer min-h-10 sm:min-h-9"
+                title="Import JSON backup"
+                aria-label="Import backup"
+              >
+                <Download size={14} strokeWidth={2} aria-hidden="true" />
+                <span className="hidden xs:inline">Import</span>
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImportFile}
+                accept=".json,application/json"
+                aria-label="Upload JSON backup"
+                className="hidden"
+              />
+            </div>
+
+            {/* Debounced Search Bar */}
+            <div className="relative flex-1 sm:w-64 md:w-72">
+              {isDebouncing ? (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 animate-spin pointer-events-none inline-flex">
+                  <Loader2
+                    size={16}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
+                </div>
+              ) : (
+                <Search
+                  size={16}
+                  strokeWidth={2}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 pointer-events-none"
+                  aria-hidden="true"
+                />
+              )}
+              <input
+                type="text"
+                role="searchbox"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search courses or chapters..."
+                aria-label="Search saved courses"
+                className="w-full bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-600 rounded-lg sm:rounded-xl text-xs sm:text-sm pl-9 pr-8 py-2 text-stone-900 dark:text-stone-100 placeholder:text-stone-500 dark:placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-emerald-500 focus:border-primary dark:focus:border-emerald-500 min-h-10 sm:min-h-9 transition-colors shadow-xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search query"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded-md cursor-pointer"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {isSearching && filteredCourses.length === 0 ? (
           <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-8 sm:p-12 text-center shadow-xs">
             <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-400 dark:text-stone-500 mx-auto mb-3">
-              <Search className="w-5 h-5" aria-hidden="true" />
+              <Search size={20} strokeWidth={2} aria-hidden="true" />
             </div>
             <h3 className="text-sm sm:text-base font-semibold text-stone-900 dark:text-stone-100 mb-1">
               No courses found
@@ -415,7 +446,7 @@ export function CourseHistoryShelf({
                 onClick={() => setSearchQuery('')}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 rounded-lg transition-colors cursor-pointer min-h-9"
               >
-                <X className="w-3.5 h-3.5" aria-hidden="true" />
+                <X size={14} aria-hidden="true" />
                 <span>Clear search</span>
               </button>
               {(onAddNewCourse || onOpenSearch) && (
@@ -424,8 +455,8 @@ export function CourseHistoryShelf({
                   onClick={onAddNewCourse || onOpenSearch}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-primary dark:text-emerald-400 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors cursor-pointer min-h-9"
                 >
-                  <Search size={14} strokeWidth={2} aria-hidden="true" />
-                  <span>+ Add from YouTube</span>
+                  <YouTubeIcon size={14} branded />
+                  <span>Search YouTube</span>
                 </button>
               )}
             </div>
@@ -449,96 +480,97 @@ export function CourseHistoryShelf({
                   : null;
 
               return (
-                <div
-                  key={c.video.id}
-                  style={{ viewTransitionName: `course-card-${c.video.id}` }}
-                  className="course-card-transition bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden shadow-xs hover:border-primary/50 dark:hover:border-emerald-500/50 transition-all flex flex-col justify-between group"
-                >
-                  <div>
-                    {/* Thumbnail Container with Corner Delete Button */}
-                    <div className="relative aspect-video w-full bg-black block overflow-hidden rounded-t-xl">
-                      <Link
-                        href={courseUrl}
-                        onClick={() => onResumeCourse(c)}
-                        className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
-                        aria-label={`Open course: ${c.video.title}`}
-                      >
-                        {c.video.thumbnailUrl ? (
-                          <Image
-                            src={c.video.thumbnailUrl}
-                            alt=""
-                            fill
-                            className="object-cover group-hover:scale-102 transition-transform duration-300"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-stone-900">
-                            <Play className="w-6 h-6 text-stone-500" />
-                          </div>
-                        )}
-                        {c.lastPlayedSeconds > 0 && (
-                          <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
-                            {secondsToTimestamp(c.lastPlayedSeconds)}
-                          </div>
-                        )}
-                      </Link>
-
-                      {/* Corner Delete Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleOpenDelete(c.video.id, c.video.title, e)}
-                        title="Remove course"
-                        aria-label={`Remove ${c.video.title}`}
-                        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-3 sm:p-4">
-                      <h3 className="text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+                <ViewTransition key={c.video.id}>
+                  <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden shadow-xs hover:border-primary/50 dark:hover:border-emerald-500/50 transition-all flex flex-col justify-between group">
+                    <div>
+                      {/* Thumbnail Container with Corner Delete Button */}
+                      <div className="relative aspect-video w-full bg-black block overflow-hidden rounded-t-xl">
                         <Link
                           href={courseUrl}
+                          transitionTypes={['nav-forward']}
+                          prefetch={true}
                           onClick={() => onResumeCourse(c)}
-                          className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                          className="absolute inset-0 z-0 block group-hover:opacity-95 transition-opacity"
+                          aria-label={`Open course: ${c.video.title}`}
                         >
-                          {c.video.title}
+                          {getYouTubeThumbnail(c.video.id, c.video.thumbnailUrl) ? (
+                            <Image
+                              src={getYouTubeThumbnail(c.video.id, c.video.thumbnailUrl)}
+                              alt=""
+                              fill
+                              className="object-cover group-hover:scale-102 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-stone-900">
+                              <Play size={24} strokeWidth={2} className="text-stone-500" />
+                            </div>
+                          )}
+                          {c.lastPlayedSeconds > 0 && (
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white px-1.5 py-0.5 rounded text-2xs font-mono font-tnum">
+                              {secondsToTimestamp(c.lastPlayedSeconds)}
+                            </div>
+                          )}
                         </Link>
-                      </h3>
 
-                      {c.video.author && (
-                        <p className="text-xs font-medium text-stone-700 dark:text-stone-300 truncate mt-1">
-                          {c.video.author}
-                        </p>
-                      )}
+                        {/* Corner Delete Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenDelete(c.video.id, c.video.title, e)}
+                          title="Remove course"
+                          aria-label={`Remove ${c.video.title}`}
+                          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-black/60 hover:bg-rose-600/90 text-white/80 hover:text-white backdrop-blur-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-sm"
+                        >
+                          <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                      </div>
 
-                      {matchedChapter ? (
-                        <p className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium mt-1.5 truncate">
-                          Matched chapter: &ldquo;{matchedChapter.title}&rdquo;
-                        </p>
-                      ) : (
-                        <p className="text-2xs text-stone-500 dark:text-stone-400 mt-1.5 truncate">
-                          Ch. {c.lastPlayedChapterIndex + 1}: {lastChapter?.title || 'Start'}
-                        </p>
-                      )}
+                      {/* Content */}
+                      <div className="p-3 sm:p-4">
+                        <h3 className="text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug">
+                          <Link
+                            href={courseUrl}
+                            transitionTypes={['nav-forward']}
+                            prefetch={true}
+                            onClick={() => onResumeCourse(c)}
+                            className="hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                          >
+                            {c.video.title}
+                          </Link>
+                        </h3>
+
+                        {c.video.author && (
+                          <p className="text-xs font-medium text-stone-700 dark:text-stone-300 truncate mt-1">
+                            {c.video.author}
+                          </p>
+                        )}
+
+                        {matchedChapter ? (
+                          <p className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium mt-1.5 truncate">
+                            Matched chapter: &ldquo;{matchedChapter.title}&rdquo;
+                          </p>
+                        ) : (
+                          <p className="text-2xs text-stone-500 dark:text-stone-400 mt-1.5 truncate">
+                            Ch. {c.lastPlayedChapterIndex + 1}: {lastChapter?.title || 'Start'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Progress Footer */}
+                    <div className="p-3 sm:p-4 pt-0">
+                      <div className="flex items-center justify-between text-2xs text-stone-600 dark:text-stone-400 mb-1">
+                        <span>{completedCount}/{totalChapters} completed</span>
+                        <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{percentage}%</span>
+                      </div>
+                      <div className="w-full h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-
-                  {/* Progress Footer */}
-                  <div className="p-3 sm:p-4 pt-0">
-                    <div className="flex items-center justify-between text-2xs text-stone-600 dark:text-stone-400 mb-1">
-                      <span>{completedCount}/{totalChapters} completed</span>
-                      <span className="font-semibold text-stone-900 dark:text-stone-100 font-mono font-tnum">{percentage}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                </ViewTransition>
               );
             })}
           </div>

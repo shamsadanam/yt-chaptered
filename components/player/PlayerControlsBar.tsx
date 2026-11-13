@@ -483,11 +483,13 @@ export function PlayerControlsBar({
             className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary-hover active:scale-98 text-white border border-primary/40 shadow-lg flex items-center justify-center cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-75 disabled:cursor-not-allowed shrink-0 transition-transform"
           >
             {isPlayLoading ? (
-              <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5 text-white" aria-hidden="true" />
+              <span className="animate-spin inline-flex">
+                <Loader2 size={18} className="text-white" aria-hidden="true" />
+              </span>
             ) : isPlaying ? (
-              <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" aria-hidden="true" />
+              <Pause size={18} className="fill-current" aria-hidden="true" />
             ) : (
-              <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" aria-hidden="true" />
+              <Play size={18} className="fill-current ml-0.5" aria-hidden="true" />
             )}
           </button>
 

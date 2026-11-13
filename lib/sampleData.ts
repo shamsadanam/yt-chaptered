@@ -5,6 +5,7 @@ export interface SampleVideoData {
   author: string;
   courseName: string;
   chapterCount: number;
+  thumbnailUrl: string;
   description: string;
 }
 
@@ -15,6 +16,7 @@ export const SAMPLE_DATA: SampleVideoData = {
   author: 'freeCodeCamp.org',
   courseName: 'Harvard CS50',
   chapterCount: 12,
+  thumbnailUrl: 'https://img.youtube.com/vi/gmuTjeQUbTM/maxresdefault.jpg',
   description: `00:00:00 Lecture 0 - Scratch
 01:57:40 Lecture 1 - C
 04:27:58 Lecture 2 - Arrays
