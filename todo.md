@@ -4,7 +4,7 @@
 
 - [x] Add overlay inside the fullscreen player for chapters, and some player controls (chapter drawer, timeline scrubber, CC captions toggle, volume controls, and keyboard shortcuts).
 - [x] Search YouTube from this web app and add video here; show if video is chapterable via an icon/small description.
-  - [x] make the cc button work, if not then find alternative
+  - [x] Custom CC button removed (captions controlled directly via YouTube native player CC icon)
   - [x] redesign the mobile header and bottom navbar (integrated 4-tab mobile navigation with search)
   - [x] do a code review using this - `npx skills@latest add mattpocock/skills --skill=setup-matt-pocock-skills`
 - [ ] Direct & shared URL UX analysis (`/watch/[id]?t=...`): Analyze and design first-time visitor onboarding when accessing shared course URLs (server-side oEmbed preview to replace blank spinner, active chapter highlight and auto-scroll for timestamp parameter, explicit "Add to My Courses" prompt vs. silent IndexedDB save, and handling videos without chapters).

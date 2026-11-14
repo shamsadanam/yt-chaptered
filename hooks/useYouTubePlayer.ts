@@ -112,12 +112,6 @@ export function useYouTubePlayer({
   const desiredPlaybackRateRef = useRef(playbackRate);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(initialChapterIndex);
   const [playerError, setPlayerError] = useState<string | null>(null);
-  const [isCaptionsEnabled, setIsCaptionsEnabled] = useState(false);
-  const isCaptionsEnabledRef = useRef(isCaptionsEnabled);
-  useEffect(() => {
-    isCaptionsEnabledRef.current = isCaptionsEnabled;
-  }, [isCaptionsEnabled]);
-  const [isCaptionsSupported, setIsCaptionsSupported] = useState<boolean | undefined>(undefined);
 
   const [volume, setVolumeState] = useState(() => {
     const pref = getStoredVolumePreference();
@@ -309,11 +303,6 @@ export function useYouTubePlayer({
               setIsMutedState(Boolean(event.target.isMuted()));
             }
 
-            // Pre-load captions module in the background so tracklist is available on demand
-            if (typeof event.target.loadModule === 'function') {
-              event.target.loadModule('captions');
-            }
-
             // Seek to initial resume timestamp if provided
             const startTime = initialStartTimeRef.current;
             if (startTime > 0) {
@@ -326,19 +315,6 @@ export function useYouTubePlayer({
           onApiChange: () => {
             if (isCancelled || !playerRef.current) return;
             const p = playerRef.current;
-            if (typeof p.getOption === 'function') {
-              try {
-                const trackList = p.getOption('captions', 'tracklist') as Array<{ languageCode?: string }> | undefined;
-                if (Array.isArray(trackList)) {
-                  setIsCaptionsSupported(trackList.length > 0);
-                }
-                const track = p.getOption('captions', 'track');
-                const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
-                setIsCaptionsEnabled(isCurrentlyOn);
-              } catch {
-                setIsCaptionsSupported(false);
-              }
-            }
             if (typeof p.isMuted === 'function') {
               setIsMutedState(Boolean(p.isMuted()));
             }
@@ -377,10 +353,6 @@ export function useYouTubePlayer({
                 }
               }
 
-              // Ensure captions module is active when playback begins
-              if (typeof event.target.loadModule === 'function') {
-                event.target.loadModule('captions');
-              }
             } else if (playerState === 2) {
               if (playStateTimeoutRef.current) clearTimeout(playStateTimeoutRef.current);
               setIsPlaying(false);
@@ -461,7 +433,7 @@ export function useYouTubePlayer({
           });
         }
 
-        // Sync volume, mute & captions if adjusted inside YouTube iframe
+        // Sync volume & mute if adjusted inside YouTube iframe
         if (playerRef.current) {
           if (customMutedRef.current === null && typeof playerRef.current.isMuted === 'function') {
             const m = Boolean(playerRef.current.isMuted());
@@ -471,15 +443,6 @@ export function useYouTubePlayer({
             const v = playerRef.current.getVolume();
             if (typeof v === 'number' && !isNaN(v)) {
               setVolumeState((prev) => (prev !== v ? v : prev));
-            }
-          }
-          if (typeof playerRef.current.getOption === 'function') {
-            try {
-              const track = playerRef.current.getOption('captions', 'track');
-              const isCurrentlyOn = Boolean(track && typeof track === 'object' && Object.keys(track).length > 0);
-              setIsCaptionsEnabled((prev) => (prev !== isCurrentlyOn ? isCurrentlyOn : prev));
-            } catch {
-              // Module loading
             }
           }
         }
@@ -636,62 +599,6 @@ export function useYouTubePlayer({
     }
   }, []);
 
-  const toggleCaptions = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-
-    try {
-      if (typeof player.loadModule === 'function') {
-        player.loadModule('captions');
-      }
-
-      const currentTrack = typeof player.getOption === 'function' ? player.getOption('captions', 'track') : null;
-      const isCurrentlyOn =
-        isCaptionsEnabledRef.current ||
-        Boolean(currentTrack && typeof currentTrack === 'object' && Object.keys(currentTrack).length > 0);
-
-      if (isCurrentlyOn) {
-        if (typeof player.setOption === 'function') {
-          player.setOption('captions', 'track', {});
-        }
-        if (typeof player.unloadModule === 'function') {
-          player.unloadModule('captions');
-        }
-        setIsCaptionsEnabled(false);
-      } else {
-        const activateCaptions = () => {
-          if (!playerRef.current) return;
-          const p = playerRef.current;
-          let trackToSet: unknown = { languageCode: 'en' };
-          if (typeof p.getOption === 'function') {
-            const trackList = p.getOption('captions', 'tracklist') as Array<{ languageCode?: string }> | undefined;
-            if (Array.isArray(trackList) && trackList.length > 0) {
-              const enTrack = trackList.find(
-                (t) => t.languageCode === 'en' || t.languageCode?.startsWith('en')
-              );
-              trackToSet = enTrack || trackList[0];
-              setIsCaptionsSupported(true);
-            } else if (trackList !== undefined && trackList.length === 0) {
-              setIsCaptionsSupported(false);
-            }
-          }
-          if (typeof p.setOption === 'function') {
-            p.setOption('captions', 'track', trackToSet);
-          }
-        };
-
-        activateCaptions();
-        setTimeout(activateCaptions, 150);
-        setTimeout(activateCaptions, 400);
-        setTimeout(activateCaptions, 800);
-
-        setIsCaptionsEnabled(true);
-      }
-    } catch (err) {
-      console.warn('Failed to toggle captions:', err);
-      setIsCaptionsSupported(false);
-    }
-  }, []);
 
   const setVolume = useCallback((newVolume: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(newVolume)));
@@ -741,8 +648,6 @@ export function useYouTubePlayer({
     playbackRate,
     currentChapterIndex,
     playerError,
-    isCaptionsEnabled,
-    isCaptionsSupported,
     volume,
     isMuted,
     seekToChapter,
@@ -753,6 +658,5 @@ export function useYouTubePlayer({
     toggleMute,
     play,
     pause,
-    toggleCaptions,
   };
 }

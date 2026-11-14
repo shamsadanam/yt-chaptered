@@ -15,7 +15,6 @@ import {
   Volume1,
   Volume2,
   VolumeX,
-  Subtitles,
   Maximize2,
   Minimize2,
   RectangleHorizontal,
@@ -73,8 +72,6 @@ export function PlayerControlsBar({
     playbackRate,
     volume,
     isMuted,
-    isCaptionsEnabled = false,
-    isCaptionsSupported,
   } = playerState;
 
   const {
@@ -86,7 +83,6 @@ export function PlayerControlsBar({
     setPlaybackRate: onSetPlaybackRate,
     setVolume: onSetVolume,
     toggleMute: onToggleMute,
-    toggleCaptions: onToggleCaptions,
   } = playerActions;
 
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -95,16 +91,6 @@ export function PlayerControlsBar({
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
   const [hoveredChapterTitle, setHoveredChapterTitle] = useState<string | null>(null);
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const [showCaptionsNotice, setShowCaptionsNotice] = useState(false);
-  const captionsNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (captionsNoticeTimeoutRef.current) {
-        clearTimeout(captionsNoticeTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!isVolumeOpen) return;
@@ -141,21 +127,6 @@ export function PlayerControlsBar({
       return () => cancelAnimationFrame(handle);
     }
   }, [visible, isVolumeOpen]);
-
-  const handleCaptionsClick = useCallback(() => {
-    onUserActivity();
-    if (isCaptionsSupported === false) {
-      setShowCaptionsNotice(true);
-      if (captionsNoticeTimeoutRef.current) {
-        clearTimeout(captionsNoticeTimeoutRef.current);
-      }
-      captionsNoticeTimeoutRef.current = setTimeout(() => {
-        setShowCaptionsNotice(false);
-      }, 3500);
-      return;
-    }
-    onToggleCaptions?.();
-  }, [isCaptionsSupported, onToggleCaptions, onUserActivity]);
 
   const splitNotches = useMemo(() => {
     if (duration <= 0) return null;
@@ -232,9 +203,9 @@ export function PlayerControlsBar({
       onMouseLeave={() => onHoverControls(false)}
       className={`absolute ${
         isFullscreenMode
-          ? 'bottom-3 sm:bottom-6 left-3 sm:left-6 right-3 sm:right-6 max-w-4xl p-2.5 sm:p-3.5'
-          : 'bottom-2 sm:bottom-4 left-2 sm:left-6 right-2 sm:right-6 max-w-3xl lg:max-w-4xl p-2 sm:p-3'
-      } z-20 mx-auto rounded-xl sm:rounded-2xl bg-stone-950/85 backdrop-blur-md border border-white/10 shadow-2xl flex flex-col gap-1 sm:gap-2 pointer-events-auto transition-all duration-200 ${
+          ? 'bottom-3 sm:bottom-6 inset-x-3 sm:inset-x-6 mx-auto max-w-4xl p-2.5 sm:p-3.5'
+          : 'bottom-2 sm:bottom-4 inset-x-2 sm:inset-x-6 mx-auto max-w-3xl lg:max-w-4xl p-2 sm:p-3'
+      } z-20 rounded-xl sm:rounded-2xl bg-stone-950/85 backdrop-blur-md border border-white/10 shadow-2xl flex flex-col gap-1 sm:gap-2 pointer-events-auto transition-all duration-200 ${
         visible && !isLocked
           ? 'opacity-100 translate-y-0'
           : 'opacity-0 translate-y-2 pointer-events-none'
@@ -297,8 +268,8 @@ export function PlayerControlsBar({
         </div>
       </div>
 
-      <div className="relative flex flex-nowrap items-center justify-between gap-1 sm:gap-2 w-full min-h-8 sm:min-h-12">
-        <div className="order-1 sm:flex-1 flex items-center justify-start gap-1 sm:gap-2">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-2 w-full min-h-8 sm:min-h-12">
+        <div className="justify-self-start flex items-center gap-1 sm:gap-2 min-w-0">
           <div className={`${isFullscreenMode ? '' : 'hidden sm:block'} relative`} ref={volumeMenuRef}>
             <button
               type="button"
@@ -438,7 +409,7 @@ export function PlayerControlsBar({
           </div>
         </div>
 
-        <div className="order-2 shrink-0 flex items-center justify-center gap-0.5 sm:gap-1.5 sm:absolute sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 pointer-events-auto">
+        <div className="justify-self-center shrink-0 flex items-center justify-center gap-0.5 sm:gap-1.5 pointer-events-auto">
           <button
             type="button"
             onClick={() => {
@@ -521,51 +492,7 @@ export function PlayerControlsBar({
           </button>
         </div>
 
-        <div className="order-3 sm:flex-1 flex items-center justify-end gap-1 sm:gap-2">
-          {onToggleCaptions && (
-            <div className="relative inline-flex items-center">
-              {showCaptionsNotice && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 rounded-lg bg-stone-900/95 border border-white/20 shadow-xl text-2xs text-stone-200 whitespace-nowrap pointer-events-none"
-                >
-                  Captions are controlled via YouTube player native CC icon
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-stone-900" />
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={handleCaptionsClick}
-                title={
-                  isCaptionsSupported === false
-                    ? 'Captions controlled via native YouTube player CC icon'
-                    : isCaptionsEnabled
-                    ? 'Turn off captions (C)'
-                    : 'Toggle captions (C)'
-                }
-                aria-label={
-                  isCaptionsSupported === false
-                    ? 'Captions controlled via native YouTube player CC icon'
-                    : isCaptionsEnabled
-                    ? 'Turn off captions'
-                    : 'Toggle captions'
-                }
-                aria-pressed={isCaptionsEnabled}
-                className={`min-h-8 min-w-8 sm:min-h-11 sm:min-w-11 inline-flex items-center justify-center rounded-lg sm:rounded-xl border transition-colors cursor-pointer touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  isCaptionsEnabled
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-stone-900/80 hover:bg-stone-800 text-stone-200 hover:text-white border-white/15'
-                }`}
-              >
-                <Subtitles
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isCaptionsEnabled ? 'text-white' : 'text-stone-300'}`}
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-          )}
-
+        <div className="justify-self-end flex items-center justify-end gap-1 sm:gap-2 min-w-0">
           {isFullscreenMode ? (
             onToggleLock && (
               <button

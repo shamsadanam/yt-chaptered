@@ -44,7 +44,6 @@ export function FullscreenOverlay({
     seekBy,
     setVolume,
     toggleMute,
-    toggleCaptions,
   } = playerActions;
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -146,13 +145,6 @@ export function FullscreenOverlay({
         case "I":
           e.preventDefault();
           setIsDrawerOpen((prev) => !prev);
-          resetHideTimer();
-          break;
-
-        case "c":
-        case "C":
-          e.preventDefault();
-          toggleCaptions?.();
           resetHideTimer();
           break;
 

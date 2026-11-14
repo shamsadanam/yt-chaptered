@@ -38,6 +38,13 @@ import {
   getCompletedChapterIdsSnapshot,
   getCompletedChapterIdsServerSnapshot,
 } from "../lib/storage";
+import {
+  isCurrentlyFullscreen,
+  requestFullscreen,
+  exitFullscreen,
+  lockOrientation,
+  unlockOrientation,
+} from "../lib/fullscreen";
 
 interface PlaylistViewProps {
   playlist: ParsedPlaylist;
@@ -174,8 +181,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     playbackRate,
     currentChapterIndex,
     playerError,
-    isCaptionsEnabled,
-    isCaptionsSupported,
     volume,
     isMuted,
     seekToChapter,
@@ -186,7 +191,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     toggleMute,
     play,
     pause,
-    toggleCaptions,
   } = useYouTubePlayer({
     containerId,
     videoId: playlist.video.id,
@@ -238,24 +242,15 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     };
   }, [isPlaying, isSpeedMenuOpen, isHoveringControls]);
 
-  // Exit fullscreen when tab/device is hidden to prevent mobile viewport snapshot glitches
+  // Reset portrait orientation transform when tab/device is hidden to prevent mobile viewport snapshot glitches
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        const doc = document as unknown as {
-          fullscreenElement?: Element;
-          webkitFullscreenElement?: Element;
-          exitFullscreen?: () => Promise<void>;
-          webkitExitFullscreen?: () => Promise<void>;
-        };
-        if (doc.fullscreenElement || doc.webkitFullscreenElement) {
-          if (doc.exitFullscreen) {
-            doc.exitFullscreen().catch(() => {});
-          } else if (doc.webkitExitFullscreen) {
-            doc.webkitExitFullscreen().catch(() => {});
-          }
+        setIsPortrait(false);
+      } else {
+        if (typeof window !== "undefined") {
+          setIsPortrait(window.innerHeight > window.innerWidth);
         }
-        setIsFullscreen(false);
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -267,30 +262,25 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
   // Sync fullscreen state across vendor implementations
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const isNowFullscreen = !!(
-        document.fullscreenElement ||
-        (document as { webkitFullscreenElement?: Element })
-          .webkitFullscreenElement
-      );
+      const isNowFullscreen = isCurrentlyFullscreen();
       setIsFullscreen(isNowFullscreen);
       if (!isNowFullscreen) {
-        try {
-          if (screen.orientation && "unlock" in screen.orientation) {
-            (screen.orientation as { unlock: () => void }).unlock();
-          }
-        } catch {
-          // ignore unlock errors
-        }
+        unlockOrientation();
       }
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
 
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
         "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
+      document.removeEventListener(
+        "mozfullscreenchange",
         handleFullscreenChange,
       );
     };
@@ -347,85 +337,63 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     }
   }, [currentChapterIndex]);
 
-  const handleToggleComplete = (chapterId: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    toggleChapterCompletion(playlist.video.id, chapterId);
-  };
+  const handleToggleComplete = useCallback(
+    (chapterId: string, e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      toggleChapterCompletion(playlist.video.id, chapterId);
+    },
+    [playlist.video.id]
+  );
 
-  const handleSelectChapter = (idx: number) => {
-    seekToChapter(idx);
-    const chap = playlist.chapters[idx];
-    if (chap) updateUrlTimestamp(chap.startTime);
-  };
+  const handleSelectChapter = useCallback(
+    (idx: number) => {
+      seekToChapter(idx);
+      const chap = playlist.chapters[idx];
+      if (chap) updateUrlTimestamp(chap.startTime);
+    },
+    [seekToChapter, playlist.chapters, updateUrlTimestamp]
+  );
 
-  const handleSeekBy = (deltaSeconds: number) => {
-    const newTime = seekBy(deltaSeconds);
-    updateUrlTimestamp(newTime);
-  };
+  const handleSeekBy = useCallback(
+    (deltaSeconds: number) => {
+      const newTime = seekBy(deltaSeconds);
+      updateUrlTimestamp(newTime);
+    },
+    [seekBy, updateUrlTimestamp]
+  );
 
-  const handleSeekToTime = (seconds: number) => {
-    seekToTime(seconds);
-    updateUrlTimestamp(seconds);
-  };
+  const handleSeekToTime = useCallback(
+    (seconds: number) => {
+      seekToTime(seconds);
+      updateUrlTimestamp(seconds);
+    },
+    [seekToTime, updateUrlTimestamp]
+  );
 
   const handleToggleFullscreen = useCallback(async () => {
     const elem = playerWrapperRef.current;
     if (!elem) return;
 
-    const doc = document as unknown as {
-      fullscreenElement?: Element;
-      webkitFullscreenElement?: Element;
-      exitFullscreen?: () => Promise<void>;
-      webkitExitFullscreen?: () => Promise<void>;
-    };
-
-    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+    if (!isCurrentlyFullscreen()) {
       try {
-        const elemWithVendor = elem as unknown as {
-          requestFullscreen?: () => Promise<void>;
-          webkitRequestFullscreen?: () => Promise<void>;
-        };
+        await requestFullscreen(elem);
 
-        if (elemWithVendor.requestFullscreen) {
-          await elemWithVendor.requestFullscreen();
-        } else if (elemWithVendor.webkitRequestFullscreen) {
-          await elemWithVendor.webkitRequestFullscreen();
-        }
-
-        // Lock landscape orientation on mobile devices supporting the Screen Orientation API
-        if (screen.orientation && "lock" in screen.orientation) {
-          try {
-            await (
-              screen.orientation as unknown as {
-                lock: (orientation: string) => Promise<void>;
-              }
-            ).lock("landscape");
-          } catch {
-            // Orientation lock may fail if unsupported or unpermitted
-          }
+        // Lock landscape orientation on mobile portrait devices supporting Screen Orientation API
+        if (isPortrait) {
+          await lockOrientation("landscape");
         }
       } catch (err) {
         console.warn("Fullscreen request failed:", err);
       }
     } else {
       try {
-        if (doc.exitFullscreen) {
-          await doc.exitFullscreen();
-        } else if (doc.webkitExitFullscreen) {
-          await doc.webkitExitFullscreen();
-        }
-        if (screen.orientation && "unlock" in screen.orientation) {
-          try {
-            (screen.orientation as unknown as { unlock: () => void }).unlock();
-          } catch {
-            // ignore
-          }
-        }
+        await exitFullscreen();
+        unlockOrientation();
       } catch (err) {
         console.warn("Exit fullscreen failed:", err);
       }
     }
-  }, []);
+  }, [isPortrait]);
 
   const handleTogglePlayPause = useCallback(() => {
     if (isPlaying) {
@@ -470,9 +438,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
       if (e.key === "t" || e.key === "T") {
         e.preventDefault();
         setIsTheaterMode((prev) => !prev);
-      } else if (e.key === "c" || e.key === "C") {
-        e.preventDefault();
-        toggleCaptions();
       } else if (e.key === "m" || e.key === "M") {
         e.preventDefault();
         toggleMute();
@@ -480,7 +445,7 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCaptions, toggleMute]);
+  }, [toggleMute]);
 
   const handleCopyTimestamps = async () => {
     const text =
@@ -687,8 +652,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                         playbackRate,
                         volume,
                         isMuted,
-                        isCaptionsEnabled,
-                        isCaptionsSupported,
                       }}
                       playerActions={{
                         play,
@@ -699,7 +662,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                         setPlaybackRate,
                         setVolume,
                         toggleMute,
-                        toggleCaptions,
                       }}
                       onToggleComplete={handleToggleComplete}
                       onExitFullscreen={handleToggleFullscreen}
@@ -709,12 +671,14 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                   {!isFullscreen && isReady && !playerError && (
                     <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
                       <div
-                        className="absolute inset-0 pointer-events-auto z-0"
+                        role="presentation"
+                        className="absolute top-12 sm:top-14 inset-x-0 bottom-0 pointer-events-auto z-0"
                         onClick={handleCanvasClick}
                         onDoubleClick={handleCanvasDoubleClick}
                         onPointerMove={(e) => {
                           if (e.pointerType !== "touch") resetControlsTimer();
                         }}
+                        aria-label="Video player double-click fullscreen overlay"
                       />
 
                       <PlayerControlsBar
@@ -732,8 +696,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                           playbackRate,
                           volume,
                           isMuted,
-                          isCaptionsEnabled,
-                          isCaptionsSupported,
                         }}
                         playerActions={{
                           play,
@@ -744,7 +706,6 @@ export function PlaylistView({ playlist, onReset }: PlaylistViewProps) {
                           setPlaybackRate,
                           setVolume,
                           toggleMute,
-                          toggleCaptions,
                         }}
                         isSpeedMenuOpen={isSpeedMenuOpen}
                         speedMenuRef={speedMenuRef}

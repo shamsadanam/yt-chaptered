@@ -7,8 +7,6 @@ export interface PlayerPlaybackState {
   playbackRate: number;
   volume: number;
   isMuted: boolean;
-  isCaptionsEnabled?: boolean;
-  isCaptionsSupported?: boolean;
 }
 
 export interface PlayerPlaybackActions {
@@ -20,6 +18,5 @@ export interface PlayerPlaybackActions {
   setPlaybackRate: (rate: number) => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
-  toggleCaptions?: () => void;
 }
 
