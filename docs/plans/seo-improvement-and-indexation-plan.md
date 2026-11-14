@@ -49,7 +49,7 @@ Following the comprehensive SEO and codebase audit for **ytChaptered**, this pla
     1. **`WebSite` Entity**: Canonical URL, site name, description.
     2. **`SoftwareApplication` Entity**:
        - `url`: `https://ytchaptered.com`
-       - `image`: `https://ytchaptered.com/screenshots/desktop-preview.png`
+       - `image`: `https://ytchaptered.com/screenshots/desktop-home.png`
        - `applicationCategory`: `EducationalApplication`
        - `author`: `Person` entity linking `Shamsad Anam` to `https://shamsad.com` (E-E-A-T authorship signal).
        - `offers`: Free tier representation (`price: "0"`, `priceCurrency: "USD"`).

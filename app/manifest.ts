@@ -45,14 +45,28 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     screenshots: [
       {
-        src: '/screenshots/desktop-preview.png',
+        src: '/screenshots/desktop-home.png',
         sizes: '1280x800',
         type: 'image/png',
         form_factor: 'wide',
-        label: 'ytChaptered desktop playlist and course organizer',
+        label: 'ytChaptered course creator and video chapter organizer',
       },
       {
-        src: '/screenshots/mobile-preview.png',
+        src: '/screenshots/desktop-watch.png',
+        sizes: '1280x800',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'ytChaptered desktop playlist playback and chapter checklist',
+      },
+      {
+        src: '/screenshots/mobile-home.png',
+        sizes: '750x1334',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'ytChaptered mobile course creator and video search',
+      },
+      {
+        src: '/screenshots/mobile-watch.png',
         sizes: '750x1334',
         type: 'image/png',
         form_factor: 'narrow',

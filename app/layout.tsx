@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     siteName: "ytChaptered",
     images: [
       {
-        url: "/screenshots/desktop-preview.png",
+        url: "/screenshots/desktop-home.png",
         width: 1280,
         height: 800,
         alt: "ytChaptered Course Creator and Chapter Navigation",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "ytChaptered — YouTube Timestamped Chaptered Course Creator",
     description:
       "Turn long, timestamped YouTube videos into interactive chaptered courses. 100% free, local-first progress tracking, and distraction-free playback.",
-    images: ["/screenshots/desktop-preview.png"],
+    images: ["/screenshots/desktop-home.png"],
   },
   icons: {
     icon: [

@@ -19,7 +19,7 @@
 ## Priority 2: PWA Experience & Storage Reliability
 
 - [x] Add `screenshots` definitions (desktop and mobile previews) to enable rich install prompts on Chromium browsers.
-- [ ] Update screenshots to also include/show homepage of the site. And make it the first one. the current ones will show after this one.
+- [x] Update screenshots to also include/show homepage of the site. And make it the first one. the current ones will show after this one.
 - [ ] Test installation and standalone launch on Chromium (desktop & Android) and Safari (iOS & macOS).
 - [ ] Run Google Lighthouse PWA audit (verify installability, manifest validity, theme color).
 
